@@ -35,7 +35,7 @@ export default function DeletedUsersPage() {
       fetchDeletedUsers({
         page,
         size: 20,
-        search: debouncedSearch || undefined,
+        q: debouncedSearch || undefined,
       }),
   });
 

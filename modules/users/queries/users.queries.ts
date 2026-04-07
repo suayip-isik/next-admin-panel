@@ -1,21 +1,16 @@
 import { apiClient } from "@/lib/api-client";
-import type { components } from "@/types/api.generated";
+import type { components, operations } from "@/types/api.generated";
 
 export type User = components["schemas"]["UserResponse"];
 export type DeletedUser = components["schemas"]["DeletedUserResponse"];
 export type UserStats = components["schemas"]["UserStatsResponse"];
 
-export interface UsersListParams {
-  page?: number;
-  size?: number;
-  search?: string;
-  role?: string;
-  is_active?: boolean;
-}
+export type UsersListParams =
+  operations["list_users_api_v1_users_get"]["parameters"]["query"];
 
 export async function fetchUsers(params: UsersListParams = {}) {
   const { data, error } = await apiClient.GET("/api/v1/users", {
-    params: { query: params as Record<string, unknown> },
+    params: { query: params },
   });
   if (error) throw error;
   return data;
@@ -29,7 +24,7 @@ export async function fetchUserStats() {
 
 export async function fetchDeletedUsers(params: UsersListParams = {}) {
   const { data, error } = await apiClient.GET("/api/v1/users/deleted", {
-    params: { query: params as Record<string, unknown> },
+    params: { query: params },
   });
   if (error) throw error;
   return data;

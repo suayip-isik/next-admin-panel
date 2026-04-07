@@ -57,7 +57,7 @@ export function UsersTable() {
   const { data, isLoading } = useQuery({
     queryKey: ["users", page, debouncedSearch],
     queryFn: () =>
-      fetchUsers({ page, size: 20, search: debouncedSearch || undefined }),
+      fetchUsers({ page, size: 20, q: debouncedSearch || undefined }),
   });
 
   const invalidate = () =>
