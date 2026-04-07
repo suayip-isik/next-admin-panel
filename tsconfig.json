@@ -19,7 +19,12 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/modules/*": ["./modules/*"],
+      "@/shared/*": ["./shared/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/types/*": ["./types/*"],
+      "@/messages/*": ["./messages/*"]
     }
   },
   "include": [

@@ -1,0 +1,422 @@
+{
+  "common": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "create": "Oluştur",
+    "confirm": "Onayla",
+    "back": "Geri",
+    "search": "Ara",
+    "filter": "Filtre",
+    "clear": "Temizle",
+    "loading": "Yükleniyor...",
+    "noResults": "Sonuç bulunamadı.",
+    "actions": "İşlemler",
+    "status": "Durum",
+    "active": "Aktif",
+    "inactive": "Pasif",
+    "yes": "Evet",
+    "no": "Hayır",
+    "all": "Tümü",
+    "name": "Ad",
+    "email": "E-posta",
+    "role": "Rol",
+    "createdAt": "Oluşturulma",
+    "updatedAt": "Güncelleme",
+    "id": "ID",
+    "description": "Açıklama",
+    "more": "Daha Fazla",
+    "close": "Kapat",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı!",
+    "required": "Zorunlu",
+    "optional": "Opsiyonel",
+    "enabled": "Etkin",
+    "disabled": "Devre Dışı",
+    "pagination": {
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "page": "{total} sayfadan {page}. sayfa",
+      "rows": "{count} kayıt"
+    }
+  },
+  "nav": {
+    "dashboard": "Gösterge Paneli",
+    "users": "Kullanıcılar",
+    "roles": "Roller",
+    "auditLogs": "Denetim Günlükleri",
+    "apiKeys": "API Anahtarları",
+    "notifications": "Bildirimler",
+    "profile": "Profil",
+    "security": "Güvenlik",
+    "signOut": "Çıkış Yap"
+  },
+  "auth": {
+    "login": {
+      "title": "Hesabınıza giriş yapın",
+      "subtitle": "Admin paneline erişmek için bilgilerinizi girin",
+      "email": "E-posta",
+      "emailPlaceholder": "admin@ornek.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Şifremi unuttum?",
+      "submit": "Giriş Yap",
+      "submitting": "Giriş yapılıyor...",
+      "errors": {
+        "invalidCredentials": "Geçersiz e-posta veya şifre.",
+        "accountInactive": "Hesabınız pasif durumda. Lütfen yönetici ile iletişime geçin.",
+        "tooManyRequests": "Çok fazla giriş denemesi. Lütfen daha sonra tekrar deneyin."
+      }
+    },
+    "totp": {
+      "title": "İki Faktörlü Doğrulama",
+      "subtitle": "Kimlik doğrulama uygulamanızdaki 6 haneli kodu veya yedek kod girin.",
+      "code": "Doğrulama Kodu",
+      "codePlaceholder": "000000",
+      "submit": "Doğrula",
+      "submitting": "Doğrulanıyor...",
+      "backToLogin": "Girişe dön",
+      "errors": {
+        "invalidCode": "Geçersiz veya süresi dolmuş kod.",
+        "invalidSession": "Oturum süresi doldu. Lütfen tekrar giriş yapın."
+      }
+    },
+    "forgotPassword": {
+      "title": "Şifrenizi sıfırlayın",
+      "subtitle": "E-posta adresinizi girin, size sıfırlama bağlantısı gönderelim.",
+      "email": "E-posta",
+      "submit": "Sıfırlama Bağlantısı Gönder",
+      "submitting": "Gönderiliyor...",
+      "successMessage": "Bu e-posta ile kayıtlı bir hesap varsa kısa süre içinde sıfırlama bağlantısı alacaksınız.",
+      "backToLogin": "Girişe dön"
+    },
+    "resetPassword": {
+      "title": "Yeni şifre belirleyin",
+      "subtitle": "Yeni şifrenizi aşağıya girin.",
+      "password": "Yeni Şifre",
+      "confirmPassword": "Şifreyi Onayla",
+      "submit": "Şifreyi Sıfırla",
+      "submitting": "Sıfırlanıyor...",
+      "successMessage": "Şifre başarıyla sıfırlandı. Artık giriş yapabilirsiniz.",
+      "errors": {
+        "passwordMismatch": "Şifreler eşleşmiyor.",
+        "invalidToken": "Sıfırlama bağlantısı geçersiz veya süresi dolmuş."
+      }
+    },
+    "verifyEmail": {
+      "title": "E-posta Doğrulama",
+      "verifying": "E-postanız doğrulanıyor...",
+      "successMessage": "E-postanız doğrulandı. Artık giriş yapabilirsiniz.",
+      "errorMessage": "Doğrulama bağlantısı geçersiz veya süresi dolmuş.",
+      "backToLogin": "Girişe dön"
+    }
+  },
+  "dashboard": {
+    "title": "Gösterge Paneli",
+    "subtitle": "Sisteminize genel bakış",
+    "stats": {
+      "totalUsers": "Toplam Kullanıcı",
+      "activeUsers": "Aktif Kullanıcı",
+      "inactiveUsers": "Pasif Kullanıcı",
+      "recentActivity": "Son Aktivite"
+    },
+    "recentAuditLogs": "Son Denetim Günlükleri",
+    "viewAll": "Tümünü gör"
+  },
+  "users": {
+    "title": "Kullanıcılar",
+    "subtitle": "Kullanıcı hesaplarını yönetin",
+    "searchPlaceholder": "Ad veya e-posta ile ara...",
+    "filters": {
+      "allRoles": "Tüm roller",
+      "allStatuses": "Tüm durumlar",
+      "active": "Aktif",
+      "inactive": "Pasif"
+    },
+    "columns": {
+      "user": "Kullanıcı",
+      "role": "Rol",
+      "status": "Durum",
+      "verified": "Doğrulandı",
+      "createdAt": "Katılım"
+    },
+    "detail": {
+      "title": "Kullanıcı Detayı",
+      "personalInfo": "Kişisel Bilgiler",
+      "fullName": "Ad Soyad",
+      "username": "Kullanıcı Adı",
+      "joinedAt": "Katılım",
+      "lastUpdated": "Son Güncelleme",
+      "accountStatus": "Hesap Durumu",
+      "emailVerified": "E-posta Doğrulandı",
+      "twoFactor": "İki Faktörlü Doğrulama"
+    },
+    "actions": {
+      "activate": "Aktifleştir",
+      "deactivate": "Pasifleştir",
+      "changeRole": "Rol Değiştir",
+      "delete": "Sil",
+      "restore": "Geri Yükle",
+      "viewDetail": "Detayı Gör"
+    },
+    "dialogs": {
+      "deactivate": {
+        "title": "Kullanıcıyı Pasifleştir",
+        "description": "{name} adlı kullanıcıyı pasifleştirmek istediğinize emin misiniz? Artık giriş yapamayacaklar.",
+        "confirm": "Pasifleştir"
+      },
+      "activate": {
+        "title": "Kullanıcıyı Aktifleştir",
+        "description": "{name} adlı kullanıcıyı aktifleştirmek istediğinize emin misiniz?",
+        "confirm": "Aktifleştir"
+      },
+      "delete": {
+        "title": "Kullanıcıyı Sil",
+        "description": "{name} adlı kullanıcıyı silmek istediğinize emin misiniz? Bu işlem Silinen Kullanıcılar sayfasından geri alınabilir.",
+        "confirm": "Sil"
+      },
+      "restore": {
+        "title": "Kullanıcıyı Geri Yükle",
+        "description": "{name} adlı kullanıcıyı geri yüklemek istediğinize emin misiniz?",
+        "confirm": "Geri Yükle"
+      },
+      "changeRole": {
+        "title": "Rol Değiştir",
+        "selectRole": "Bir rol seçin",
+        "confirm": "Rolü Değiştir"
+      }
+    },
+    "deletedUsers": {
+      "title": "Silinen Kullanıcılar",
+      "subtitle": "Soft-delete ile silinmiş kullanıcı hesapları",
+      "deletedAt": "Silinme Tarihi",
+      "empty": "Silinen kullanıcı bulunamadı."
+    },
+    "empty": "Kullanıcı bulunamadı.",
+    "successMessages": {
+      "activated": "Kullanıcı aktifleştirildi.",
+      "deactivated": "Kullanıcı pasifleştirildi.",
+      "deleted": "Kullanıcı silindi.",
+      "restored": "Kullanıcı geri yüklendi.",
+      "roleChanged": "Kullanıcı rolü güncellendi."
+    },
+    "errorMessages": {
+      "activateFailed": "Kullanıcı aktifleştirilemedi.",
+      "deactivateFailed": "Kullanıcı pasifleştirilemedi.",
+      "deleteFailed": "Kullanıcı silinemedi.",
+      "roleChangeFailed": "Kullanıcı rolü değiştirilemedi."
+    }
+  },
+  "roles": {
+    "title": "Roller",
+    "subtitle": "Rol ve izinleri yönetin",
+    "createRole": "Rol Oluştur",
+    "columns": {
+      "name": "Ad",
+      "description": "Açıklama",
+      "permissions": "İzinler",
+      "system": "Tür",
+      "createdAt": "Oluşturulma"
+    },
+    "systemRole": "Sistem",
+    "customRole": "Özel",
+    "permissionsCount": "{count} izin",
+    "form": {
+      "createTitle": "Rol Oluştur",
+      "editTitle": "Rolü Düzenle",
+      "name": "Rol Adı",
+      "namePlaceholder": "örn. içerik_editörü",
+      "nameHint": "Sadece küçük harf, rakam ve alt çizgi kullanılabilir.",
+      "description": "Açıklama",
+      "descriptionPlaceholder": "Bu rol ne için?",
+      "permissions": "İzinler",
+      "permissionsHint": "Bu rol için izinleri seçin.",
+      "submit": "Kaydet",
+      "submitting": "Kaydediliyor..."
+    },
+    "deleteDialog": {
+      "title": "Rolü Sil",
+      "description": "\"{name}\" rolünü silmek istediğinize emin misiniz? Bu role sahip kullanıcıların yeniden atanması gerekecek.",
+      "confirm": "Rolü Sil"
+    },
+    "empty": "Rol bulunamadı.",
+    "systemRoleProtected": "Sistem rolleri silinemez.",
+    "successMessages": {
+      "created": "Rol oluşturuldu.",
+      "updated": "Rol güncellendi.",
+      "deleted": "Rol silindi."
+    }
+  },
+  "auditLogs": {
+    "title": "Denetim Günlükleri",
+    "subtitle": "Sistem aktivitesi ve güvenlik olayları",
+    "searchPlaceholder": "Kullanıcı veya IP ile ara...",
+    "filters": {
+      "allActions": "Tüm eylemler",
+      "dateFrom": "Başlangıç",
+      "dateTo": "Bitiş",
+      "userId": "Kullanıcı ID"
+    },
+    "columns": {
+      "action": "Eylem",
+      "user": "Kullanıcı",
+      "ip": "IP Adresi",
+      "userAgent": "Kullanıcı Tarayıcısı",
+      "timestamp": "Zaman"
+    },
+    "detail": {
+      "title": "Günlük Detayı",
+      "action": "Eylem",
+      "user": "Kullanıcı",
+      "ipAddress": "IP Adresi",
+      "userAgent": "Kullanıcı Tarayıcısı",
+      "extra": "Ek Veriler",
+      "timestamp": "Zaman"
+    },
+    "empty": "Denetim günlüğü bulunamadı.",
+    "anonymous": "Anonim"
+  },
+  "apiKeys": {
+    "title": "API Anahtarları",
+    "subtitle": "API erişim anahtarlarınızı yönetin",
+    "createKey": "API Anahtarı Oluştur",
+    "columns": {
+      "name": "Ad",
+      "prefix": "Anahtar Öneki",
+      "scopes": "Kapsamlar",
+      "lastUsed": "Son Kullanım",
+      "expires": "Son Kullanım Tarihi",
+      "status": "Durum"
+    },
+    "form": {
+      "title": "API Anahtarı Oluştur",
+      "name": "Anahtar Adı",
+      "namePlaceholder": "örn. CI/CD Pipeline",
+      "scopes": "Kapsamlar",
+      "scopesHint": "Boş bırakırsanız sadece okuma erişimi verilir.",
+      "expiresAt": "Son Kullanım Tarihi",
+      "expiresAtHint": "Boş bırakırsanız süresiz geçerlidir.",
+      "submit": "Anahtarı Oluştur",
+      "submitting": "Oluşturuluyor..."
+    },
+    "createdDialog": {
+      "title": "API Anahtarı Oluşturuldu",
+      "warning": "Bu anahtarı şimdi kopyalayın. Bir daha gösterilmeyecek.",
+      "copy": "Anahtarı Kopyala"
+    },
+    "deleteDialog": {
+      "title": "API Anahtarını İptal Et",
+      "description": "\"{name}\" anahtarını iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+      "confirm": "İptal Et"
+    },
+    "never": "Hiçbir Zaman",
+    "neverUsed": "Hiç kullanılmadı",
+    "empty": "API anahtarı bulunamadı.",
+    "successMessages": {
+      "created": "API anahtarı oluşturuldu.",
+      "deleted": "API anahtarı iptal edildi."
+    }
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "subtitle": "Son bildirimleriniz",
+    "markAllRead": "Tümünü okundu işaretle",
+    "empty": "Bildirim yok.",
+    "unread": "Okunmamış",
+    "types": {
+      "info": "Bilgi",
+      "success": "Başarı",
+      "warning": "Uyarı",
+      "error": "Hata",
+      "system": "Sistem",
+      "mention": "Bahsedilme",
+      "file_processed": "Dosya İşlendi"
+    },
+    "deleteDialog": {
+      "title": "Bildirimi Sil",
+      "description": "Bu bildirimi silmek istediğinize emin misiniz?",
+      "confirm": "Sil"
+    },
+    "successMessages": {
+      "markedRead": "Bildirim okundu işaretlendi.",
+      "allMarkedRead": "Tüm bildirimler okundu işaretlendi.",
+      "deleted": "Bildirim silindi."
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "subtitle": "Hesap bilgilerinizi yönetin",
+    "form": {
+      "fullName": "Ad Soyad",
+      "fullNamePlaceholder": "Adınız Soyadınız",
+      "email": "E-posta",
+      "username": "Kullanıcı Adı",
+      "usernamePlaceholder": "kullanici_adiniz",
+      "submit": "Değişiklikleri Kaydet",
+      "submitting": "Kaydediliyor..."
+    },
+    "security": {
+      "title": "Güvenlik",
+      "subtitle": "Şifrenizi ve iki faktörlü doğrulamayı yönetin",
+      "password": {
+        "title": "Şifre Değiştir",
+        "current": "Mevcut Şifre",
+        "new": "Yeni Şifre",
+        "confirm": "Yeni Şifreyi Onayla",
+        "submit": "Şifreyi Güncelle",
+        "submitting": "Güncelleniyor..."
+      },
+      "totp": {
+        "title": "İki Faktörlü Doğrulama",
+        "enabled": "2FA etkin",
+        "disabled": "2FA etkin değil",
+        "enable": "2FA'yı Etkinleştir",
+        "disable": "2FA'yı Devre Dışı Bırak",
+        "setupTitle": "İki Faktörlü Doğrulamayı Kur",
+        "setupStep1": "QR kodu kimlik doğrulama uygulamanızla tarayın",
+        "setupStep2": "Doğrulamak için 6 haneli kodu girin",
+        "code": "Doğrulama Kodu",
+        "codePlaceholder": "000000",
+        "verifySubmit": "2FA'yı Etkinleştir",
+        "disableTitle": "İki Faktörlü Doğrulamayı Devre Dışı Bırak",
+        "disableDescription": "İki faktörlü doğrulamayı devre dışı bırakmak için mevcut 2FA kodunuzu girin.",
+        "disableSubmit": "2FA'yı Devre Dışı Bırak"
+      },
+      "backupCodes": {
+        "title": "Yedek Kodlar",
+        "description": "Kimlik doğrulama cihazınızı kaybederseniz hesabınıza erişmek için yedek kodları kullanın.",
+        "remaining": "{count} kod kaldı",
+        "regenerate": "Kodları Yenile",
+        "regenerateWarning": "Bu işlem mevcut tüm yedek kodları geçersiz kılacak.",
+        "confirm": "Yenile"
+      }
+    },
+    "successMessages": {
+      "updated": "Profil güncellendi.",
+      "passwordChanged": "Şifre değiştirildi.",
+      "totpEnabled": "İki faktörlü doğrulama etkinleştirildi.",
+      "totpDisabled": "İki faktörlü doğrulama devre dışı bırakıldı.",
+      "backupCodesRegenerated": "Yedek kodlar yenilendi."
+    }
+  },
+  "errors": {
+    "generic": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+    "unauthorized": "Bu işlemi gerçekleştirme yetkiniz yok.",
+    "notFound": "İstenen kaynak bulunamadı.",
+    "validation": "Lütfen formdaki hataları kontrol edin.",
+    "network": "Ağ hatası. Lütfen bağlantınızı kontrol edin.",
+    "serverError": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
+    "sessionExpired": "Oturumunuz sona erdi. Lütfen tekrar giriş yapın."
+  },
+  "validation": {
+    "email": "Lütfen geçerli bir e-posta adresi girin.",
+    "passwordRequired": "Şifre gerekli.",
+    "passwordMinLength": "Şifre en az {min} karakter olmalıdır.",
+    "passwordMismatch": "Şifreler eşleşmiyor.",
+    "codeMinLength": "Kod en az {min} karakter olmalıdır.",
+    "codeMaxLength": "Kod en fazla {max} karakter olmalıdır.",
+    "roleNameRequired": "Rol adı gerekli.",
+    "roleNamePattern": "Sadece küçük harf, rakam ve alt çizgi kullanılabilir."
+  }
+}
