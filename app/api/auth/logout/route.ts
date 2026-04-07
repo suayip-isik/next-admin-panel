@@ -1,6 +1,5 @@
 import {
   clearAuthCookies,
-  createJsonProxyResponse,
   forwardToFastApi,
   getRefreshTokenFromCookies,
 } from "@/lib/server-auth";
@@ -13,15 +12,15 @@ export async function POST() {
     return Response.json({ success: true });
   }
 
-  const response = await forwardToFastApi("/api/v1/auth/logout", {
-    method: "POST",
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  });
-
-  await clearAuthCookies();
-
-  if (!response.ok) {
-    return createJsonProxyResponse(response);
+  try {
+    await forwardToFastApi("/api/v1/auth/logout", {
+      method: "POST",
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+  } catch {
+    // Local logout is enough once auth cookies are cleared.
+  } finally {
+    await clearAuthCookies();
   }
 
   return Response.json({ success: true });

@@ -3,9 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 
+export const AUTH_ME_QUERY_KEY = ["auth", "me"] as const;
+
 export function useCurrentUser() {
   return useQuery({
-    queryKey: ["auth", "me"],
+    queryKey: AUTH_ME_QUERY_KEY,
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/api/v1/auth/me");
       if (error) throw new Error("Unauthorized");

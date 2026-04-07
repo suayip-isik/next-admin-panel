@@ -10,28 +10,48 @@ export type LoginResult =
   | { requires_totp: false }
   | { requires_totp: true; partial_token: string };
 
-export async function loginMutation(input: LoginInput): Promise<LoginResult> {
-  const response = await fetch("/api/auth/login", {
+type AuthRouteErrorBody = {
+  error?: {
+    code?: string;
+    message?: string;
+    details?: unknown;
+  };
+  detail?: string | Array<{ msg: string; loc: unknown[] }>;
+};
+
+async function readAuthRouteBody<T>(response: Response): Promise<T> {
+  return (await response.json().catch(() => ({}))) as T;
+}
+
+async function postAuthRoute<TResponse>(
+  path: string,
+  init: {
+    body?: BodyInit;
+    headers?: HeadersInit;
+  } = {},
+): Promise<TResponse> {
+  const response = await fetch(path, {
     method: "POST",
-    headers: { "content-type": "application/json" },
     credentials: "include",
-    body: JSON.stringify(input),
+    ...init,
   });
 
-  const body = (await response.json().catch(() => ({}))) as {
-    requires_totp?: boolean;
-    partial_token?: string;
-    error?: {
-      code?: string;
-      message?: string;
-      details?: unknown;
-    };
-    detail?: string | Array<{ msg: string; loc: unknown[] }>;
-  };
-
   if (!response.ok) {
+    const body = await readAuthRouteBody<AuthRouteErrorBody>(response);
     throw parseApiError(response.status, body);
   }
+
+  return readAuthRouteBody<TResponse>(response);
+}
+
+export async function loginMutation(input: LoginInput): Promise<LoginResult> {
+  const body = await postAuthRoute<{
+    requires_totp?: boolean;
+    partial_token?: string;
+  }>("/api/auth/login", {
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
 
   if (body.requires_totp && body.partial_token) {
     return { requires_totp: true, partial_token: body.partial_token };
@@ -44,39 +64,14 @@ export async function totpChallengeMutation(input: {
   partial_token: string;
   code: string;
 }) {
-  const response = await fetch("/api/auth/totp", {
-    method: "POST",
+  await postAuthRoute<void>("/api/auth/totp", {
     headers: { "content-type": "application/json" },
-    credentials: "include",
     body: JSON.stringify(input),
   });
-  const body = (await response.json().catch(() => ({}))) as {
-    error?: {
-      code?: string;
-      message?: string;
-      details?: unknown;
-    };
-    detail?: string | Array<{ msg: string; loc: unknown[] }>;
-  };
-  if (!response.ok) throw parseApiError(response.status, body);
 }
 
 export async function logoutMutation() {
-  const response = await fetch("/api/auth/logout", {
-    method: "POST",
-    credentials: "include",
-  });
-  if (!response.ok) {
-    const body = (await response.json().catch(() => ({}))) as {
-      error?: {
-        code?: string;
-        message?: string;
-        details?: unknown;
-      };
-      detail?: string | Array<{ msg: string; loc: unknown[] }>;
-    };
-    throw parseApiError(response.status, body);
-  }
+  await postAuthRoute<void>("/api/auth/logout");
 }
 
 export async function forgotPasswordMutation(input: ForgotPasswordInput) {

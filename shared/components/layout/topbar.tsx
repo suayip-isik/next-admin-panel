@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
@@ -17,23 +18,27 @@ import {
 import { ThemeToggle } from "@/shared/components/theme-toggle";
 import { LocaleSwitcher } from "@/shared/components/locale-switcher";
 import { NotificationBell } from "@/shared/components/layout/notification-bell";
-import { useSessionMeta } from "@/shared/hooks/use-session-meta";
+import {
+  AUTH_ME_QUERY_KEY,
+  useSessionMeta,
+} from "@/shared/hooks/use-session-meta";
 import { logoutMutation } from "@/modules/auth/queries/auth.queries";
 
 export function Topbar() {
   const t = useTranslations("nav");
   const tErrors = useTranslations("errors");
   const router = useRouter();
+  const queryClient = useQueryClient();
   const sessionMeta = useSessionMeta();
 
   async function handleSignOut() {
     try {
       await logoutMutation();
-    } catch {
-      toast.error(tErrors("generic"));
-    } finally {
+      queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
       router.push("/login");
       router.refresh();
+    } catch {
+      toast.error(tErrors("generic"));
     }
   }
 
