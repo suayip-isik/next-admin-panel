@@ -119,6 +119,42 @@ describe("apiClient middleware", () => {
     expect(secondRetry.status).toBe(200);
   });
 
+  it("retries POST requests with consumed bodies after refresh", async () => {
+    const { middleware } = await loadModule();
+    const request = new Request("http://localhost/api/v1/auth/reset-password", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        token: "reset-token",
+        new_password: "NewPassword123!",
+      }),
+    });
+
+    await middleware.onRequest({ request });
+    await request.text();
+
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(new Response(null, { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 200 }));
+
+    const result = await middleware.onResponse({
+      response: new Response(null, { status: 401 }),
+      request,
+    });
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenNthCalledWith(1, "/api/auth/refresh", {
+      method: "POST",
+      credentials: "include",
+    });
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      expect.any(Request),
+      expect.objectContaining({ credentials: "include" }),
+    );
+    expect(result.status).toBe(200);
+  });
+
   it("redirects to login when refresh fails outside the login page", async () => {
     const { middleware } = await loadModule();
     const originalLocation = window.location;
