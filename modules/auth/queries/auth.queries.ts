@@ -88,7 +88,10 @@ export async function forgotPasswordMutation(input: ForgotPasswordInput) {
 export async function resetPasswordMutation(input: ResetPasswordInput) {
   return unwrapApiResult(
     await apiClient.POST("/api/v1/auth/reset-password", {
-      body: input,
+      body: {
+        token: input.token,
+        new_password: input.new_password,
+      },
     }),
   );
 }

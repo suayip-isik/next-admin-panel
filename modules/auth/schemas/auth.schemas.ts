@@ -33,7 +33,10 @@ export function createResetPasswordSchema(t: TranslationFn) {
       token: z.string().min(1),
       new_password: z
         .string()
-        .min(8, { error: t("passwordMinLength", { min: 8 }) }),
+        .min(8, { error: t("passwordMinLength", { min: 8 }) })
+        .regex(/[A-Z]/, { error: t("passwordUppercase") })
+        .regex(/[a-z]/, { error: t("passwordLowercase") })
+        .regex(/[0-9]/, { error: t("passwordNumber") }),
       confirm_password: z.string().min(1),
     })
     .refine((data) => data.new_password === data.confirm_password, {

@@ -98,10 +98,13 @@
       "confirmPassword": "Confirm Password",
       "submit": "Reset Password",
       "submitting": "Resetting...",
+      "requestNewLink": "Request a new link",
+      "backToLogin": "Back to login",
       "successMessage": "Password reset successfully. You can now sign in.",
       "errors": {
         "passwordMismatch": "Passwords do not match.",
-        "invalidToken": "Reset link is invalid or has expired."
+        "invalidToken": "Reset link is invalid or has expired.",
+        "missingToken": "Reset link is missing or malformed."
       }
     },
     "verifyEmail": {
@@ -413,6 +416,9 @@
     "email": "Please enter a valid email address.",
     "passwordRequired": "Password is required.",
     "passwordMinLength": "Password must be at least {min} characters.",
+    "passwordUppercase": "Password must include at least 1 uppercase letter.",
+    "passwordLowercase": "Password must include at least 1 lowercase letter.",
+    "passwordNumber": "Password must include at least 1 number.",
     "passwordMismatch": "Passwords do not match.",
     "codeMinLength": "Code must be at least {min} characters.",
     "codeMaxLength": "Code must be at most {max} characters.",

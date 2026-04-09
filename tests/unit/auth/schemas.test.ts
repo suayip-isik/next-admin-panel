@@ -95,8 +95,8 @@ describe("createResetPasswordSchema", () => {
   it("accepts valid matching passwords", () => {
     const result = schema.safeParse({
       token: "reset-token-abc",
-      new_password: "newpassword1",
-      confirm_password: "newpassword1",
+      new_password: "Newpassword1",
+      confirm_password: "Newpassword1",
     });
     expect(result.success).toBe(true);
   });
@@ -104,7 +104,7 @@ describe("createResetPasswordSchema", () => {
   it("rejects when passwords do not match", () => {
     const result = schema.safeParse({
       token: "reset-token-abc",
-      new_password: "newpassword1",
+      new_password: "Newpassword1",
       confirm_password: "different",
     });
     expect(result.success).toBe(false);
@@ -121,8 +121,35 @@ describe("createResetPasswordSchema", () => {
 
   it("rejects a missing token", () => {
     const result = schema.safeParse({
+      new_password: "Newpassword1",
+      confirm_password: "Newpassword1",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a password without an uppercase letter", () => {
+    const result = schema.safeParse({
+      token: "reset-token-abc",
       new_password: "newpassword1",
       confirm_password: "newpassword1",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a password without a lowercase letter", () => {
+    const result = schema.safeParse({
+      token: "reset-token-abc",
+      new_password: "NEWPASSWORD1",
+      confirm_password: "NEWPASSWORD1",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a password without a number", () => {
+    const result = schema.safeParse({
+      token: "reset-token-abc",
+      new_password: "Newpassword",
+      confirm_password: "Newpassword",
     });
     expect(result.success).toBe(false);
   });

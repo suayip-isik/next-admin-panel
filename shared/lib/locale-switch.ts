@@ -41,10 +41,9 @@ export function runLocaleSwitch(task: () => Promise<void>) {
   localeSwitchPromise = (async () => {
     try {
       await task();
-    } catch (error) {
+    } finally {
       localeSwitchPromise = null;
       emitLocaleSwitchState(false);
-      throw error;
     }
   })();
 

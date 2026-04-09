@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
+import Link from "next/link";
 import {
   createResetPasswordSchema,
   type ResetPasswordInput,
@@ -37,6 +38,7 @@ export function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const resetPasswordSchema = useMemo(
     () => createResetPasswordSchema(tValidation),
@@ -53,20 +55,71 @@ export function ResetPasswordForm() {
     try {
       await resetPasswordMutation(values);
       toast.success(t("successMessage"));
-      router.push("/login");
+      setIsSuccess(true);
     } catch (err: unknown) {
-      const apiErr = err as { code?: string };
+      const apiErr = err as { code?: string; message?: string };
       if (
         apiErr?.code === "INVALID_TOKEN" ||
-        apiErr?.code === "TOKEN_EXPIRED"
+        apiErr?.code === "TOKEN_EXPIRED" ||
+        apiErr?.code === "TOKEN_USED"
       ) {
         form.setError("root", { message: t("errors.invalidToken") });
+      } else if (apiErr?.message) {
+        form.setError("root", { message: apiErr.message });
       } else {
         toast.error(tErrors("network"));
       }
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (!token) {
+    return (
+      <Card>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl">{t("title")}</CardTitle>
+          <CardDescription>{t("subtitle")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-destructive">{t("errors.missingToken")}</p>
+          <div className="flex flex-col gap-2">
+            <Button asChild className="w-full">
+              <Link href="/forgot-password">{t("requestNewLink")}</Link>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => router.push("/login")}
+            >
+              {t("backToLogin")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isSuccess) {
+    return (
+      <Card>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl">{t("title")}</CardTitle>
+          <CardDescription>{t("subtitle")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-green-600">{t("successMessage")}</p>
+          <Button
+            type="button"
+            className="w-full"
+            onClick={() => router.push("/login")}
+          >
+            {t("backToLogin")}
+          </Button>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -114,9 +167,14 @@ export function ResetPasswordForm() {
             />
 
             {form.formState.errors.root && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.root.message}
-              </p>
+              <div className="space-y-3">
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.root.message}
+                </p>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/forgot-password">{t("requestNewLink")}</Link>
+                </Button>
+              </div>
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>

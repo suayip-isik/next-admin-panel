@@ -23,11 +23,13 @@ apiClient.use({
 
     // Share a single in-flight refresh across concurrent failures
     if (!refreshPromise) {
-      await waitForLocaleSwitch();
-      refreshPromise = fetch("/api/auth/refresh", {
-        method: "POST",
-        credentials: "include",
-      })
+      refreshPromise = waitForLocaleSwitch()
+        .then(() =>
+          fetch("/api/auth/refresh", {
+            method: "POST",
+            credentials: "include",
+          }),
+        )
         .then((r) => r.ok)
         .catch(() => false)
         .finally(() => {

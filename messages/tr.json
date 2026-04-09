@@ -98,10 +98,13 @@
       "confirmPassword": "Şifreyi Onayla",
       "submit": "Şifreyi Sıfırla",
       "submitting": "Sıfırlanıyor...",
+      "requestNewLink": "Yeni bağlantı iste",
+      "backToLogin": "Girişe dön",
       "successMessage": "Şifre başarıyla sıfırlandı. Artık giriş yapabilirsiniz.",
       "errors": {
         "passwordMismatch": "Şifreler eşleşmiyor.",
-        "invalidToken": "Sıfırlama bağlantısı geçersiz veya süresi dolmuş."
+        "invalidToken": "Sıfırlama bağlantısı geçersiz veya süresi dolmuş.",
+        "missingToken": "Şifre sıfırlama bağlantısı eksik veya bozuk."
       }
     },
     "verifyEmail": {
@@ -413,6 +416,9 @@
     "email": "Lütfen geçerli bir e-posta adresi girin.",
     "passwordRequired": "Şifre gerekli.",
     "passwordMinLength": "Şifre en az {min} karakter olmalıdır.",
+    "passwordUppercase": "Şifre en az 1 büyük harf içermelidir.",
+    "passwordLowercase": "Şifre en az 1 küçük harf içermelidir.",
+    "passwordNumber": "Şifre en az 1 rakam içermelidir.",
     "passwordMismatch": "Şifreler eşleşmiyor.",
     "codeMinLength": "Kod en az {min} karakter olmalıdır.",
     "codeMaxLength": "Kod en fazla {max} karakter olmalıdır.",
