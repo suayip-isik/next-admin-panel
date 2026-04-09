@@ -5,7 +5,6 @@ import {
   useContext,
   useEffect,
   useState,
-  useCallback,
   type ReactNode,
 } from "react";
 
@@ -55,19 +54,15 @@ export function ThemeProvider({
   const [theme, setThemeState] = useState<Theme>(
     () => getStoredTheme() || defaultTheme,
   );
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(() => {
-    const stored = getStoredTheme() || defaultTheme;
-    return stored === "system" ? getSystemTheme() : stored;
-  });
+  const resolvedTheme = theme === "system" ? getSystemTheme() : theme;
 
-  const setTheme = useCallback((newTheme: Theme) => {
+  const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem(STORAGE_KEY, newTheme);
 
     const resolved = newTheme === "system" ? getSystemTheme() : newTheme;
-    setResolvedTheme(resolved);
     applyTheme(resolved);
-  }, []);
+  };
 
   // Handle system theme changes
   useEffect(() => {
@@ -75,9 +70,7 @@ export function ThemeProvider({
 
     const handleChange = () => {
       if (theme === "system") {
-        const newResolved = getSystemTheme();
-        setResolvedTheme(newResolved);
-        applyTheme(newResolved);
+        applyTheme(getSystemTheme());
       }
     };
 
@@ -87,10 +80,8 @@ export function ThemeProvider({
 
   // Apply theme on mount (handles client-side navigation)
   useEffect(() => {
-    const resolved = theme === "system" ? getSystemTheme() : theme;
-    setResolvedTheme(resolved);
-    applyTheme(resolved);
-  }, [theme]);
+    applyTheme(resolvedTheme);
+  }, [resolvedTheme]);
 
   return (
     <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>

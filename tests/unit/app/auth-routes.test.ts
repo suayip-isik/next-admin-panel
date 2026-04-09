@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { POST as loginPost } from "@/app/api/auth/login/route";
 import { POST as refreshPost } from "@/app/api/auth/refresh/route";
 import { POST as logoutPost } from "@/app/api/auth/logout/route";
+import { POST as totpPost } from "@/app/api/auth/totp/route";
 
 type CookieStore = {
   get: ReturnType<typeof vi.fn>;
@@ -38,6 +39,11 @@ describe("auth route handlers", () => {
   });
 
   it("stores auth cookies when login returns tokens", async () => {
+    cookieStore.get.mockImplementation((name: string) => {
+      if (name === "NEXT_LOCALE") return { value: "tr" };
+      return undefined;
+    });
+
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(
         JSON.stringify({
@@ -64,6 +70,8 @@ describe("auth route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+    const [, init] = vi.mocked(fetch).mock.calls[0]!;
+    expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
     expect(cookieStore.set).toHaveBeenCalledTimes(2);
     expect(cookieStore.set).toHaveBeenCalledWith(
       "access_token",
@@ -84,6 +92,11 @@ describe("auth route handlers", () => {
   });
 
   it("returns partial auth response without setting cookies", async () => {
+    cookieStore.get.mockImplementation((name: string) => {
+      if (name === "NEXT_LOCALE") return { value: "en" };
+      return undefined;
+    });
+
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(
         JSON.stringify({
@@ -112,6 +125,8 @@ describe("auth route handlers", () => {
       requires_totp: true,
       partial_token: "partial-1",
     });
+    const [, init] = vi.mocked(fetch).mock.calls[0]!;
+    expect(new Headers(init?.headers).get("accept-language")).toBeNull();
     expect(cookieStore.set).not.toHaveBeenCalled();
   });
 
@@ -124,7 +139,6 @@ describe("auth route handlers", () => {
     await expect(response.json()).resolves.toEqual({
       error: {
         code: "UNAUTHENTICATED",
-        message: "Refresh token is missing.",
       },
     });
     expect(fetch).not.toHaveBeenCalled();
@@ -134,6 +148,7 @@ describe("auth route handlers", () => {
 
   it("updates cookies when refresh succeeds", async () => {
     cookieStore.get.mockImplementation((name: string) => {
+      if (name === "NEXT_LOCALE") return { value: "tr" };
       if (name === "refresh_token") return { value: "refresh-1" };
       return undefined;
     });
@@ -155,11 +170,14 @@ describe("auth route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+    const [, init] = vi.mocked(fetch).mock.calls[0]!;
+    expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
     expect(cookieStore.set).toHaveBeenCalledTimes(2);
   });
 
   it("clears cookies after logout even if backend call succeeds", async () => {
     cookieStore.get.mockImplementation((name: string) => {
+      if (name === "NEXT_LOCALE") return { value: "tr" };
       if (name === "refresh_token") return { value: "refresh-1" };
       return undefined;
     });
@@ -175,6 +193,8 @@ describe("auth route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+    const [, init] = vi.mocked(fetch).mock.calls[0]!;
+    expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
     expect(cookieStore.delete).toHaveBeenCalledWith("access_token");
     expect(cookieStore.delete).toHaveBeenCalledWith("refresh_token");
   });
@@ -193,6 +213,7 @@ describe("auth route handlers", () => {
 
   it("returns success after logout when backend rejects the token", async () => {
     cookieStore.get.mockImplementation((name: string) => {
+      if (name === "NEXT_LOCALE") return { value: "en" };
       if (name === "refresh_token") return { value: "refresh-1" };
       return undefined;
     });
@@ -216,12 +237,15 @@ describe("auth route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+    const [, init] = vi.mocked(fetch).mock.calls[0]!;
+    expect(new Headers(init?.headers).get("accept-language")).toBeNull();
     expect(cookieStore.delete).toHaveBeenCalledWith("access_token");
     expect(cookieStore.delete).toHaveBeenCalledWith("refresh_token");
   });
 
   it("returns success after logout when backend call throws", async () => {
     cookieStore.get.mockImplementation((name: string) => {
+      if (name === "NEXT_LOCALE") return { value: "tr" };
       if (name === "refresh_token") return { value: "refresh-1" };
       return undefined;
     });
@@ -234,5 +258,41 @@ describe("auth route handlers", () => {
     await expect(response.json()).resolves.toEqual({ success: true });
     expect(cookieStore.delete).toHaveBeenCalledWith("access_token");
     expect(cookieStore.delete).toHaveBeenCalledWith("refresh_token");
+  });
+
+  it("forwards locale for totp exchange requests", async () => {
+    cookieStore.get.mockImplementation((name: string) => {
+      if (name === "NEXT_LOCALE") return { value: "tr" };
+      return undefined;
+    });
+
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          access_token: "access-3",
+          refresh_token: "refresh-3",
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    const response = await totpPost(
+      new Request("http://localhost/api/auth/totp", {
+        method: "POST",
+        body: JSON.stringify({
+          partial_token: "partial-1",
+          code: "123456",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ success: true });
+    const [, init] = vi.mocked(fetch).mock.calls[0]!;
+    expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
+    expect(cookieStore.set).toHaveBeenCalledTimes(2);
   });
 });

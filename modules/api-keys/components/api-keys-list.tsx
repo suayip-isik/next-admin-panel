@@ -30,6 +30,7 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { formatDateTime, formatRelativeTime } from "@/shared/utils/date";
+import { getErrorMessage } from "@/lib/errors";
 import {
   fetchApiKeys,
   createApiKey,
@@ -37,6 +38,7 @@ import {
   type ApiKey,
   type ApiKeyCreated,
 } from "../queries/api-keys.queries";
+import { apiKeysKeys } from "../api-keys.keys";
 
 const createSchema = z.object({
   name: z.string().min(1),
@@ -49,6 +51,7 @@ type CreateFormValues = z.infer<typeof createSchema>;
 export function ApiKeysList() {
   const t = useTranslations("apiKeys");
   const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
   const queryClient = useQueryClient();
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -57,7 +60,7 @@ export function ApiKeysList() {
   const [deleteTarget, setDeleteTarget] = useState<ApiKey | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["api-keys"],
+    queryKey: apiKeysKeys.list(),
     queryFn: fetchApiKeys,
   });
 
@@ -80,22 +83,22 @@ export function ApiKeysList() {
       }),
     onSuccess: (created) => {
       toast.success(t("successMessages.created"));
-      queryClient.invalidateQueries({ queryKey: ["api-keys"] });
+      void queryClient.invalidateQueries({ queryKey: apiKeysKeys.all });
       form.reset();
       setCreateOpen(false);
       if (created) setRevealedKey(created);
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteApiKey(id),
     onSuccess: () => {
       toast.success(t("successMessages.deleted"));
-      queryClient.invalidateQueries({ queryKey: ["api-keys"] });
+      void queryClient.invalidateQueries({ queryKey: apiKeysKeys.all });
       setDeleteTarget(null);
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
   function handleCopy(key: string) {
@@ -126,7 +129,8 @@ export function ApiKeysList() {
       header: t("columns.scopes"),
       cell: ({ row }) => {
         const scopes = row.original.scopes;
-        if (!scopes?.length) return <span className="text-muted-foreground text-xs">—</span>;
+        if (!scopes?.length)
+          return <span className="text-muted-foreground text-xs">—</span>;
         return (
           <div className="flex flex-wrap gap-1">
             {scopes.map((s) => (
@@ -143,7 +147,9 @@ export function ApiKeysList() {
       header: t("columns.expires"),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
-          {row.original.expires_at ? formatDateTime(row.original.expires_at) : t("never")}
+          {row.original.expires_at
+            ? formatDateTime(row.original.expires_at)
+            : t("never")}
         </span>
       ),
     },
@@ -216,7 +222,10 @@ export function ApiKeysList() {
                   <FormItem>
                     <FormLabel>{t("form.name")}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t("form.namePlaceholder")} {...field} />
+                      <Input
+                        placeholder={t("form.namePlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -236,7 +245,9 @@ export function ApiKeysList() {
                     <FormControl>
                       <Input placeholder="read, write" {...field} />
                     </FormControl>
-                    <p className="text-xs text-muted-foreground">{t("form.scopesHint")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("form.scopesHint")}
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -255,7 +266,9 @@ export function ApiKeysList() {
                     <FormControl>
                       <Input type="datetime-local" {...field} />
                     </FormControl>
-                    <p className="text-xs text-muted-foreground">{t("form.expiresAtHint")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("form.expiresAtHint")}
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -264,12 +277,17 @@ export function ApiKeysList() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => { setCreateOpen(false); form.reset(); }}
+                  onClick={() => {
+                    setCreateOpen(false);
+                    form.reset();
+                  }}
                 >
                   {tCommon("cancel")}
                 </Button>
                 <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? t("form.submitting") : t("form.submit")}
+                  {createMutation.isPending
+                    ? t("form.submitting")
+                    : t("form.submit")}
                 </Button>
               </div>
             </form>
@@ -280,7 +298,12 @@ export function ApiKeysList() {
       {/* Key revealed dialog — shown only once after creation */}
       <Dialog
         open={!!revealedKey}
-        onOpenChange={(open) => { if (!open) { setRevealedKey(null); setCopied(false); } }}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRevealedKey(null);
+            setCopied(false);
+          }
+        }}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -299,11 +322,20 @@ export function ApiKeysList() {
               className="h-8 w-8 shrink-0"
               onClick={() => revealedKey && handleCopy(revealedKey.key)}
             >
-              {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+              {copied ? (
+                <Check className="h-4 w-4 text-green-500" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
             </Button>
           </div>
           <div className="flex justify-end">
-            <Button onClick={() => { setRevealedKey(null); setCopied(false); }}>
+            <Button
+              onClick={() => {
+                setRevealedKey(null);
+                setCopied(false);
+              }}
+            >
               {tCommon("close")}
             </Button>
           </div>
@@ -315,7 +347,9 @@ export function ApiKeysList() {
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         title={t("deleteDialog.title")}
-        description={t("deleteDialog.description", { name: deleteTarget?.name ?? "" })}
+        description={t("deleteDialog.description", {
+          name: deleteTarget?.name ?? "",
+        })}
         confirmLabel={t("deleteDialog.confirm")}
         cancelLabel={tCommon("cancel")}
         variant="destructive"

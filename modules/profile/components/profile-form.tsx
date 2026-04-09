@@ -25,6 +25,7 @@ import {
 } from "@/shared/components/ui/card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useCurrentUser } from "@/shared/hooks/use-session-meta";
+import { getErrorMessage } from "@/lib/errors";
 import { updateProfile } from "../queries/profile.queries";
 
 const profileSchema = z.object({
@@ -37,7 +38,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export function ProfileForm() {
   const t = useTranslations("profile");
-  const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
   const queryClient = useQueryClient();
   const { data: user, isLoading } = useCurrentUser();
 
@@ -65,9 +66,9 @@ export function ProfileForm() {
       }),
     onSuccess: () => {
       toast.success(t("successMessages.updated"));
-      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      void queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
   if (isLoading) {

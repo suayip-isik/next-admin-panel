@@ -1,1 +1,0 @@
-- Dİl optimizasyonu yapılmalı mı, bu konuda en doğru yaklaşım hangisi? Dil değişikliği tek bir yerden mi yönetilmeli? (Ya yalnızca url ya da yalnızca .json dosyaları üzerinden)

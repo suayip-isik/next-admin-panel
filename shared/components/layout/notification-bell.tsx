@@ -4,12 +4,15 @@ import Link from "next/link";
 import { Bell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchUnreadCount } from "@/modules/notifications/queries/notifications.queries";
+import { notificationsKeys } from "@/modules/notifications/notifications.keys";
 
 export function NotificationBell() {
   const { data } = useQuery({
-    queryKey: ["notifications", "unread-count"],
+    queryKey: notificationsKeys.unreadCount(),
     queryFn: fetchUnreadCount,
+    staleTime: 30_000,
     refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
     retry: false,
   });
 

@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { LOCALE_COOKIE_NAME, toAcceptLanguageHeader } from "@/i18n/config";
 
 const FASTAPI_URL =
   process.env.NEXT_PUBLIC_FASTAPI_URL ?? "http://localhost:8000";
@@ -93,6 +94,7 @@ async function parseResponseBody(response: Response): Promise<unknown> {
 function createForwardHeaders(
   headersInit?: HeadersInit,
   accessToken?: string | null,
+  locale?: string | null,
 ) {
   const headers = new Headers(headersInit);
 
@@ -106,12 +108,26 @@ function createForwardHeaders(
   headers.delete("host");
   headers.delete("connection");
   headers.delete("content-length");
+  headers.delete("accept-language");
+
+  const acceptLanguage = toAcceptLanguageHeader(locale);
+  if (acceptLanguage) {
+    headers.set("accept-language", acceptLanguage);
+  }
 
   return headers;
 }
 
-function buildForwardInit(init: ForwardRequestOptions): RequestInit {
-  const headers = createForwardHeaders(init.headers, init.accessToken);
+async function getLocaleFromCookies() {
+  const cookieStore = await cookies();
+  return cookieStore.get(LOCALE_COOKIE_NAME)?.value ?? null;
+}
+
+async function buildForwardInit(
+  init: ForwardRequestOptions,
+): Promise<RequestInit> {
+  const locale = await getLocaleFromCookies();
+  const headers = createForwardHeaders(init.headers, init.accessToken, locale);
   const requestInit: RequestInit & { duplex?: "half" } = {
     ...init,
     headers,
@@ -137,7 +153,7 @@ export async function forwardToFastApi(
   path: string,
   init: ForwardRequestOptions,
 ): Promise<Response> {
-  return fetch(`${FASTAPI_URL}${path}`, buildForwardInit(init));
+  return fetch(`${FASTAPI_URL}${path}`, await buildForwardInit(init));
 }
 
 export async function proxyApiRequestToFastApi(
@@ -172,6 +188,22 @@ export async function createJsonProxyResponse(response: Response) {
   return Response.json(body, { status: response.status });
 }
 
+export function createInternalAuthErrorResponse(
+  status: number,
+  code: string,
+  details?: unknown,
+) {
+  return Response.json(
+    {
+      error: {
+        code,
+        ...(details === undefined ? {} : { details }),
+      },
+    },
+    { status },
+  );
+}
+
 export async function exchangeTokens(
   path: string,
   payload: unknown,
@@ -193,16 +225,7 @@ export async function exchangeTokens(
 
 export async function finalizeAuthResponse(body: unknown): Promise<Response> {
   if (!isTokenResponse(body)) {
-    return Response.json(
-      {
-        error: {
-          code: "INVALID_AUTH_RESPONSE",
-          message: "Auth provider returned an unexpected response.",
-          details: body,
-        },
-      },
-      { status: 502 },
-    );
+    return createInternalAuthErrorResponse(502, "INVALID_AUTH_RESPONSE", body);
   }
 
   await setAuthCookies(body);

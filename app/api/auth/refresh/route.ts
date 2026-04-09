@@ -1,5 +1,6 @@
 import {
   clearAuthCookies,
+  createInternalAuthErrorResponse,
   createJsonProxyResponse,
   forwardToFastApi,
   getRefreshTokenFromCookies,
@@ -11,15 +12,7 @@ export async function POST() {
 
   if (!refreshToken) {
     await clearAuthCookies();
-    return Response.json(
-      {
-        error: {
-          code: "UNAUTHENTICATED",
-          message: "Refresh token is missing.",
-        },
-      },
-      { status: 401 },
-    );
+    return createInternalAuthErrorResponse(401, "UNAUTHENTICATED");
   }
 
   const response = await forwardToFastApi("/api/v1/auth/refresh", {
@@ -39,16 +32,7 @@ export async function POST() {
 
   if (!body.access_token || !body.refresh_token) {
     await clearAuthCookies();
-    return Response.json(
-      {
-        error: {
-          code: "INVALID_AUTH_RESPONSE",
-          message: "Auth provider returned an unexpected response.",
-          details: body,
-        },
-      },
-      { status: 502 },
-    );
+    return createInternalAuthErrorResponse(502, "INVALID_AUTH_RESPONSE", body);
   }
 
   await setAuthCookies({

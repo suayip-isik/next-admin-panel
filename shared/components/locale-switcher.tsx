@@ -1,20 +1,30 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { setLocale } from "@/shared/actions/set-locale";
+import { runLocaleSwitch } from "@/shared/lib/locale-switch";
 
 export function LocaleSwitcher() {
   const locale = useLocale();
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
+  const [isPending, setIsPending] = useState(false);
 
   function switchLocale(nextLocale: string) {
-    startTransition(async () => {
+    setIsPending(true);
+
+    void runLocaleSwitch(async () => {
+      toast.dismiss();
+      await queryClient.cancelQueries();
+      queryClient.clear();
       await setLocale(nextLocale);
-      router.refresh();
+      window.location.reload();
+      await new Promise<void>(() => {});
+    }).catch(() => {
+      setIsPending(false);
     });
   }
 

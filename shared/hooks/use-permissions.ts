@@ -6,16 +6,19 @@ import { hasPermission, hasAnyPermission } from "@/shared/utils/permissions";
 
 export { useCurrentUser };
 
+function getRolePermissions(role: Record<string, unknown> | undefined) {
+  const permissions = role?.permissions;
+  return Array.isArray(permissions) ? (permissions as Permission[]) : undefined;
+}
+
 export function useHasPermission(permission: Permission): boolean {
   const { data } = useCurrentUser();
-  const perms = (data?.role as { permissions?: string[] } | undefined)
-    ?.permissions as Permission[] | undefined;
-  return hasPermission(perms, permission);
+  const permissions = getRolePermissions(data?.role);
+  return hasPermission(permissions, permission);
 }
 
 export function useHasAnyPermission(permissions: Permission[]): boolean {
   const { data } = useCurrentUser();
-  const perms = (data?.role as { permissions?: string[] } | undefined)
-    ?.permissions as Permission[] | undefined;
-  return hasAnyPermission(perms, permissions);
+  const currentPermissions = getRolePermissions(data?.role);
+  return hasAnyPermission(currentPermissions, permissions);
 }

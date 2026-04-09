@@ -41,6 +41,7 @@ describe("/api/v1 catch-all proxy route", () => {
   it("injects bearer auth from the access token cookie", async () => {
     cookieStore.get.mockImplementation((name: string) => {
       if (name === "access_token") return { value: "access-1" };
+      if (name === "NEXT_LOCALE") return { value: "tr" };
       return undefined;
     });
 
@@ -62,13 +63,17 @@ describe("/api/v1 catch-all proxy route", () => {
     expect(new Headers(init?.headers).get("authorization")).toBe(
       "Bearer access-1",
     );
+    expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
     expect(new Headers(init?.headers).get("cookie")).toBeNull();
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true });
   });
 
   it("forwards unauthenticated requests without an authorization header", async () => {
-    cookieStore.get.mockReturnValue(undefined);
+    cookieStore.get.mockImplementation((name: string) => {
+      if (name === "NEXT_LOCALE") return { value: "en" };
+      return undefined;
+    });
 
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(JSON.stringify({ detail: "Unauthorized" }), {
@@ -84,8 +89,31 @@ describe("/api/v1 catch-all proxy route", () => {
 
     const [, init] = vi.mocked(fetch).mock.calls[0]!;
     expect(new Headers(init?.headers).get("authorization")).toBeNull();
+    expect(new Headers(init?.headers).get("accept-language")).toBeNull();
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({ detail: "Unauthorized" });
+  });
+
+  it("omits accept-language when locale cookie is missing or unsupported", async () => {
+    cookieStore.get.mockImplementation((name: string) => {
+      if (name === "access_token") return { value: "access-unsupported" };
+      if (name === "NEXT_LOCALE") return { value: "de" };
+      return undefined;
+    });
+
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    await proxyGet(new Request("http://localhost/api/v1/users"), {
+      params: Promise.resolve({ path: ["users"] }),
+    });
+
+    const [, init] = vi.mocked(fetch).mock.calls[0]!;
+    expect(new Headers(init?.headers).get("accept-language")).toBeNull();
   });
 
   it("forwards json request bodies unchanged", async () => {

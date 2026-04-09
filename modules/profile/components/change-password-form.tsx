@@ -22,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
+import { getErrorMessage } from "@/lib/errors";
 import { changePassword } from "../queries/profile.queries";
 
 function createPasswordSchema(
@@ -46,6 +47,7 @@ export function ChangePasswordForm() {
   const t = useTranslations("profile.security.password");
   const tProfile = useTranslations("profile");
   const tValidation = useTranslations("validation");
+  const tErrors = useTranslations("errors");
 
   const schema = createPasswordSchema(tValidation);
 
@@ -61,7 +63,7 @@ export function ChangePasswordForm() {
       toast.success(tProfile("successMessages.passwordChanged"));
       form.reset();
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
   return (

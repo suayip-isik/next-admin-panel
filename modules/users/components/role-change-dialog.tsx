@@ -19,8 +19,10 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { Button } from "@/shared/components/ui/button";
+import { getErrorMessage } from "@/lib/errors";
 import { changeUserRole, type User } from "../queries/users.queries";
 import { fetchRoles } from "@/modules/roles/queries/roles.queries";
+import { rolesKeys } from "@/modules/roles/roles.keys";
 
 interface RoleChangeDialogProps {
   open: boolean;
@@ -38,10 +40,11 @@ export function RoleChangeDialog({
   const t = useTranslations("users.dialogs.changeRole");
   const tUsers = useTranslations("users");
   const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
   const [roleName, setRoleName] = useState(user.role.name);
 
   const { data: rolesData } = useQuery({
-    queryKey: ["roles"],
+    queryKey: rolesKeys.list(),
     queryFn: fetchRoles,
     enabled: open,
   });
@@ -52,7 +55,13 @@ export function RoleChangeDialog({
       toast.success(tUsers("successMessages.roleChanged"));
       onSuccess();
     },
-    onError: () => toast.error(tUsers("errorMessages.roleChangeFailed")),
+    onError: (error) =>
+      toast.error(
+        getErrorMessage(
+          error,
+          tUsers("errorMessages.roleChangeFailed") || tErrors("generic"),
+        ),
+      ),
   });
 
   return (

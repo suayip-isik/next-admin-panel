@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
-import { parseApiError } from "@/lib/errors";
+import { parseApiError, unwrapApiResult } from "@/lib/errors";
+import { waitForLocaleSwitch } from "@/shared/lib/locale-switch";
 import type {
   LoginInput,
   ForgotPasswordInput,
@@ -30,6 +31,8 @@ async function postAuthRoute<TResponse>(
     headers?: HeadersInit;
   } = {},
 ): Promise<TResponse> {
+  await waitForLocaleSwitch();
+
   const response = await fetch(path, {
     method: "POST",
     credentials: "include",
@@ -75,26 +78,25 @@ export async function logoutMutation() {
 }
 
 export async function forgotPasswordMutation(input: ForgotPasswordInput) {
-  const { data, error } = await apiClient.POST("/api/v1/auth/forgot-password", {
-    body: input,
-  });
-  if (error) throw error;
-  return data;
+  return unwrapApiResult(
+    await apiClient.POST("/api/v1/auth/forgot-password", {
+      body: input,
+    }),
+  );
 }
 
 export async function resetPasswordMutation(input: ResetPasswordInput) {
-  const { data, error } = await apiClient.POST("/api/v1/auth/reset-password", {
-    body: input,
-  });
-  if (error) throw error;
-  return data;
+  return unwrapApiResult(
+    await apiClient.POST("/api/v1/auth/reset-password", {
+      body: input,
+    }),
+  );
 }
 
 export async function resendVerificationMutation(email: string) {
-  const { data, error } = await apiClient.POST(
-    "/api/v1/auth/resend-verification",
-    { body: { email } },
+  return unwrapApiResult(
+    await apiClient.POST("/api/v1/auth/resend-verification", {
+      body: { email },
+    }),
   );
-  if (error) throw error;
-  return data;
 }

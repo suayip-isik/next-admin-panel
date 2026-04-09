@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -8,16 +7,6 @@ import { QueryProvider } from "@/shared/components/query-provider";
 import { ThemeProvider } from "@/shared/components/theme-provider";
 import { Toaster } from "@/shared/components/ui/sonner";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -49,11 +38,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html
-      lang={locale}
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable}`}
-    >
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <Script
           id="theme-script"
@@ -65,7 +50,7 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <NuqsAdapter>
             <ThemeProvider defaultTheme="system">
-              <QueryProvider>
+              <QueryProvider key={locale}>
                 {children}
                 <Toaster richColors position="top-right" />
               </QueryProvider>

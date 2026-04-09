@@ -17,17 +17,20 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
+import { getErrorMessage } from "@/lib/errors";
 import { fetchRoles, deleteRole, type Role } from "../queries/roles.queries";
+import { rolesKeys } from "../roles.keys";
 import { RoleFormDialog } from "./role-form-dialog";
 
 export function RolesTable() {
   const t = useTranslations("roles");
+  const tErrors = useTranslations("errors");
   const queryClient = useQueryClient();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [dialog, setDialog] = useState<"edit" | "delete" | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["roles"],
+    queryKey: rolesKeys.list(),
     queryFn: fetchRoles,
   });
 
@@ -35,10 +38,10 @@ export function RolesTable() {
     mutationFn: (id: string) => deleteRole(id),
     onSuccess: () => {
       toast.success(t("successMessages.deleted"));
-      queryClient.invalidateQueries({ queryKey: ["roles"] });
+      void queryClient.invalidateQueries({ queryKey: rolesKeys.all });
       setDialog(null);
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
   const columns: ColumnDef<Role>[] = [

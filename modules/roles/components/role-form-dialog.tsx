@@ -29,6 +29,7 @@ import {
   PERMISSION_LABELS,
   type Permission,
 } from "@/shared/utils/permissions";
+import { getErrorMessage } from "@/lib/errors";
 import {
   createRoleSchema,
   createUpdateRoleSchema,
@@ -36,6 +37,7 @@ import {
   type UpdateRoleInput,
 } from "../schemas/roles.schemas";
 import { createRole, updateRole, type Role } from "../queries/roles.queries";
+import { rolesKeys } from "../roles.keys";
 
 interface RoleFormDialogProps {
   open: boolean;
@@ -55,6 +57,7 @@ export function RoleFormDialog({
 }: RoleFormDialogProps) {
   const t = useTranslations("roles");
   const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
   const tValidation = useTranslations("validation");
   const queryClient = useQueryClient();
   const isEdit = !!role;
@@ -82,11 +85,11 @@ export function RoleFormDialog({
       toast.success(
         isEdit ? t("successMessages.updated") : t("successMessages.created"),
       );
-      queryClient.invalidateQueries({ queryKey: ["roles"] });
+      void queryClient.invalidateQueries({ queryKey: rolesKeys.all });
       form.reset();
       onSuccess();
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
   return (

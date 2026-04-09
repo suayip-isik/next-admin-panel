@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -17,28 +18,39 @@ export function VerifyEmailClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading",
-  );
+  const verificationQuery = useQuery({
+    queryKey: ["auth", "verify-email", token],
+    enabled: Boolean(token),
+    retry: false,
+    queryFn: async () => {
+      const { error } = await apiClient.POST("/api/v1/auth/verify-email", {
+        body: { token: token ?? "" },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return true;
+    },
+  });
 
   useEffect(() => {
-    if (!token) {
-      setStatus("error");
+    if (!verificationQuery.isSuccess) {
       return;
     }
 
-    apiClient
-      .POST("/api/v1/auth/verify-email", { body: { token } })
-      .then(({ error }) => {
-        if (!error) {
-          setStatus("success");
-          setTimeout(() => router.push("/login"), 3000);
-        } else {
-          setStatus("error");
-        }
-      })
-      .catch(() => setStatus("error"));
-  }, [token, router]);
+    const redirectTimer = setTimeout(() => router.push("/login"), 3000);
+    return () => clearTimeout(redirectTimer);
+  }, [router, verificationQuery.isSuccess]);
+
+  const status = !token
+    ? "error"
+    : verificationQuery.isSuccess
+      ? "success"
+      : verificationQuery.isError
+        ? "error"
+        : "loading";
 
   return (
     <Card>

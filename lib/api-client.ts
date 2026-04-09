@@ -1,5 +1,6 @@
 import createClient from "openapi-fetch";
 import type { paths } from "@/types/api.generated";
+import { waitForLocaleSwitch } from "@/shared/lib/locale-switch";
 
 export const apiClient = createClient<paths>({
   baseUrl: "",
@@ -11,6 +12,10 @@ let refreshPromise: Promise<boolean> | null = null;
 let isRedirecting = false;
 
 apiClient.use({
+  async onRequest({ request }) {
+    await waitForLocaleSwitch();
+    return request;
+  },
   async onResponse({ response, request }) {
     if (response.status !== 401 || isRedirecting) {
       return response;
@@ -18,6 +23,7 @@ apiClient.use({
 
     // Share a single in-flight refresh across concurrent failures
     if (!refreshPromise) {
+      await waitForLocaleSwitch();
       refreshPromise = fetch("/api/auth/refresh", {
         method: "POST",
         credentials: "include",
@@ -42,6 +48,7 @@ apiClient.use({
     }
 
     // Retry the original request after token refresh
+    await waitForLocaleSwitch();
     return fetch(request.clone(), { credentials: "include" });
   },
 });

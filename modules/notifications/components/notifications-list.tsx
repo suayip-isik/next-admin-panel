@@ -12,6 +12,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import { DataTablePagination } from "@/shared/components/data-table/data-table-pagination";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { formatRelativeTime } from "@/shared/utils/date";
+import { getErrorMessage } from "@/lib/errors";
 import {
   fetchNotifications,
   markNotificationRead,
@@ -19,25 +20,24 @@ import {
   deleteNotification,
   type Notification,
 } from "../queries/notifications.queries";
+import { notificationsKeys } from "../notifications.keys";
 
 export function NotificationsList() {
   const t = useTranslations("notifications");
   const tCommon = useTranslations("common");
+  const tErrors = useTranslations("errors");
   const queryClient = useQueryClient();
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [deleteTarget, setDeleteTarget] = useState<Notification | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["notifications", { page }],
+    queryKey: notificationsKeys.list(page),
     queryFn: () => fetchNotifications({ page, size: 20 }),
   });
 
   function invalidate() {
-    queryClient.invalidateQueries({ queryKey: ["notifications"] });
-    queryClient.invalidateQueries({
-      queryKey: ["notifications", "unread-count"],
-    });
+    void queryClient.invalidateQueries({ queryKey: notificationsKeys.all });
   }
 
   const markReadMutation = useMutation({
@@ -46,7 +46,7 @@ export function NotificationsList() {
       toast.success(t("successMessages.markedRead"));
       invalidate();
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
   const markAllMutation = useMutation({
@@ -55,7 +55,7 @@ export function NotificationsList() {
       toast.success(t("successMessages.allMarkedRead"));
       invalidate();
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
   const deleteMutation = useMutation({
@@ -65,7 +65,7 @@ export function NotificationsList() {
       invalidate();
       setDeleteTarget(null);
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
   if (isLoading) {

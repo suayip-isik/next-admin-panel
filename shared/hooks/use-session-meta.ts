@@ -2,16 +2,23 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { unwrapApiResult } from "@/lib/errors";
+import type { components } from "@/types/api.generated";
 
 export const AUTH_ME_QUERY_KEY = ["auth", "me"] as const;
+export type CurrentUser = components["schemas"]["UserResponse"] & {
+  role:
+    | components["schemas"]["RoleResponse"]
+    | components["schemas"]["RoleInfo"];
+};
 
 export function useCurrentUser() {
   return useQuery({
     queryKey: AUTH_ME_QUERY_KEY,
     queryFn: async () => {
-      const { data, error } = await apiClient.GET("/api/v1/auth/me");
-      if (error) throw new Error("Unauthorized");
-      return data;
+      return unwrapApiResult<CurrentUser>(
+        await apiClient.GET("/api/v1/auth/me"),
+      );
     },
     staleTime: 5 * 60 * 1000,
     retry: false,
@@ -31,6 +38,6 @@ export function useSessionMeta(): SessionMeta | null {
   return {
     id: data.id,
     email: data.email,
-    role: (data as { role?: { name?: string } }).role?.name ?? "user",
+    role: data.role?.name ?? "user",
   };
 }

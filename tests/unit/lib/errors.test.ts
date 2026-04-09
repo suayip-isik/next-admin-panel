@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { AppError, parseApiError } from "@/lib/errors";
+import {
+  AppError,
+  getErrorMessage,
+  parseApiError,
+  unwrapApiResult,
+} from "@/lib/errors";
 
 describe("AppError", () => {
   it("creates an error with correct properties", () => {
@@ -69,6 +74,48 @@ describe("parseApiError", () => {
     const err = parseApiError(500, {});
     expect(err.code).toBe("UNKNOWN_ERROR");
     expect(err.status).toBe(500);
-    expect(err.message).toBe("An unexpected error occurred.");
+    expect(err.message).toBe("");
+    expect(err.hasUserMessage).toBe(false);
+  });
+});
+
+describe("unwrapApiResult", () => {
+  it("returns response data when there is no error", () => {
+    expect(
+      unwrapApiResult({
+        data: { ok: true },
+        response: new Response(null, { status: 200 }),
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("throws an AppError when the api result contains an error", () => {
+    expect(() =>
+      unwrapApiResult({
+        error: { detail: "Role already exists." },
+        response: new Response(null, { status: 409 }),
+      }),
+    ).toThrowError(AppError);
+  });
+});
+
+describe("getErrorMessage", () => {
+  it("reads the message from AppError instances", () => {
+    expect(getErrorMessage(new AppError(400, "TEST", "Readable message"))).toBe(
+      "Readable message",
+    );
+  });
+
+  it("uses the fallback when AppError has no user-facing message", () => {
+    expect(
+      getErrorMessage(
+        new AppError(500, "INVALID_AUTH_RESPONSE", "", undefined, false),
+        "Fallback",
+      ),
+    ).toBe("Fallback");
+  });
+
+  it("falls back for unknown values", () => {
+    expect(getErrorMessage(null, "Fallback")).toBe("Fallback");
   });
 });

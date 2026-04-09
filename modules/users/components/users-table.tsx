@@ -29,6 +29,7 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { useDebounce } from "@/shared/hooks/use-debounce";
+import { getErrorMessage } from "@/lib/errors";
 import {
   fetchUsers,
   activateUser,
@@ -36,10 +37,12 @@ import {
   deleteUser,
   type User,
 } from "../queries/users.queries";
+import { usersKeys } from "../users.keys";
 import { RoleChangeDialog } from "./role-change-dialog";
 
 export function UsersTable() {
   const t = useTranslations("users");
+  const tErrors = useTranslations("errors");
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -55,13 +58,13 @@ export function UsersTable() {
   >(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["users", page, debouncedSearch],
+    queryKey: usersKeys.list(page, debouncedSearch),
     queryFn: () =>
       fetchUsers({ page, size: 20, q: debouncedSearch || undefined }),
   });
 
   const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ["users"] });
+    queryClient.invalidateQueries({ queryKey: usersKeys.all });
 
   const activateMutation = useMutation({
     mutationFn: (id: string) => activateUser(id),
@@ -69,7 +72,13 @@ export function UsersTable() {
       toast.success(t("successMessages.activated"));
       invalidate();
     },
-    onError: () => toast.error(t("errorMessages.activateFailed")),
+    onError: (error) =>
+      toast.error(
+        getErrorMessage(
+          error,
+          t("errorMessages.activateFailed") || tErrors("generic"),
+        ),
+      ),
   });
 
   const deactivateMutation = useMutation({
@@ -78,7 +87,13 @@ export function UsersTable() {
       toast.success(t("successMessages.deactivated"));
       invalidate();
     },
-    onError: () => toast.error(t("errorMessages.deactivateFailed")),
+    onError: (error) =>
+      toast.error(
+        getErrorMessage(
+          error,
+          t("errorMessages.deactivateFailed") || tErrors("generic"),
+        ),
+      ),
   });
 
   const deleteMutation = useMutation({
@@ -87,7 +102,13 @@ export function UsersTable() {
       toast.success(t("successMessages.deleted"));
       invalidate();
     },
-    onError: () => toast.error(t("errorMessages.deleteFailed")),
+    onError: (error) =>
+      toast.error(
+        getErrorMessage(
+          error,
+          t("errorMessages.deleteFailed") || tErrors("generic"),
+        ),
+      ),
   });
 
   const columns: ColumnDef<User>[] = [

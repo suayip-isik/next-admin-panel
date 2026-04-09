@@ -23,59 +23,27 @@ import { useState } from "react";
 interface NavItem {
   key: string;
   href: string;
-  icon: React.ReactNode;
+  icon: typeof LayoutDashboard;
 }
+
+const navItems: NavItem[] = [
+  { key: "dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { key: "users", href: "/users", icon: Users },
+  { key: "roles", href: "/roles", icon: Shield },
+  { key: "auditLogs", href: "/audit-logs", icon: ScrollText },
+  { key: "apiKeys", href: "/api-keys", icon: Key },
+  { key: "notifications", href: "/notifications", icon: Bell },
+];
+
+const profileItems: NavItem[] = [
+  { key: "profile", href: "/profile", icon: User },
+  { key: "security", href: "/profile/security", icon: Lock },
+];
 
 export function Sidebar() {
   const t = useTranslations("nav");
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-
-  const navItems: NavItem[] = [
-    {
-      key: "dashboard",
-      href: "/dashboard",
-      icon: <LayoutDashboard className="h-4 w-4 shrink-0" />,
-    },
-    {
-      key: "users",
-      href: "/users",
-      icon: <Users className="h-4 w-4 shrink-0" />,
-    },
-    {
-      key: "roles",
-      href: "/roles",
-      icon: <Shield className="h-4 w-4 shrink-0" />,
-    },
-    {
-      key: "auditLogs",
-      href: "/audit-logs",
-      icon: <ScrollText className="h-4 w-4 shrink-0" />,
-    },
-    {
-      key: "apiKeys",
-      href: "/api-keys",
-      icon: <Key className="h-4 w-4 shrink-0" />,
-    },
-    {
-      key: "notifications",
-      href: "/notifications",
-      icon: <Bell className="h-4 w-4 shrink-0" />,
-    },
-  ];
-
-  const profileItems: NavItem[] = [
-    {
-      key: "profile",
-      href: "/profile",
-      icon: <User className="h-4 w-4 shrink-0" />,
-    },
-    {
-      key: "security",
-      href: "/profile/security",
-      icon: <Lock className="h-4 w-4 shrink-0" />,
-    },
-  ];
 
   return (
     <aside
@@ -145,7 +113,7 @@ export function Sidebar() {
 
 interface SidebarItemProps {
   href: string;
-  icon: React.ReactNode;
+  icon: NavItem["icon"];
   label: string;
   isActive: boolean;
   collapsed: boolean;
@@ -158,6 +126,8 @@ function SidebarItem({
   isActive,
   collapsed,
 }: SidebarItemProps) {
+  const Icon = icon;
+
   return (
     <Link
       href={href}
@@ -170,7 +140,7 @@ function SidebarItem({
         collapsed && "justify-center px-2",
       )}
     >
-      {icon}
+      <Icon className="h-4 w-4 shrink-0" />
       {!collapsed && <span className="truncate">{label}</span>}
     </Link>
   );

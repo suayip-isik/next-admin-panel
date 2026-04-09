@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { fetchUserStats } from "@/modules/users/queries/users.queries";
+import { usersKeys } from "@/modules/users/users.keys";
 import {
   Card,
   CardContent,
@@ -15,7 +16,7 @@ import { Users, UserCheck, UserX } from "lucide-react";
 export function UserStatsCards() {
   const t = useTranslations("dashboard.stats");
   const { data, isLoading } = useQuery({
-    queryKey: ["users", "stats"],
+    queryKey: usersKeys.stats(),
     queryFn: fetchUserStats,
   });
 
