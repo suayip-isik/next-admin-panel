@@ -4,7 +4,6 @@ import {
   forgotPasswordMutation,
   loginMutation,
   logoutMutation,
-  resendVerificationMutation,
   resetPasswordMutation,
   totpChallengeMutation,
 } from "@/modules/auth/queries/auth.queries";
@@ -119,8 +118,10 @@ describe("auth queries", () => {
     });
   });
 
-  it("sends forgot-password, reset-password and resend-verification payloads through the API client", async () => {
-    vi.mocked(apiClient.POST).mockResolvedValue({ data: { ok: true } } as never);
+  it("sends forgot-password and reset-password payloads through the API client", async () => {
+    vi.mocked(apiClient.POST).mockResolvedValue({
+      data: { ok: true },
+    } as never);
 
     await forgotPasswordMutation({ email: "user@example.com" });
     await resetPasswordMutation({
@@ -128,30 +129,22 @@ describe("auth queries", () => {
       new_password: "Newpassword1",
       confirm_password: "Newpassword1",
     });
-    await resendVerificationMutation("user@example.com");
 
     expect(apiClient.POST).toHaveBeenNthCalledWith(
       1,
-      "/api/v1/auth/forgot-password",
+      "/api/v1/shared/auth/forgot-password",
       {
         body: { email: "user@example.com" },
       },
     );
     expect(apiClient.POST).toHaveBeenNthCalledWith(
       2,
-      "/api/v1/auth/reset-password",
+      "/api/v1/shared/auth/reset-password",
       {
         body: {
           token: "reset-1",
           new_password: "Newpassword1",
         },
-      },
-    );
-    expect(apiClient.POST).toHaveBeenNthCalledWith(
-      3,
-      "/api/v1/auth/resend-verification",
-      {
-        body: { email: "user@example.com" },
       },
     );
   });

@@ -40,26 +40,36 @@ describe("roles queries", () => {
     });
     await deleteRole("role-1");
 
-    expect(apiClient.GET).toHaveBeenNthCalledWith(1, "/api/v1/roles");
-    expect(apiClient.GET).toHaveBeenNthCalledWith(2, "/api/v1/roles/{role_id}", {
-      params: { path: { role_id: "role-1" } },
-    });
-    expect(apiClient.POST).toHaveBeenCalledWith("/api/v1/roles", {
+    expect(apiClient.GET).toHaveBeenNthCalledWith(1, "/api/v1/admin/roles");
+    expect(apiClient.GET).toHaveBeenNthCalledWith(
+      2,
+      "/api/v1/admin/roles/{role_id}",
+      {
+        params: { path: { role_id: "role-1" } },
+      },
+    );
+    expect(apiClient.POST).toHaveBeenCalledWith("/api/v1/admin/roles", {
       body: {
         name: "support_agent",
         description: "Support",
         permissions: ["users:read"],
       },
     });
-    expect(apiClient.PATCH).toHaveBeenCalledWith("/api/v1/roles/{role_id}", {
-      params: { path: { role_id: "role-1" } },
-      body: {
-        description: "Updated",
-        permissions: ["roles:write"],
+    expect(apiClient.PATCH).toHaveBeenCalledWith(
+      "/api/v1/admin/roles/{role_id}",
+      {
+        params: { path: { role_id: "role-1" } },
+        body: {
+          description: "Updated",
+          permissions: ["roles:write"],
+        },
       },
-    });
-    expect(apiClient.DELETE).toHaveBeenCalledWith("/api/v1/roles/{role_id}", {
-      params: { path: { role_id: "role-1" } },
-    });
+    );
+    expect(apiClient.DELETE).toHaveBeenCalledWith(
+      "/api/v1/admin/roles/{role_id}",
+      {
+        params: { path: { role_id: "role-1" } },
+      },
+    );
   });
 });

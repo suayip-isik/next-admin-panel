@@ -123,7 +123,7 @@ Klasörlerin sorumlulukları:
 
 ### Route yapısı
 
-- `app/(auth)`: login, forgot-password, reset-password, verify-email ve TOTP akışları
+- `app/(auth)`: login, forgot-password, reset-password ve TOTP akışları
 - `app/(admin)`: dashboard, users, roles, notifications, audit-logs, api-keys, profile gibi korumalı sayfalar
 - `app/api/auth/*`: login, logout, refresh ve TOTP doğrulama gibi auth işlemleri
 - `app/api/v1/[...path]`: FastAPI backend'e proxy görevi gören genel API geçidi

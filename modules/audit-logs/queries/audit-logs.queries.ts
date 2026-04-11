@@ -15,7 +15,7 @@ export interface AuditLogsFilters {
 
 export async function fetchAuditLogs(filters: AuditLogsFilters = {}) {
   return unwrapApiResult(
-    await apiClient.GET("/api/v1/audit-logs", {
+    await apiClient.GET("/api/v1/admin/audit-logs", {
       params: { query: filters as Record<string, unknown> },
     }),
   );
@@ -23,7 +23,7 @@ export async function fetchAuditLogs(filters: AuditLogsFilters = {}) {
 
 export async function fetchAuditLog(id: string) {
   return unwrapApiResult(
-    await apiClient.GET("/api/v1/audit-logs/{log_id}", {
+    await apiClient.GET("/api/v1/admin/audit-logs/{log_id}", {
       params: { path: { log_id: id } },
     }),
   );

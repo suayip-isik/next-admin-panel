@@ -15,7 +15,7 @@ export async function POST() {
     return createInternalAuthErrorResponse(401, "UNAUTHENTICATED");
   }
 
-  const response = await forwardToFastApi("/api/v1/auth/refresh", {
+  const response = await forwardToFastApi("/api/v1/shared/auth/refresh", {
     method: "POST",
     body: JSON.stringify({ refresh_token: refreshToken }),
   });

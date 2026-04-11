@@ -24,9 +24,12 @@ describe("hasPermission", () => {
     expect(hasPermission([], "users:read")).toBe(false);
   });
 
-  it("returns true for admin:access when present", () => {
+  it("returns true for admin:panel_access when present", () => {
     expect(
-      hasPermission(["admin:access"] as Permission[], "admin:access"),
+      hasPermission(
+        ["admin:panel_access"] as Permission[],
+        "admin:panel_access",
+      ),
     ).toBe(true);
   });
 });

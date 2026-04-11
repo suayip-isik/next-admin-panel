@@ -30,6 +30,7 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { formatDateTime, formatRelativeTime } from "@/shared/utils/date";
+import { PERMISSIONS, type Permission } from "@/shared/utils/permissions";
 import { getErrorMessage } from "@/lib/errors";
 import {
   fetchApiKeys,
@@ -47,6 +48,10 @@ const createSchema = z.object({
 });
 
 type CreateFormValues = z.infer<typeof createSchema>;
+
+function isPermission(value: string): value is Permission {
+  return PERMISSIONS.includes(value as Permission);
+}
 
 export function ApiKeysList() {
   const t = useTranslations("apiKeys");
@@ -78,6 +83,7 @@ export function ApiKeysList() {
           ? values.scopes_raw
               .split(",")
               .map((s) => s.trim())
+              .filter(isPermission)
               .filter(Boolean)
           : [],
       }),

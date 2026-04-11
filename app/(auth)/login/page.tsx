@@ -16,7 +16,7 @@ async function hasValidSession() {
   }
 
   try {
-    const response = await fetch(`${protocol}://${host}/api/v1/auth/me`, {
+    const response = await fetch(`${protocol}://${host}/api/v1/shared/me`, {
       headers: cookieHeader ? { cookie: cookieHeader } : undefined,
       cache: "no-store",
     });

@@ -28,7 +28,7 @@ describe("audit log queries", () => {
 
     expect(apiClient.GET).toHaveBeenNthCalledWith(
       1,
-      "/api/v1/audit-logs",
+      "/api/v1/admin/audit-logs",
       {
         params: {
           query: {
@@ -42,7 +42,7 @@ describe("audit log queries", () => {
     );
     expect(apiClient.GET).toHaveBeenNthCalledWith(
       2,
-      "/api/v1/audit-logs/{log_id}",
+      "/api/v1/admin/audit-logs/{log_id}",
       {
         params: { path: { log_id: "log-1" } },
       },

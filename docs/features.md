@@ -20,7 +20,6 @@ Bu doküman, projedeki temel ekranları ve kullanıcı akışlarını özetler. 
 
 - `forgot-password`
 - `reset-password`
-- `verify-email`
 
 Bu ekranlar auth grubunda yer alır ve kullanıcı hesabı yaşam döngüsünün temel parçalarını kapsar.
 

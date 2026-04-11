@@ -11,7 +11,7 @@ export interface NotificationsParams {
 
 export async function fetchNotifications(params: NotificationsParams = {}) {
   return unwrapApiResult(
-    await apiClient.GET("/api/v1/notifications", {
+    await apiClient.GET("/api/v1/shared/notifications", {
       params: { query: params as Record<string, unknown> },
     }),
   );
@@ -19,13 +19,13 @@ export async function fetchNotifications(params: NotificationsParams = {}) {
 
 export async function fetchUnreadCount() {
   return unwrapApiResult(
-    await apiClient.GET("/api/v1/notifications/unread-count"),
+    await apiClient.GET("/api/v1/shared/notifications/unread-count"),
   );
 }
 
 export async function markNotificationRead(id: string) {
   return unwrapApiResult(
-    await apiClient.PATCH("/api/v1/notifications/{notification_id}", {
+    await apiClient.PATCH("/api/v1/shared/notifications/{notification_id}", {
       params: { path: { notification_id: id } },
     }),
   );
@@ -33,13 +33,13 @@ export async function markNotificationRead(id: string) {
 
 export async function markAllNotificationsRead() {
   return unwrapApiResult(
-    await apiClient.PATCH("/api/v1/notifications/read-all"),
+    await apiClient.PATCH("/api/v1/shared/notifications/read-all"),
   );
 }
 
 export async function deleteNotification(id: string) {
   return unwrapApiResult(
-    await apiClient.DELETE("/api/v1/notifications/{notification_id}", {
+    await apiClient.DELETE("/api/v1/shared/notifications/{notification_id}", {
       params: { path: { notification_id: id } },
     }),
   );

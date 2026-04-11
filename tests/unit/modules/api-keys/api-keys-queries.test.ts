@@ -31,8 +31,8 @@ describe("api key queries", () => {
     });
     await deleteApiKey("key-1");
 
-    expect(apiClient.GET).toHaveBeenCalledWith("/api/v1/api-keys");
-    expect(apiClient.POST).toHaveBeenCalledWith("/api/v1/api-keys", {
+    expect(apiClient.GET).toHaveBeenCalledWith("/api/v1/shared/api-keys");
+    expect(apiClient.POST).toHaveBeenCalledWith("/api/v1/shared/api-keys", {
       body: {
         name: "CI token",
         scopes: ["users:read"],
@@ -40,7 +40,7 @@ describe("api key queries", () => {
       },
     });
     expect(apiClient.DELETE).toHaveBeenCalledWith(
-      "/api/v1/api-keys/{key_id}",
+      "/api/v1/shared/api-keys/{key_id}",
       {
         params: { path: { key_id: "key-1" } },
       },

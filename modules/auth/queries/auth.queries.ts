@@ -79,7 +79,7 @@ export async function logoutMutation() {
 
 export async function forgotPasswordMutation(input: ForgotPasswordInput) {
   return unwrapApiResult(
-    await apiClient.POST("/api/v1/auth/forgot-password", {
+    await apiClient.POST("/api/v1/shared/auth/forgot-password", {
       body: input,
     }),
   );
@@ -87,19 +87,11 @@ export async function forgotPasswordMutation(input: ForgotPasswordInput) {
 
 export async function resetPasswordMutation(input: ResetPasswordInput) {
   return unwrapApiResult(
-    await apiClient.POST("/api/v1/auth/reset-password", {
+    await apiClient.POST("/api/v1/shared/auth/reset-password", {
       body: {
         token: input.token,
         new_password: input.new_password,
       },
-    }),
-  );
-}
-
-export async function resendVerificationMutation(email: string) {
-  return unwrapApiResult(
-    await apiClient.POST("/api/v1/auth/resend-verification", {
-      body: { email },
     }),
   );
 }

@@ -13,7 +13,7 @@ export async function POST() {
   }
 
   try {
-    await forwardToFastApi("/api/v1/auth/logout", {
+    await forwardToFastApi("/api/v1/shared/auth/logout", {
       method: "POST",
       body: JSON.stringify({ refresh_token: refreshToken }),
     });

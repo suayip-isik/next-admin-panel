@@ -1,13 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const AUTH_PATHS = [
-  "/login",
-  "/totp",
-  "/forgot-password",
-  "/reset-password",
-  "/verify-email",
-];
+const AUTH_PATHS = ["/login", "/totp", "/forgot-password", "/reset-password"];
 
 function isAuthPath(pathname: string): boolean {
   return AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));

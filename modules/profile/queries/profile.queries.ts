@@ -11,12 +11,12 @@ export interface UpdateProfileInput {
 }
 
 export async function fetchProfile() {
-  return unwrapApiResult(await apiClient.GET("/api/v1/users/me"));
+  return unwrapApiResult(await apiClient.GET("/api/v1/shared/me"));
 }
 
 export async function updateProfile(input: UpdateProfileInput) {
   return unwrapApiResult(
-    await apiClient.PATCH("/api/v1/users/me", {
+    await apiClient.PATCH("/api/v1/shared/me", {
       body: input,
     }),
   );
@@ -24,19 +24,21 @@ export async function updateProfile(input: UpdateProfileInput) {
 
 export async function changePassword(newPassword: string) {
   return unwrapApiResult(
-    await apiClient.PATCH("/api/v1/users/me", {
+    await apiClient.PATCH("/api/v1/shared/me", {
       body: { password: newPassword },
     }),
   );
 }
 
 export async function setupTotp() {
-  return unwrapApiResult(await apiClient.POST("/api/v1/auth/totp/setup"));
+  return unwrapApiResult(
+    await apiClient.POST("/api/v1/shared/auth/totp/setup"),
+  );
 }
 
 export async function verifyTotp(code: string) {
   return unwrapApiResult(
-    await apiClient.POST("/api/v1/auth/totp/verify", {
+    await apiClient.POST("/api/v1/shared/auth/totp/verify", {
       body: { code },
     }),
   );
@@ -44,7 +46,7 @@ export async function verifyTotp(code: string) {
 
 export async function disableTotp(code: string) {
   return unwrapApiResult(
-    await apiClient.POST("/api/v1/auth/totp/disable", {
+    await apiClient.POST("/api/v1/shared/auth/totp/disable", {
       body: { code },
     }),
   );
@@ -52,13 +54,13 @@ export async function disableTotp(code: string) {
 
 export async function fetchBackupCodesCount() {
   return unwrapApiResult(
-    await apiClient.GET("/api/v1/auth/totp/backup-codes/count"),
+    await apiClient.GET("/api/v1/shared/auth/totp/backup-codes/count"),
   );
 }
 
 export async function regenerateBackupCodes(code: string) {
   return unwrapApiResult(
-    await apiClient.POST("/api/v1/auth/totp/backup-codes/regenerate", {
+    await apiClient.POST("/api/v1/shared/auth/totp/backup-codes/regenerate", {
       body: { code },
     }),
   );

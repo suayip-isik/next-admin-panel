@@ -27,7 +27,6 @@ Kullanıcının oturum açmadan eriştiği ekranlar burada bulunur:
 - `/totp`
 - `/forgot-password`
 - `/reset-password`
-- `/verify-email`
 
 Bu grup daha sade bir layout kullanır. Üst alanda locale değiştirici ve tema değiştirici yer alır.
 

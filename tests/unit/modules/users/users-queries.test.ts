@@ -22,7 +22,7 @@ describe("users queries", () => {
   it("sends the free-text query as q for active users", async () => {
     await fetchUsers({ page: 2, size: 20, q: "Ada Lovelace" });
 
-    expect(apiClient.GET).toHaveBeenCalledWith("/api/v1/users", {
+    expect(apiClient.GET).toHaveBeenCalledWith("/api/v1/admin/users", {
       params: {
         query: {
           page: 2,
@@ -36,7 +36,7 @@ describe("users queries", () => {
   it("sends the free-text query as q for deleted users", async () => {
     await fetchDeletedUsers({ q: "Grace Hopper" });
 
-    expect(apiClient.GET).toHaveBeenCalledWith("/api/v1/users/deleted", {
+    expect(apiClient.GET).toHaveBeenCalledWith("/api/v1/admin/users/deleted", {
       params: {
         query: {
           q: "Grace Hopper",

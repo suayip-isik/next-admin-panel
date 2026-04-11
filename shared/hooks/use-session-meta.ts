@@ -17,7 +17,7 @@ export function useCurrentUser() {
     queryKey: AUTH_ME_QUERY_KEY,
     queryFn: async () => {
       return unwrapApiResult<CurrentUser>(
-        await apiClient.GET("/api/v1/auth/me"),
+        await apiClient.GET("/api/v1/shared/me"),
       );
     },
     staleTime: 5 * 60 * 1000,

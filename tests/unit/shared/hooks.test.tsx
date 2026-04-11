@@ -61,7 +61,7 @@ describe("shared hooks", () => {
     expect(result.current.data?.email).toBe("admin@example.com");
     expect(result.current.dataUpdatedAt).toBeGreaterThan(0);
     expect(AUTH_ME_QUERY_KEY).toEqual(["auth", "me"]);
-    expect(apiClient.GET).toHaveBeenCalledWith("/api/v1/auth/me");
+    expect(apiClient.GET).toHaveBeenCalledWith("/api/v1/shared/me");
   });
 
   it("maps session metadata for the UI", async () => {

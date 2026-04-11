@@ -3,7 +3,8 @@ import type { components } from "@/types/api.generated";
 export type Permission = components["schemas"]["Permission"];
 
 export const PERMISSIONS: Permission[] = [
-  "admin:access",
+  "admin:panel_access",
+  "users:create_admin",
   "users:read",
   "users:write",
   "users:delete",
@@ -18,7 +19,8 @@ export const PERMISSIONS: Permission[] = [
 ];
 
 export const PERMISSION_LABELS: Record<Permission, string> = {
-  "admin:access": "Admin Access",
+  "admin:panel_access": "Admin Panel Access",
+  "users:create_admin": "Create Admin Users",
   "users:read": "View Users",
   "users:write": "Edit Users",
   "users:delete": "Delete Users",

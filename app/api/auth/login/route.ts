@@ -7,7 +7,7 @@ import {
 
 export async function POST(request: Request) {
   const payload = await request.json();
-  const response = await forwardToFastApi("/api/v1/auth/login", {
+  const response = await forwardToFastApi("/api/v1/admin/auth/login", {
     method: "POST",
     body: JSON.stringify(payload),
   });

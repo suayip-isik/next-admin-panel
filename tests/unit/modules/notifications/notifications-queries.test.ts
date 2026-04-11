@@ -33,28 +33,28 @@ describe("notifications queries", () => {
 
     expect(apiClient.GET).toHaveBeenNthCalledWith(
       1,
-      "/api/v1/notifications",
+      "/api/v1/shared/notifications",
       {
         params: { query: { page: 2, size: 10 } },
       },
     );
     expect(apiClient.GET).toHaveBeenNthCalledWith(
       2,
-      "/api/v1/notifications/unread-count",
+      "/api/v1/shared/notifications/unread-count",
     );
     expect(apiClient.PATCH).toHaveBeenNthCalledWith(
       1,
-      "/api/v1/notifications/{notification_id}",
+      "/api/v1/shared/notifications/{notification_id}",
       {
         params: { path: { notification_id: "notification-1" } },
       },
     );
     expect(apiClient.PATCH).toHaveBeenNthCalledWith(
       2,
-      "/api/v1/notifications/read-all",
+      "/api/v1/shared/notifications/read-all",
     );
     expect(apiClient.DELETE).toHaveBeenCalledWith(
-      "/api/v1/notifications/{notification_id}",
+      "/api/v1/shared/notifications/{notification_id}",
       {
         params: { path: { notification_id: "notification-1" } },
       },

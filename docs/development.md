@@ -46,7 +46,7 @@ Bu frontend tek başına anlamlı çalışmaz; auth ve veri endpoint'leri için 
 Beklenen kritik endpoint örnekleri:
 
 - auth login/refresh/logout uçları
-- `/api/v1/auth/me`
+- `/api/v1/shared/me`
 - OpenAPI şema endpoint'i: `/schema/admin/openapi.json`
 
 Backend çalışmıyorsa:
