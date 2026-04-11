@@ -29,7 +29,7 @@ describe("permission hooks", () => {
       useHasPermission("users:read"),
     );
     const { result: hasAnyPermissionResult } = renderHook(() =>
-      useHasAnyPermission(["audit_logs:read", "roles:write"]),
+      useHasAnyPermission(["audit:read", "roles:write"]),
     );
 
     expect(hasPermissionResult.current).toBe(true);

@@ -7,6 +7,7 @@ Bu rehber, projeyi lokal ortamda ayağa kaldırmak ve geliştirirken izlenecek t
 - Node.js 20 veya üzeri
 - `pnpm`
 - Çalışan bir FastAPI backend servisi
+- Base repository için herhangi bir hosting hesabı zorunlu değildir
 
 ## Kurulum
 
@@ -20,14 +21,21 @@ pnpm install
 
 ```bash
 cp .env.example .env.local
+pnpm env:check
 ```
 
 Varsayılan örnek değerler:
 
 ```env
-NEXT_PUBLIC_FASTAPI_URL=http://localhost:8000
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_FASTAPI_URL=http://localhost:8000
+NEXT_PUBLIC_APP_NAME=Next Admin Panel
+AUTH_ACCESS_COOKIE_NAME=access_token
+OPENAPI_SCHEMA_URL=http://localhost:8000/schema/admin/openapi.json
+PLAYWRIGHT_BASE_URL=http://localhost:3000
 ```
+
+`.env.example` desteklenen tüm anahtarların canonical listesidir. Secret veya ortam özel değerleri `.env.local` içinde tutun.
 
 ## Geliştirme Sunucusu
 
@@ -67,14 +75,14 @@ Bu komut şu dosyayı günceller:
 
 - `types/api.generated.ts`
 
-Komutun doğru çalışması için backend'in `http://localhost:8000/schema/admin/openapi.json` endpoint'ini sunuyor olması gerekir. Farklı bir backend adresi kullanıyorsanız script'i veya çalışma ortamınızı buna göre uyarlayın.
+Komut önce `OPENAPI_SCHEMA_URL` değerini okur. Bu değişken tanımlı değilse `NEXT_PUBLIC_FASTAPI_URL + /schema/admin/openapi.json` fallback'i kullanılır.
 
 ## Test Çalıştırma
 
 ### Unit testler
 
 ```bash
-pnpm test
+pnpm test:unit
 ```
 
 İzleme modu:
@@ -101,9 +109,19 @@ Playwright yapılandırması:
 
 - testleri `tests/e2e` klasöründen okur
 - gerekirse `pnpm dev` ile lokal sunucuyu ayağa kaldırır
-- varsayılan base URL olarak `http://localhost:3000` kullanır
+- varsayılan base URL olarak `PLAYWRIGHT_BASE_URL` kullanır
+- HTML raporunu `playwright-report/`, artefaktları `test-results/` altında üretir
 
-Farklı bir URL üzerinde test koşmak için `PLAYWRIGHT_BASE_URL` tanımlanabilir.
+Farklı bir URL üzerinde test koşmak için `PLAYWRIGHT_BASE_URL` ve gerekirse `PLAYWRIGHT_WEB_SERVER_URL` tanımlanabilir.
+
+## CI/CD ve Deployment
+
+- GitHub Actions kalite hattı önce `pnpm env:check -- --ci-safe` çalıştırır
+- ardından `pnpm lint`, `pnpm typecheck`, `pnpm test:unit`, `pnpm test:coverage`, `pnpm build` ve `pnpm test:e2e` komutları çalışır
+- `main` production branch'tir
+- provider-specific deployment örnekleri base contributor CI'dan ayrıdır
+- resmi release akışı trusted tag veya manual dispatch ile çalışır
+- Docker, Kubernetes, Helm ve benzeri deployment stratejileri bu repository kapsamında base davranış değildir
 
 ## Dizinler Arasında Çalışma Kuralı
 
@@ -122,6 +140,7 @@ Sayfa dosyalarına iş mantığını yığmak yerine bunu ilgili modül veya yar
 Auth sistemi cookie tabanlıdır. Geliştirme sırasında şu noktalar önemlidir:
 
 - token'lar `httpOnly` cookie olarak yazılır
+- cookie adı, `path`, `sameSite`, `secure` ve TTL değerleri `.env` ile override edilebilir
 - route koruması `proxy.ts` ile yapılır
 - `/api/v1/*` çağrıları Next.js üzerinden FastAPI'ye iletilir
 - istemci tarafı `401` sonrasında refresh dener
@@ -142,29 +161,3 @@ Bu nedenle auth ile ilgili sorunları ayıklarken sadece form bileşenine değil
 - Tema tercihi `localStorage` ile saklanır
 
 Yeni UI eklerken metinleri mümkün olduğunca çeviri dosyalarına taşıyın ve bileşenleri mevcut tema davranışıyla uyumlu kurun.
-
-## Sık Karşılaşılan Durumlar
-
-### Login çalışıyor ama admin sayfaları açılmıyor
-
-Muhtemel nedenler:
-
-- `access_token` cookie'si set edilmiyordur
-- backend `auth/me` kontrolü başarısız dönüyordur
-- `NEXT_PUBLIC_FASTAPI_URL` yanlış ayarlanmıştır
-
-### API çağrıları `401` dönüyor
-
-Kontrol edin:
-
-- refresh route'u çalışıyor mu
-- cookie'ler doğru domain/path ile yazılıyor mu
-- backend access token'ı kabul ediyor mu
-
-### Tip üretimi bozuldu
-
-Kontrol edin:
-
-- backend şema endpoint'i erişilebilir mi
-- OpenAPI çıktısı değişti mi
-- üretilen tiplerle mevcut sorgu kodu uyumlu mu

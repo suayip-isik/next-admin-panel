@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getAuthCookieConfig } from "@/lib/env";
 
 const AUTH_PATHS = ["/login", "/totp", "/forgot-password", "/reset-password"];
 
@@ -24,7 +25,9 @@ export function proxy(request: NextRequest) {
   const isAdminRoute = pathname !== "/" && !isAuthPath(pathname) && !isApiRoute;
 
   if (isAdminRoute) {
-    const accessToken = request.cookies.get("access_token")?.value;
+    const accessToken = request.cookies.get(
+      getAuthCookieConfig().accessCookieName,
+    )?.value;
     if (!accessToken) {
       const loginUrl = new URL("/login", request.url);
       const from = request.nextUrl.pathname + request.nextUrl.search;

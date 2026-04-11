@@ -1,0 +1,22 @@
+name: Feature Request
+description: Propose a change or capability for the admin panel.
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    attributes:
+      label: Problem
+      description: Which user or maintainer problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposal
+      description: Describe the expected workflow, UI, or API changes.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Link related issues, screenshots, or design notes if relevant.

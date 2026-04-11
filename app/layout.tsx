@@ -3,17 +3,22 @@ import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { getAppDescription, getAppName, getAppUrl } from "@/lib/env";
 import { QueryProvider } from "@/shared/components/query-provider";
 import { ThemeProvider } from "@/shared/components/theme-provider";
 import { Toaster } from "@/shared/components/ui/sonner";
 import "./globals.css";
 
+const appName = getAppName();
+
 export const metadata: Metadata = {
+  metadataBase: new URL(getAppUrl()),
   title: {
-    template: "%s | Admin Panel",
-    default: "Admin Panel",
+    template: `%s | ${appName}`,
+    default: appName,
   },
-  description: "Production-ready Next.js admin panel boilerplate",
+  description: getAppDescription(),
+  manifest: "/manifest.webmanifest",
 };
 
 // Theme initialization script to prevent FOUC

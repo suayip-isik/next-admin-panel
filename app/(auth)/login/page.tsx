@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getAuthCookieConfig } from "@/lib/env";
 import { LoginForm } from "@/modules/auth/components/login-form";
 
 export const metadata: Metadata = { title: "Sign In" };
@@ -28,8 +29,9 @@ async function hasValidSession() {
 }
 
 export default async function LoginPage() {
+  const authEnv = getAuthCookieConfig();
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token");
+  const accessToken = cookieStore.get(authEnv.accessCookieName);
 
   if (accessToken && (await hasValidSession())) {
     redirect("/dashboard");

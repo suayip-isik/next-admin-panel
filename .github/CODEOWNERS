@@ -1,0 +1,13 @@
+* @suayip-isik
+
+.github/workflows/** @suayip-isik
+.github/CODEOWNERS @suayip-isik
+app/api/auth/** @suayip-isik
+lib/server-auth.ts @suayip-isik
+lib/env.ts @suayip-isik
+proxy.ts @suayip-isik
+shared/utils/permissions.ts @suayip-isik
+shared/hooks/use-permissions.ts @suayip-isik
+modules/roles/** @suayip-isik
+SECURITY.md @suayip-isik
+docs/environment.md @suayip-isik

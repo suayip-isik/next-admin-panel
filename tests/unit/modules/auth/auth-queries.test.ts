@@ -81,11 +81,11 @@ describe("auth queries", () => {
 
     await expect(
       loginMutation({ email: "user@example.com", password: "Secret123!" }),
-    ).rejects.toMatchObject<AppError>({
+    ).rejects.toMatchObject({
       status: 403,
       code: "INACTIVE_USER",
       message: "This account is inactive.",
-    });
+    } satisfies Partial<AppError>);
   });
 
   it("posts the totp code through the auth route", async () => {

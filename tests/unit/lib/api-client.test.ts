@@ -71,7 +71,7 @@ describe("apiClient middleware", () => {
 
   it("deduplicates refresh calls across concurrent 401 responses", async () => {
     const { middleware } = await loadModule();
-    let resolveRefresh: ((value: Response) => void) | null = null;
+    let resolveRefresh!: (value: Response) => void;
 
     vi.mocked(fetch)
       .mockImplementationOnce(
@@ -99,7 +99,7 @@ describe("apiClient middleware", () => {
       credentials: "include",
     });
 
-    resolveRefresh?.(new Response(null, { status: 200 }));
+    resolveRefresh(new Response(null, { status: 200 }));
 
     const [firstRetry, secondRetry] = await Promise.all([first, second]);
 

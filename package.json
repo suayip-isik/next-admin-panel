@@ -2,16 +2,25 @@
   "name": "next-admin-panel",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.29.3",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "env:init": "node scripts/env-init.mjs",
+    "env:check": "node scripts/env-check.mjs",
     "lint": "eslint",
-    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm test:unit",
+    "test:unit": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "generate:types": "openapi-typescript http://localhost:8000/schema/admin/openapi.json -o types/api.generated.ts"
+    "generate:types": "node scripts/generate-types.mjs"
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-rc.0",
@@ -48,6 +57,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
+    "@sentry/nextjs": "^10.48.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.9.1",

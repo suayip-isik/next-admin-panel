@@ -1,8 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { proxy } from "@/proxy";
 
 describe("proxy", () => {
+  afterEach(() => {
+    vi.resetModules();
+    delete process.env.AUTH_ACCESS_COOKIE_NAME;
+  });
+
   it("passes through static asset requests", () => {
     const response = proxy(
       new NextRequest("http://localhost/_next/static/chunk.js"),
@@ -40,5 +45,19 @@ describe("proxy", () => {
 
     expect(authResponse.status).toBe(200);
     expect(apiResponse.status).toBe(200);
+  });
+
+  it("uses the env-driven access cookie name", () => {
+    process.env.AUTH_ACCESS_COOKIE_NAME = "admin_access";
+
+    const response = proxy(
+      new NextRequest("http://localhost/users", {
+        headers: {
+          cookie: "admin_access=token-123",
+        },
+      }),
+    );
+
+    expect(response.status).toBe(200);
   });
 });

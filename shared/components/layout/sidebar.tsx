@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { getAppShortName } from "@/lib/env";
 import { cn } from "@/shared/utils/cn";
 import { Button } from "@/shared/components/ui/button";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
@@ -61,7 +62,7 @@ export function Sidebar() {
       >
         {!collapsed && (
           <span className="font-semibold text-sidebar-foreground truncate">
-            Admin Panel
+            {getAppShortName()}
           </span>
         )}
         <Button

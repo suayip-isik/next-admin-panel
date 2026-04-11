@@ -26,7 +26,7 @@ describe("locale switch coordination", () => {
   });
 
   it("deduplicates concurrent switch requests", async () => {
-    let resolveTask: (() => void) | null = null;
+    let resolveTask!: () => void;
 
     const promise = runLocaleSwitch(
       () =>
@@ -40,14 +40,15 @@ describe("locale switch coordination", () => {
     });
 
     expect(second).toBe(promise);
-    resolveTask?.();
+
+    resolveTask();
     await promise;
   });
 
   it("waits for an in-flight switch in the browser", async () => {
     vi.stubGlobal("window", window);
 
-    let resolveTask: (() => void) | null = null;
+    let resolveTask!: () => void;
     const switchPromise = runLocaleSwitch(
       () =>
         new Promise<void>((resolve) => {
@@ -56,7 +57,8 @@ describe("locale switch coordination", () => {
     );
 
     const waiter = waitForLocaleSwitch();
-    resolveTask?.();
+
+    resolveTask();
 
     await Promise.all([switchPromise, waiter]);
   });

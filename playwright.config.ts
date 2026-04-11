@@ -1,14 +1,18 @@
 import { defineConfig, devices } from "@playwright/test";
+import { getPlaywrightConfig } from "./lib/env";
+
+const playwrightConfig = getPlaywrightConfig();
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  outputDir: "test-results/playwright",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [["html", { outputFolder: "tests/e2e/report" }]],
+  reporter: [["html", { outputFolder: "playwright-report" }]],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
+    baseURL: playwrightConfig.baseUrl,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -20,7 +24,7 @@ export default defineConfig({
   ],
   webServer: {
     command: "pnpm dev",
-    url: "http://localhost:3000",
+    url: playwrightConfig.webServerUrl,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

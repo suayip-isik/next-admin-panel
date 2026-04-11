@@ -1,0 +1,24 @@
+name: Bug Report
+description: Report a defect in the admin panel.
+title: "fix: "
+labels:
+  - bug
+body:
+  - type: textarea
+    attributes:
+      label: Summary
+      description: Describe the bug and expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction
+      description: Include exact steps, URLs, or payloads when possible.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Environment
+      description: Browser, OS, Node.js version, and deployment environment.
+    validations:
+      required: true

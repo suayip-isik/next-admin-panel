@@ -1705,8 +1705,8 @@ export interface components {
       full_name: string | null;
       /** Avatar Url */
       avatar_url: string | null;
-      /** Account Type */
-      account_type: string;
+      /** Surface */
+      surface: string;
       role: components["schemas"]["RoleInfo"];
       /** Is Active */
       is_active: boolean;
@@ -2182,8 +2182,8 @@ export interface components {
       full_name: string | null;
       /** Avatar Url */
       avatar_url: string | null;
-      /** Account Type */
-      account_type: string;
+      /** Surface */
+      surface: string;
       role: components["schemas"]["RoleInfo"];
       /** Is Active */
       is_active: boolean;

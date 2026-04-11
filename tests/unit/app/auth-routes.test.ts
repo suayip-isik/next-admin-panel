@@ -36,6 +36,13 @@ describe("auth route handlers", () => {
     vi.clearAllMocks();
     cookieStore = createCookieStore();
     vi.mocked(cookies).mockResolvedValue(cookieStore as never);
+    delete process.env.AUTH_ACCESS_COOKIE_NAME;
+    delete process.env.AUTH_REFRESH_COOKIE_NAME;
+    delete process.env.AUTH_COOKIE_PATH;
+    delete process.env.AUTH_COOKIE_SAME_SITE;
+    delete process.env.AUTH_COOKIE_SECURE;
+    delete process.env.AUTH_ACCESS_TOKEN_MAX_AGE_SECONDS;
+    delete process.env.AUTH_REFRESH_TOKEN_MAX_AGE_SECONDS;
   });
 
   it("stores auth cookies when login returns tokens", async () => {
@@ -294,5 +301,59 @@ describe("auth route handlers", () => {
     const [, init] = vi.mocked(fetch).mock.calls[0]!;
     expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
     expect(cookieStore.set).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses env-driven cookie names and options", async () => {
+    process.env.AUTH_ACCESS_COOKIE_NAME = "admin_access";
+    process.env.AUTH_REFRESH_COOKIE_NAME = "admin_refresh";
+    process.env.AUTH_COOKIE_PATH = "/console";
+    process.env.AUTH_COOKIE_SAME_SITE = "strict";
+    process.env.AUTH_COOKIE_SECURE = "true";
+    process.env.AUTH_ACCESS_TOKEN_MAX_AGE_SECONDS = "1200";
+    process.env.AUTH_REFRESH_TOKEN_MAX_AGE_SECONDS = "7200";
+
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          access_token: "access-9",
+          refresh_token: "refresh-9",
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+
+    await loginPost(
+      new Request("http://localhost/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: "user@example.com",
+          password: "Secret123!",
+        }),
+      }),
+    );
+
+    expect(cookieStore.set).toHaveBeenCalledWith(
+      "admin_access",
+      "access-9",
+      expect.objectContaining({
+        path: "/console",
+        sameSite: "strict",
+        secure: true,
+        maxAge: 1200,
+      }),
+    );
+    expect(cookieStore.set).toHaveBeenCalledWith(
+      "admin_refresh",
+      "refresh-9",
+      expect.objectContaining({
+        path: "/console",
+        sameSite: "strict",
+        secure: true,
+        maxAge: 7200,
+      }),
+    );
   });
 });

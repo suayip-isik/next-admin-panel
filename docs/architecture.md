@@ -63,7 +63,7 @@ Bu route genel amaçlı bir proxy katmanıdır. Tarayıcıdan gelen `/api/v1/*` 
 
 ## Auth ve Session Tasarımı
 
-Oturum yönetimi cookie tabanlıdır.
+Oturum yönetimi cookie tabanlıdır. Cookie isimleri, TTL değerleri ve güvenlik davranışı `.env` üzerinden override edilebilir.
 
 - `access_token`: kısa ömürlü token
 - `refresh_token`: daha uzun ömürlü token
@@ -84,7 +84,7 @@ Bu cookie'ler `httpOnly` olarak yazılır. Böylece istemci tarafındaki uygulam
 
 - Statik asset'ler doğrudan geçer
 - `/api/*` route'ları bu kontrolün dışında bırakılır
-- auth dışındaki sayfalarda `access_token` yoksa kullanıcı `/login` sayfasına yönlendirilir
+- auth dışındaki sayfalarda access token cookie'si yoksa kullanıcı `/login` sayfasına yönlendirilir
 - yönlendirilen URL'ye `from` parametresi eklenir; böylece login sonrası geri dönüş mümkün olur
 
 ### `401` ve refresh akışı
@@ -111,7 +111,7 @@ Başarısız durumda:
 4. İstek, gerekli header temizliği ve locale header ayarı ile FastAPI'ye forward edilir.
 5. FastAPI yanıtı Next.js üzerinden tarayıcıya geri döner.
 
-Bu modelin avantajı, backend URL'si ve auth davranışının istemci katmanından soyutlanmasıdır.
+Bu modelin avantajı, backend URL'si ve auth davranışının istemci katmanından soyutlanması ve environment variable'lar üzerinden merkezi yönetilebilmesidir.
 
 ## Provider Yapısı
 

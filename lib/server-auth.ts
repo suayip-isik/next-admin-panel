@@ -1,11 +1,6 @@
 import { cookies } from "next/headers";
+import { getAuthCookieConfig, getFastApiUrl } from "@/lib/env";
 import { LOCALE_COOKIE_NAME, toAcceptLanguageHeader } from "@/i18n/config";
-
-const FASTAPI_URL =
-  process.env.NEXT_PUBLIC_FASTAPI_URL ?? "http://localhost:8000";
-
-const ACCESS_TOKEN_MAX_AGE = 30 * 60;
-const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60;
 
 interface ApiErrorBody {
   error?: {
@@ -51,33 +46,37 @@ export function isPartialAuthResponse(
 }
 
 function getCookieOptions(maxAge: number) {
+  const authEnv = getAuthCookieConfig();
+
   return {
     httpOnly: true,
-    sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
+    sameSite: authEnv.cookieSameSite,
+    secure: authEnv.cookieSecure,
+    path: authEnv.cookiePath,
     maxAge,
   };
 }
 
 export async function setAuthCookies(tokens: TokenResponse) {
+  const authEnv = getAuthCookieConfig();
   const cookieStore = await cookies();
   cookieStore.set(
-    "access_token",
+    authEnv.accessCookieName,
     tokens.access_token,
-    getCookieOptions(ACCESS_TOKEN_MAX_AGE),
+    getCookieOptions(authEnv.accessTokenMaxAgeSeconds),
   );
   cookieStore.set(
-    "refresh_token",
+    authEnv.refreshCookieName,
     tokens.refresh_token,
-    getCookieOptions(REFRESH_TOKEN_MAX_AGE),
+    getCookieOptions(authEnv.refreshTokenMaxAgeSeconds),
   );
 }
 
 export async function clearAuthCookies() {
+  const authEnv = getAuthCookieConfig();
   const cookieStore = await cookies();
-  cookieStore.delete("access_token");
-  cookieStore.delete("refresh_token");
+  cookieStore.delete(authEnv.accessCookieName);
+  cookieStore.delete(authEnv.refreshCookieName);
 }
 
 async function parseResponseBody(response: Response): Promise<unknown> {
@@ -153,15 +152,16 @@ export async function forwardToFastApi(
   path: string,
   init: ForwardRequestOptions,
 ): Promise<Response> {
-  return fetch(`${FASTAPI_URL}${path}`, await buildForwardInit(init));
+  return fetch(`${getFastApiUrl()}${path}`, await buildForwardInit(init));
 }
 
 export async function proxyApiRequestToFastApi(
   request: Request,
   path: string,
 ): Promise<Response> {
+  const authEnv = getAuthCookieConfig();
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token")?.value ?? null;
+  const accessToken = cookieStore.get(authEnv.accessCookieName)?.value ?? null;
   const url = new URL(request.url);
   const upstreamPath = `${path}${url.search}`;
   const method = request.method;
@@ -234,6 +234,7 @@ export async function finalizeAuthResponse(body: unknown): Promise<Response> {
 }
 
 export async function getRefreshTokenFromCookies() {
+  const authEnv = getAuthCookieConfig();
   const cookieStore = await cookies();
-  return cookieStore.get("refresh_token")?.value ?? null;
+  return cookieStore.get(authEnv.refreshCookieName)?.value ?? null;
 }
