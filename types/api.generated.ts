@@ -295,8 +295,8 @@ export interface paths {
      * Update Me
      * @description Giriş yapmış kullanıcının profil bilgilerini günceller.
      *
-     *     Kullanıcının ad, soyad gibi düzenlenebilir alanlarını günceller.
-     *     Email ve rol gibi hassas alanlar bu endpoint üzerinden değiştirilemez.
+     *     Kullanıcının kendi profil alanlarını günceller. Email değişikliğinde
+     *     mevcut şifre doğrulanır ve yeni adrese doğrulama e-postası gönderilir.
      *
      *     Args:
      *         data: Güncellenecek profil alanlarını içeren istek verisi.
@@ -307,6 +307,30 @@ export interface paths {
      *         Güncellenmiş kullanıcı profil bilgileri.
      */
     patch: operations["update_me_api_v1_shared_me_patch"];
+    trace?: never;
+  };
+  "/api/v1/shared/me/avatar": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Upload My Avatar
+     * @description Giriş yapmış kullanıcının profil fotoğrafını yükler veya günceller.
+     */
+    put: operations["upload_my_avatar_api_v1_shared_me_avatar_put"];
+    post?: never;
+    /**
+     * Delete My Avatar
+     * @description Giriş yapmış kullanıcının profil fotoğrafını siler.
+     */
+    delete: operations["delete_my_avatar_api_v1_shared_me_avatar_delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/api/v1/admin/users": {
@@ -468,6 +492,74 @@ export interface paths {
      *         NotFoundError: Belirtilen ID'ye sahip kullanıcı bulunamazsa.
      */
     delete: operations["delete_user_api_v1_admin_users__user_id__delete"];
+    options?: never;
+    head?: never;
+    /**
+     * Update User
+     * @description Admin user-management ile kullanıcı profil alanlarını günceller.
+     */
+    patch: operations["update_user_api_v1_admin_users__user_id__patch"];
+    trace?: never;
+  };
+  "/api/v1/admin/users/{user_id}/avatar": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Upload User Avatar
+     * @description Yetkili admin hedef kullanıcının profil fotoğrafını yükler veya günceller.
+     */
+    put: operations["upload_user_avatar_api_v1_admin_users__user_id__avatar_put"];
+    post?: never;
+    /**
+     * Delete User Avatar
+     * @description Yetkili admin hedef kullanıcının profil fotoğrafını siler.
+     */
+    delete: operations["delete_user_avatar_api_v1_admin_users__user_id__avatar_delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/users/{user_id}/change-email": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Change User Email
+     * @description Hedef kullanıcının e-posta değişikliğini başlatır ve verify maili yollar.
+     */
+    post: operations["change_user_email_api_v1_admin_users__user_id__change_email_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/users/{user_id}/resend-verification": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Resend User Verification
+     * @description Doğrulanmamış veya pending email bekleyen kullanıcıya verify maili yollar.
+     */
+    post: operations["resend_user_verification_api_v1_admin_users__user_id__resend_verification_post"];
+    delete?: never;
     options?: never;
     head?: never;
     patch?: never;
@@ -1483,6 +1575,29 @@ export interface components {
       created_at: string;
     };
     /**
+     * AdminChangeUserEmailRequest
+     * @description Admin user-management ile hedef kullanıcının e-posta değişikliği isteği.
+     */
+    AdminChangeUserEmailRequest: {
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+    };
+    /**
+     * AdminUpdateUserRequest
+     * @description Admin user-management için kullanıcı güncelleme isteği.
+     */
+    AdminUpdateUserRequest: {
+      /** Full Name */
+      full_name?: string | null;
+      /** Username */
+      username?: string | null;
+      /** Avatar Url */
+      avatar_url?: string | null;
+    };
+    /**
      * AssignRoleRequest
      * @description Kullanıcıya rol atama isteği.
      *
@@ -1506,6 +1621,9 @@ export interface components {
      *         LOGOUT: Kullanıcı çıkışı
      *         REGISTER: Yeni kullanıcı kaydı
      *         EMAIL_VERIFIED: Email doğrulama tamamlandı
+     *         EMAIL_CHANGE_REQUESTED: Email değişikliği doğrulama bekliyor
+     *         EMAIL_CHANGED: Bekleyen email değişikliği doğrulandı ve aktif edildi
+     *         VERIFICATION_RESENT: Doğrulama e-postası yeniden gönderildi
      *         PASSWORD_RESET_REQUESTED: Şifre sıfırlama talebi
      *         PASSWORD_RESET: Şifre sıfırlama tamamlandı
      *         ADMIN_PASSWORD_RESET_REQUESTED: Admin şifre sıfırlama talebi
@@ -1517,8 +1635,12 @@ export interface components {
      *         ROLE_CHANGED: Kullanıcı rolü değiştirildi
      *         ADMIN_USER_CREATED: Yeni admin kullanıcı oluşturuldu
      *         ADMIN_INVITE_RESENT: Admin kullanıcı daveti yeniden gönderildi
+     *         USER_MANAGEMENT_BLOCKED: User management işlemi güvenlik kuralı ile engellendi
      *         USER_DELETED: Kullanıcı hesabı silindi (soft delete)
      *         USER_RESTORED: Silinen kullanıcı geri yüklendi
+     *         PROFILE_AVATAR_UPLOADED: Profil fotoğrafı ilk kez yüklendi
+     *         PROFILE_AVATAR_UPDATED: Profil fotoğrafı güncellendi
+     *         PROFILE_AVATAR_DELETED: Profil fotoğrafı silindi
      *         FILE_UPLOADED: Dosya yüklendi
      *         FILE_DELETED: Dosya silindi
      *         API_KEY_CREATED: API key oluşturuldu
@@ -1541,6 +1663,9 @@ export interface components {
       | "logout"
       | "register"
       | "email_verified"
+      | "email_change_requested"
+      | "email_changed"
+      | "verification_resent"
       | "password_reset_requested"
       | "password_reset"
       | "admin_password_reset_requested"
@@ -1552,8 +1677,12 @@ export interface components {
       | "role_changed"
       | "admin_user_created"
       | "admin_invite_resent"
+      | "user_management_blocked"
       | "user_deleted"
       | "user_restored"
+      | "profile_avatar_uploaded"
+      | "profile_avatar_updated"
+      | "profile_avatar_deleted"
       | "password_changed"
       | "account_deleted"
       | "file_uploaded"
@@ -1618,6 +1747,22 @@ export interface components {
     };
     /** Body_upload_file_api_v1_shared_uploads_post */
     Body_upload_file_api_v1_shared_uploads_post: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+    };
+    /** Body_upload_my_avatar_api_v1_shared_me_avatar_put */
+    Body_upload_my_avatar_api_v1_shared_me_avatar_put: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+    };
+    /** Body_upload_user_avatar_api_v1_admin_users__user_id__avatar_put */
+    Body_upload_user_avatar_api_v1_admin_users__user_id__avatar_put: {
       /**
        * File
        * Format: binary
@@ -1712,6 +1857,10 @@ export interface components {
       is_active: boolean;
       /** Is Verified */
       is_verified: boolean;
+      /** Has Pending Email */
+      has_pending_email: boolean;
+      /** Verification Required */
+      verification_required: boolean;
       /**
        * Deleted At
        * Format: date-time
@@ -1903,41 +2052,89 @@ export interface components {
      * Permission
      * @description Sistemdeki tüm yetki tanımları.
      *
-     *     Format: "kaynak:aksiyon" (ör: "users:write").
+     *     Format: "kaynak:aksiyon" (ör: "users:update").
      *     Roller bu enum değerlerinin kombinasyonlarına sahip olur.
      *     Yeni bir özellik eklendiğinde buraya permission eklenir,
      *     ardından ilgili rol(ler)e atanır — migration gerekmez.
      *
      *     Attributes:
      *         ADMIN_PANEL_ACCESS: Admin paneline erişim
-     *         USERS_CREATE_ADMIN: Admin kullanıcı oluşturma ve davet yeniden gönderme
-     *         USERS_READ: Kullanıcı listesini görüntüleme
-     *         USERS_WRITE: Kullanıcı bilgilerini güncelleme
-     *         USERS_DELETE: Kullanıcıyı silme / geri yükleme
-     *         ROLES_READ: Rol listesini görüntüleme
-     *         ROLES_WRITE: Rol oluşturma, güncelleme, silme
-     *         AUDIT_READ: Audit logları görüntüleme
-     *         API_KEYS_READ: API key listesini görüntüleme
-     *         API_KEYS_WRITE: API key oluşturma ve silme
-     *         NOTIFICATIONS_READ: Bildirimleri görüntüleme
-     *         PROFILE_READ: Kendi profilini görüntüleme
-     *         PROFILE_WRITE: Kendi profilini güncelleme
+     *         USERS_LIST: Kullanıcı listesini görüntüleme
+     *         USERS_VIEW: Kullanıcı detayını görüntüleme
+     *         USERS_VIEW_STATS: Kullanıcı istatistiklerini görüntüleme
+     *         USERS_LIST_DELETED: Silinmiş kullanıcıları görüntüleme
+     *         USERS_CREATE_ADMIN: Admin kullanıcı oluşturma
+     *         USERS_UPDATE: Kullanıcı bilgilerini güncelleme
+     *         USERS_UPLOAD_AVATAR: Diğer kullanıcıların profil fotoğrafını yükleme
+     *         USERS_DELETE_AVATAR: Diğer kullanıcıların profil fotoğrafını silme
+     *         USERS_CHANGE_EMAIL: Kullanıcı e-posta adresini değiştirme
+     *         USERS_RESEND_VERIFICATION: Kullanıcıya doğrulama e-postası yeniden gönderme
+     *         USERS_RESEND_ADMIN_INVITE: Admin davetini yeniden gönderme
+     *         USERS_ACTIVATE: Kullanıcıyı aktif etme
+     *         USERS_DEACTIVATE: Kullanıcıyı pasif etme
+     *         USERS_ASSIGN_ROLE: Kullanıcı rolünü değiştirme
+     *         USERS_DELETE: Kullanıcıyı silme
+     *         USERS_RESTORE: Kullanıcıyı geri yükleme
+     *         ROLES_LIST: Rol listesini görüntüleme
+     *         ROLES_VIEW: Rol detayını görüntüleme
+     *         ROLES_CREATE: Rol oluşturma
+     *         ROLES_UPDATE: Rol güncelleme
+     *         ROLES_DELETE: Rol silme
+     *         AUDIT_LIST: Audit log listesini görüntüleme
+     *         AUDIT_STREAM: Audit log akışını görüntüleme
+     *         AUDIT_VIEW: Audit log detayını görüntüleme
+     *         API_KEYS_LIST: API key listesini görüntüleme
+     *         API_KEYS_CREATE: API key oluşturma
+     *         API_KEYS_REVOKE: API key silme
+     *         NOTIFICATIONS_LIST: Bildirimleri görüntüleme
+     *         NOTIFICATIONS_VIEW_UNREAD_COUNT: Okunmamış bildirim sayısını görüntüleme
+     *         NOTIFICATIONS_MARK_ALL_READ: Tüm bildirimleri okundu işaretleme
+     *         NOTIFICATIONS_MARK_READ: Tek bildirimi okundu işaretleme
+     *         NOTIFICATIONS_DELETE: Bildirimi silme
+     *         PROFILE_VIEW: Kendi profilini görüntüleme
+     *         PROFILE_UPDATE: Kendi profilini güncelleme
+     *         PROFILE_UPLOAD_AVATAR: Kendi profil fotoğrafını yükleme
+     *         PROFILE_DELETE_AVATAR: Kendi profil fotoğrafını silme
      * @enum {string}
      */
     Permission:
       | "admin:panel_access"
+      | "users:list"
+      | "users:view"
+      | "users:view_stats"
+      | "users:list_deleted"
       | "users:create_admin"
-      | "users:read"
-      | "users:write"
+      | "users:update"
+      | "users:upload_avatar"
+      | "users:delete_avatar"
+      | "users:change_email"
+      | "users:resend_verification"
+      | "users:resend_admin_invite"
+      | "users:activate"
+      | "users:deactivate"
+      | "users:assign_role"
       | "users:delete"
-      | "roles:read"
-      | "roles:write"
-      | "audit:read"
-      | "api_keys:read"
-      | "api_keys:write"
-      | "notifications:read"
-      | "profile:read"
-      | "profile:write";
+      | "users:restore"
+      | "roles:list"
+      | "roles:view"
+      | "roles:create"
+      | "roles:update"
+      | "roles:delete"
+      | "audit:list"
+      | "audit:stream"
+      | "audit:view"
+      | "api_keys:list"
+      | "api_keys:create"
+      | "api_keys:revoke"
+      | "notifications:list"
+      | "notifications:view_unread_count"
+      | "notifications:mark_all_read"
+      | "notifications:mark_read"
+      | "notifications:delete"
+      | "profile:view"
+      | "profile:update"
+      | "profile:upload_avatar"
+      | "profile:delete_avatar";
     /**
      * RefreshRequest
      * @description Access token yenileme için request schema.
@@ -2141,6 +2338,8 @@ export interface components {
       username?: string | null;
       /** Password */
       password?: string | null;
+      /** Current Password */
+      current_password?: string | null;
     };
     /**
      * UploadResponse
@@ -2189,6 +2388,10 @@ export interface components {
       is_active: boolean;
       /** Is Verified */
       is_verified: boolean;
+      /** Has Pending Email */
+      has_pending_email: boolean;
+      /** Verification Required */
+      verification_required: boolean;
     };
     /**
      * UserStatsResponse
@@ -2502,6 +2705,72 @@ export interface operations {
       };
     };
   };
+  upload_my_avatar_api_v1_shared_me_avatar_put: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_upload_my_avatar_api_v1_shared_me_avatar_put"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_my_avatar_api_v1_shared_me_avatar_delete: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   list_users_api_v1_admin_users_get: {
     parameters: {
       query?: {
@@ -2686,6 +2955,183 @@ export interface operations {
     };
   };
   delete_user_api_v1_admin_users__user_id__delete: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MessageResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_user_api_v1_admin_users__user_id__patch: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AdminUpdateUserRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  upload_user_avatar_api_v1_admin_users__user_id__avatar_put: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_upload_user_avatar_api_v1_admin_users__user_id__avatar_put"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_user_avatar_api_v1_admin_users__user_id__avatar_delete: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  change_user_email_api_v1_admin_users__user_id__change_email_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AdminChangeUserEmailRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  resend_user_verification_api_v1_admin_users__user_id__resend_verification_post: {
     parameters: {
       query?: never;
       header?: {

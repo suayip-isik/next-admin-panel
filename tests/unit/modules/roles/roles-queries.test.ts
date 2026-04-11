@@ -32,11 +32,11 @@ describe("roles queries", () => {
     await createRole({
       name: "support_agent",
       description: "Support",
-      permissions: ["users:read"],
+      permissions: ["users:view"],
     });
     await updateRole("role-1", {
       description: "Updated",
-      permissions: ["roles:write"],
+      permissions: ["roles:update"],
     });
     await deleteRole("role-1");
 
@@ -52,7 +52,7 @@ describe("roles queries", () => {
       body: {
         name: "support_agent",
         description: "Support",
-        permissions: ["users:read"],
+        permissions: ["users:view"],
       },
     });
     expect(apiClient.PATCH).toHaveBeenCalledWith(
@@ -61,7 +61,7 @@ describe("roles queries", () => {
         params: { path: { role_id: "role-1" } },
         body: {
           description: "Updated",
-          permissions: ["roles:write"],
+          permissions: ["roles:update"],
         },
       },
     );

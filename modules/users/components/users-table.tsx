@@ -1,22 +1,24 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useQueryState, parseAsInteger, parseAsString } from "nuqs";
-import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
+  Eye,
   MoreHorizontal,
-  UserCheck,
-  UserX,
   Shield,
   Trash2,
-  Eye,
+  UserCheck,
+  UserX,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { useState } from "react";
+import { toast } from "sonner";
 import { DataTable } from "@/shared/components/data-table/data-table";
 import { DataTablePagination } from "@/shared/components/data-table/data-table-pagination";
+import { ConfirmDialog } from "@/shared/components/confirm-dialog";
+import { useDebounce } from "@/shared/hooks/use-debounce";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -27,17 +29,25 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { Input } from "@/shared/components/ui/input";
-import { ConfirmDialog } from "@/shared/components/confirm-dialog";
-import { useDebounce } from "@/shared/hooks/use-debounce";
-import { getErrorMessage } from "@/lib/errors";
 import {
-  fetchUsers,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import { getErrorMessage } from "@/lib/errors";
+import { fetchRoles } from "@/modules/roles/queries/roles.queries";
+import { rolesKeys } from "@/modules/roles/roles.keys";
+import {
   activateUser,
   deactivateUser,
   deleteUser,
+  fetchUsers,
   type User,
 } from "../queries/users.queries";
 import { usersKeys } from "../users.keys";
+import { CreateAdminUserDialog } from "./create-admin-user-dialog";
 import { RoleChangeDialog } from "./role-change-dialog";
 
 export function UsersTable() {
@@ -51,16 +61,42 @@ export function UsersTable() {
     "search",
     parseAsString.withDefault(""),
   );
+  const [role, setRole] = useQueryState(
+    "role",
+    parseAsString.withDefault("all"),
+  );
+  const [status, setStatus] = useQueryState(
+    "is_active",
+    parseAsString.withDefault("all"),
+  );
+  const [verified, setVerified] = useQueryState(
+    "is_verified",
+    parseAsString.withDefault("all"),
+  );
   const debouncedSearch = useDebounce(search, 400);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [dialog, setDialog] = useState<
     "activate" | "deactivate" | "delete" | "role" | null
   >(null);
 
+  const filters = {
+    page,
+    size: 20,
+    q: debouncedSearch || undefined,
+    role: role === "all" ? undefined : role,
+    is_active: status === "all" ? undefined : status === "true",
+    is_verified: verified === "all" ? undefined : verified === "true",
+  };
+
   const { data, isLoading } = useQuery({
-    queryKey: usersKeys.list(page, debouncedSearch),
-    queryFn: () =>
-      fetchUsers({ page, size: 20, q: debouncedSearch || undefined }),
+    queryKey: usersKeys.list(filters),
+    queryFn: () => fetchUsers(filters),
+  });
+  const { data: roles } = useQuery({
+    queryKey: rolesKeys.list(),
+    queryFn: fetchRoles,
+    staleTime: 5 * 60 * 1000,
   });
 
   const invalidate = () =>
@@ -150,9 +186,12 @@ export function UsersTable() {
       accessorKey: "is_verified",
       header: t("columns.verified"),
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {row.original.is_verified ? "✓" : "—"}
-        </span>
+        <div className="space-y-1 text-sm text-muted-foreground">
+          <div>{row.original.is_verified ? "✓" : "—"}</div>
+          {row.original.has_pending_email && (
+            <div className="text-xs">{t("verification.pendingEmail")}</div>
+          )}
+        </div>
       ),
     },
     {
@@ -231,17 +270,77 @@ export function UsersTable() {
     },
   ];
 
+  const roleOptions = (roles ?? []).map((currentRole) => currentRole.name);
+
   return (
     <div className="space-y-4">
-      <Input
-        placeholder={t("searchPlaceholder")}
-        value={search}
-        onChange={(e) => {
-          void setSearch(e.target.value || null);
-          void setPage(1);
-        }}
-        className="max-w-sm"
-      />
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-1 flex-wrap gap-2">
+          <Input
+            placeholder={t("searchPlaceholder")}
+            value={search}
+            onChange={(event) => {
+              void setSearch(event.target.value || null);
+              void setPage(1);
+            }}
+            className="max-w-sm"
+          />
+          <Select
+            value={role}
+            onValueChange={(value) => {
+              void setRole(value === "all" ? null : value);
+              void setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder={t("filters.allRoles")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("filters.allRoles")}</SelectItem>
+              {roleOptions.map((roleName) => (
+                <SelectItem key={roleName} value={roleName}>
+                  {roleName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={status}
+            onValueChange={(value) => {
+              void setStatus(value === "all" ? null : value);
+              void setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder={t("filters.allStatuses")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
+              <SelectItem value="true">{t("filters.active")}</SelectItem>
+              <SelectItem value="false">{t("filters.inactive")}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={verified}
+            onValueChange={(value) => {
+              void setVerified(value === "all" ? null : value);
+              void setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder={t("filters.allVerification")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                {t("filters.allVerification")}
+              </SelectItem>
+              <SelectItem value="true">{t("filters.verified")}</SelectItem>
+              <SelectItem value="false">{t("filters.unverified")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button onClick={() => setCreateOpen(true)}>{t("createAdmin")}</Button>
+      </div>
 
       <DataTable
         columns={columns}
@@ -255,11 +354,10 @@ export function UsersTable() {
           page={page}
           totalPages={data.pages}
           total={data.total}
-          onPageChange={(p) => void setPage(p)}
+          onPageChange={(nextPage) => void setPage(nextPage)}
         />
       )}
 
-      {/* Dialogs */}
       <ConfirmDialog
         open={dialog === "activate"}
         onOpenChange={(open) => !open && setDialog(null)}
@@ -312,6 +410,7 @@ export function UsersTable() {
       />
       {selectedUser && (
         <RoleChangeDialog
+          key={selectedUser.id}
           open={dialog === "role"}
           onOpenChange={(open) => !open && setDialog(null)}
           user={selectedUser}
@@ -321,6 +420,7 @@ export function UsersTable() {
           }}
         />
       )}
+      <CreateAdminUserDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }

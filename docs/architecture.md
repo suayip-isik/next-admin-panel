@@ -48,6 +48,8 @@ Session gerektiren admin ekranlarını içerir:
 
 Bu grup sidebar + topbar kullanan tam admin layout ile render edilir.
 
+Kullanıcı yönetimi tarafında `/users` liste ekranı; create-admin dialog'unu, filtreleri ve hızlı aksiyonları taşır. Daha kapsamlı yönetim aksiyonları `/users/[id]` detay ekranında toplanır.
+
 ### Sistem route'ları
 
 - `/` doğrudan `/dashboard` adresine yönlendirir.
@@ -116,6 +118,8 @@ Forward sırasında:
 - gereksiz request header'ları temizlenir
 - response body ve status upstream'den korunur
 
+Bu katman, multipart upload isteklerini de taşıyabilir; profil avatarı ve kullanıcı avatarı akışları aynı `/api/v1/*` proxy hattından backend'e gider.
+
 ### Client API katmanı
 
 `lib/api-client.ts` içinde `openapi-fetch` tabanlı istemci bulunur.
@@ -170,6 +174,12 @@ Bu modüller çoğunlukla:
 - form şemaları
 - query key tanımları
 
+Örnekler:
+
+- `modules/users`: kullanıcı listesi, create-admin dialog'u, kullanıcı detay aksiyonları, avatar/e-posta/verification yönetimi
+- `modules/profile`: kendi profil formu, avatar yönetimi, parola ve 2FA bölümleri
+- `modules/audit-logs`: filtreli liste, cursor tabanlı stream yükleme ve detail sheet
+
 içerir.
 
 Ortak parçalar:
@@ -206,3 +216,5 @@ Ortak parçalar:
 - `tests/e2e`: auth yönlendirme ve TOTP geçiş akışı
 
 Playwright yapılandırması gerekirse `pnpm dev` ile web server başlatır ve `PLAYWRIGHT_*` env değerlerini kullanır.
+
+Audit log ekranı istemci tarafında cursor tabanlı `Load more` davranışı kullanır; sayfa numarasını URL'de tutmak yerine yalnızca filtre parametrelerini URL state'te korur. Profil ve kullanıcı detay ekranlarındaki avatar işlemleri mutation sonrası React Query cache invalidation ile topbar ve ilgili kartları anında günceller.

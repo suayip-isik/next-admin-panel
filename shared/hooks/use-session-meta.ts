@@ -29,6 +29,7 @@ export interface SessionMeta {
   id: string;
   email: string;
   role: string;
+  avatarUrl: string | null;
 }
 
 // Used by Sidebar/Topbar for UI display
@@ -39,5 +40,6 @@ export function useSessionMeta(): SessionMeta | null {
     id: data.id,
     email: data.email,
     role: data.role?.name ?? "user",
+    avatarUrl: data.avatar_url ?? null,
   };
 }

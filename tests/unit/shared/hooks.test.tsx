@@ -85,6 +85,7 @@ describe("shared hooks", () => {
         id: "user-1",
         email: "admin@example.com",
         role: "admin",
+        avatarUrl: null,
       }),
     );
   });

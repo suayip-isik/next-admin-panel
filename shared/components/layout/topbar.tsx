@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
-import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +63,12 @@ export function Topbar() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="rounded-full">
             <Avatar className="h-8 w-8">
+              {sessionMeta?.avatarUrl && (
+                <AvatarImage
+                  src={sessionMeta.avatarUrl}
+                  alt={sessionMeta.email}
+                />
+              )}
               <AvatarFallback className="text-xs">{initials}</AvatarFallback>
             </Avatar>
           </Button>

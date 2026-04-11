@@ -33,7 +33,10 @@ export function DeletedUsersPageClient() {
   const [restoreOpen, setRestoreOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: usersKeys.deleted(page, debouncedSearch),
+    queryKey: usersKeys.deleted({
+      page,
+      q: debouncedSearch || undefined,
+    }),
     queryFn: () =>
       fetchDeletedUsers({
         page,

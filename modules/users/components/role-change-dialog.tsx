@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -69,6 +70,7 @@ export function RoleChangeDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <Select value={roleName} onValueChange={setRoleName}>
           <SelectTrigger>

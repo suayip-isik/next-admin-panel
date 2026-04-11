@@ -49,7 +49,12 @@ Bu frontend tek başına tam anlamlı çalışmaz. Özellikle şu endpoint ailel
 - `/api/v1/shared/auth/refresh`
 - `/api/v1/shared/auth/logout`
 - `/api/v1/shared/me`
+- `/api/v1/shared/me/avatar`
 - `/api/v1/admin/users*`
+- `/api/v1/admin/users/{user_id}/avatar`
+- `/api/v1/admin/users/{user_id}/change-email`
+- `/api/v1/admin/users/{user_id}/resend-verification`
+- `/api/v1/admin/users/{user_id}/resend-invite`
 - `/api/v1/admin/roles*`
 - `/api/v1/admin/audit-logs*`
 - `/api/v1/shared/notifications*`

@@ -20,16 +20,16 @@ describe("permission hooks", () => {
     useCurrentUserMock.mockReturnValue({
       data: {
         role: {
-          permissions: ["users:read", "roles:write"],
+          permissions: ["users:view", "roles:update"],
         },
       },
     });
 
     const { result: hasPermissionResult } = renderHook(() =>
-      useHasPermission("users:read"),
+      useHasPermission("users:view"),
     );
     const { result: hasAnyPermissionResult } = renderHook(() =>
-      useHasAnyPermission(["audit:read", "roles:write"]),
+      useHasAnyPermission(["audit:list", "roles:update"]),
     );
 
     expect(hasPermissionResult.current).toBe(true);

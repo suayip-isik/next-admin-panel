@@ -9,11 +9,12 @@ Next.js 16, React 19 ve FastAPI odaklı bir backend entegrasyonu için hazırlan
 - Şifre sıfırlama akışları
 - Dashboard üzerinde kullanıcı istatistik kartları
 - Kullanıcı, silinmiş kullanıcı ve kullanıcı detay ekranları
+- Admin kullanıcı oluşturma, e-posta değişikliği, doğrulama ve davet yeniden gönderme
 - Rol listeleme, oluşturma, güncelleme ve silme
-- Audit log listeleme ve detay görüntüleme
+- Audit log listeleme, stream tabanlı `Load more` ve detay görüntüleme
 - Bildirim listeleme, okunma ve silme işlemleri
 - API key listeleme, oluşturma ve silme
-- Profil güncelleme, parola değiştirme, TOTP yönetimi ve backup code yenileme
+- Profil güncelleme, avatar yönetimi, parola değiştirme, TOTP yönetimi ve backup code yenileme
 - Türkçe ve İngilizce arayüz
 - Tema desteği: `light`, `dark`, `system`
 - OpenAPI şemasından TypeScript tip üretimi

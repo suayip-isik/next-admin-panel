@@ -1,41 +1,60 @@
-"use client"
+"use client";
 
-import { useQuery } from "@tanstack/react-query"
-import { useTranslations } from "next-intl"
-import { useState } from "react"
-import { useQueryState, parseAsInteger, parseAsString } from "nuqs"
-import type { ColumnDef } from "@tanstack/react-table"
-import { Eye } from "lucide-react"
-import { DataTable } from "@/shared/components/data-table/data-table"
-import { DataTablePagination } from "@/shared/components/data-table/data-table-pagination"
-import { Badge } from "@/shared/components/ui/badge"
-import { Button } from "@/shared/components/ui/button"
-import { Input } from "@/shared/components/ui/input"
-import { formatDateTime } from "@/shared/utils/date"
-import { fetchAuditLogs, type AuditLog } from "../queries/audit-logs.queries"
-import { AuditLogDetailSheet } from "./audit-log-detail-sheet"
+import { useInfiniteQuery } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Eye } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { parseAsString, useQueryState } from "nuqs";
+import { useState } from "react";
+import { DataTable } from "@/shared/components/data-table/data-table";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { formatDateTime } from "@/shared/utils/date";
+import {
+  fetchAuditLogsStream,
+  type AuditLog,
+} from "../queries/audit-logs.queries";
+import { AuditLogDetailSheet } from "./audit-log-detail-sheet";
 
 export function AuditLogsTable() {
-  const t = useTranslations("auditLogs")
-  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1))
-  const [userId, setUserId] = useQueryState("user_id", parseAsString.withDefault(""))
-  const [dateFrom, setDateFrom] = useQueryState("date_from", parseAsString.withDefault(""))
-  const [dateTo, setDateTo] = useQueryState("date_to", parseAsString.withDefault(""))
-  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
+  const t = useTranslations("auditLogs");
+  const [userId, setUserId] = useQueryState(
+    "user_id",
+    parseAsString.withDefault(""),
+  );
+  const [dateFrom, setDateFrom] = useQueryState(
+    "date_from",
+    parseAsString.withDefault(""),
+  );
+  const [dateTo, setDateTo] = useQueryState(
+    "date_to",
+    parseAsString.withDefault(""),
+  );
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const filters = {
-    page,
     size: 20,
     user_id: userId || undefined,
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
-  }
+  };
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["audit-logs", filters],
-    queryFn: () => fetchAuditLogs(filters),
-  })
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: ["audit-logs-stream", filters],
+      initialPageParam: undefined as string | undefined,
+      queryFn: ({ pageParam }) =>
+        fetchAuditLogsStream({
+          ...filters,
+          cursor: pageParam,
+        }),
+      getNextPageParam: (lastPage) =>
+        lastPage.has_more ? (lastPage.next_cursor ?? undefined) : undefined,
+    });
+
+  const items = data?.pages.flatMap((page) => page.items) ?? [];
 
   const columns: ColumnDef<AuditLog>[] = [
     {
@@ -60,7 +79,9 @@ export function AuditLogsTable() {
       accessorKey: "ip_address",
       header: t("columns.ip"),
       cell: ({ row }) => (
-        <span className="text-sm font-mono">{row.original.ip_address ?? "—"}</span>
+        <span className="text-sm font-mono">
+          {row.original.ip_address ?? "—"}
+        </span>
       ),
     },
     {
@@ -79,13 +100,16 @@ export function AuditLogsTable() {
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => { setSelectedLog(row.original); setSheetOpen(true) }}
+          onClick={() => {
+            setSelectedLog(row.original);
+            setSheetOpen(true);
+          }}
         >
           <Eye className="h-4 w-4" />
         </Button>
       ),
     },
-  ]
+  ];
 
   return (
     <div className="space-y-4">
@@ -94,9 +118,8 @@ export function AuditLogsTable() {
           placeholder={t("filters.userId")}
           className="h-9 w-64"
           value={userId}
-          onChange={(e) => {
-            void setUserId(e.target.value || null)
-            void setPage(1)
+          onChange={(event) => {
+            void setUserId(event.target.value || null);
           }}
         />
         <Input
@@ -104,9 +127,8 @@ export function AuditLogsTable() {
           className="h-9 w-40"
           placeholder={t("filters.dateFrom")}
           value={dateFrom}
-          onChange={(e) => {
-            void setDateFrom(e.target.value || null)
-            void setPage(1)
+          onChange={(event) => {
+            void setDateFrom(event.target.value || null);
           }}
         />
         <Input
@@ -114,27 +136,29 @@ export function AuditLogsTable() {
           className="h-9 w-40"
           placeholder={t("filters.dateTo")}
           value={dateTo}
-          onChange={(e) => {
-            void setDateTo(e.target.value || null)
-            void setPage(1)
+          onChange={(event) => {
+            void setDateTo(event.target.value || null);
           }}
         />
       </div>
 
       <DataTable
         columns={columns}
-        data={data?.items ?? []}
+        data={items}
         isLoading={isLoading}
         emptyMessage={t("empty")}
       />
 
-      {data && data.pages > 1 && (
-        <DataTablePagination
-          page={page}
-          totalPages={data.pages}
-          total={data.total}
-          onPageChange={(p) => void setPage(p)}
-        />
+      {(hasNextPage || isFetchingNextPage) && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            disabled={isFetchingNextPage}
+            onClick={() => void fetchNextPage()}
+          >
+            {isFetchingNextPage ? t("loadMoreLoading") : t("loadMore")}
+          </Button>
+        </div>
       )}
 
       <AuditLogDetailSheet
@@ -143,5 +167,5 @@ export function AuditLogsTable() {
         onOpenChange={setSheetOpen}
       />
     </div>
-  )
+  );
 }

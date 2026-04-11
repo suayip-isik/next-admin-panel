@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/shared/components/page-header";
+import { ProfileAvatarSection } from "@/modules/profile/components/profile-avatar-section";
 import { ProfileForm } from "@/modules/profile/components/profile-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,7 +15,8 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
-      <div className="max-w-lg">
+      <div className="max-w-2xl space-y-6">
+        <ProfileAvatarSection />
         <ProfileForm />
       </div>
     </div>

@@ -11,7 +11,7 @@ describe("role schemas", () => {
     const result = createRoleSchema(t).safeParse({
       name: "support_agent",
       description: "Support role",
-      permissions: ["users:read", "roles:write"],
+      permissions: ["users:view", "roles:update"],
     });
 
     expect(result.success).toBe(true);
@@ -27,7 +27,7 @@ describe("role schemas", () => {
 
   it("allows partial updates", () => {
     const result = createUpdateRoleSchema().safeParse({
-      permissions: ["users:read"],
+      permissions: ["users:view"],
     });
 
     expect(result.success).toBe(true);
