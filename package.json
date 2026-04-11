@@ -43,7 +43,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.511.0",
-    "next": "16.2.2",
+    "next": "16.2.3",
     "next-intl": "^4.1.0",
     "nuqs": "^2.0.0",
     "openapi-fetch": "^0.17.0",
