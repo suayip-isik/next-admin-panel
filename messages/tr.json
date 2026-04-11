@@ -227,7 +227,9 @@
     "permissionsCount": "{count} izin",
     "form": {
       "createTitle": "Rol Oluştur",
+      "createDescription": "Yeni bir rol oluşturmak için ad, açıklama ve izinleri belirleyin.",
       "editTitle": "Rolü Düzenle",
+      "editDescription": "Rol açıklamasını ve izinlerini güncelleyin.",
       "name": "Rol Adı",
       "namePlaceholder": "örn. içerik_editörü",
       "nameHint": "Sadece küçük harf, rakam ve alt çizgi kullanılabilir.",

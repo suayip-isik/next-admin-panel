@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
@@ -99,6 +100,9 @@ export function RoleFormDialog({
           <DialogTitle>
             {isEdit ? t("form.editTitle") : t("form.createTitle")}
           </DialogTitle>
+          <DialogDescription>
+            {isEdit ? t("form.editDescription") : t("form.createDescription")}
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form

@@ -227,7 +227,9 @@
     "permissionsCount": "{count} permissions",
     "form": {
       "createTitle": "Create Role",
+      "createDescription": "Set the name, description, and permissions for the new role.",
       "editTitle": "Edit Role",
+      "editDescription": "Update the role description and permissions.",
       "name": "Role Name",
       "namePlaceholder": "e.g. content_editor",
       "nameHint": "Lowercase letters, numbers, and underscores only.",
