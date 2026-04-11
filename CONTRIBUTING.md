@@ -2,15 +2,15 @@
 
 ## Development Baseline
 
-- Node.js 20 LTS
-- `pnpm`
-- reachable FastAPI backend for non-mocked flows
-- provider-agnostic base CI/CD; hosting integrations are optional examples, not part of core contributor CI
+- Node.js 20+
+- `pnpm` 10+
+- Non-mocked akışlar için erişilebilir bir FastAPI backend
+- Provider-agnostic ana repo; deployment entegrasyonları opsiyonel örnek katmandır
 
-## Choose the Right Starting Path
+## Başlangıç Akışı
 
-- Use GitHub's `Use this template` when you want to start a new product from this boilerplate.
-- Use a fork when you want to contribute changes back upstream.
+- Yeni ürün başlatıyorsanız GitHub `Use this template` akışını kullanın.
+- Upstream projeye katkı verecekseniz fork + pull request akışını kullanın.
 
 ## Local Setup
 
@@ -21,7 +21,9 @@ pnpm env:check
 pnpm dev
 ```
 
-## Validation Before Opening a PR
+## PR Öncesi Doğrulama
+
+Minimum önerilen kontrol:
 
 ```bash
 pnpm env:check
@@ -29,19 +31,41 @@ pnpm lint
 pnpm typecheck
 pnpm test:unit
 pnpm build
-pnpm test:e2e
 ```
 
-## Commit and PR Rules
+Şu durumlarda ayrıca çalıştırın:
 
-- Use Conventional Commits such as `feat:`, `fix:`, `chore:`, `docs:`
-- Describe user impact and validation steps in the PR template
-- Do not make provider secrets or deployment accounts a requirement for public pull-request validation
-- Keep provider-specific deployment examples clearly optional and isolated from base CI
+- auth, navigation, protected route veya form akışları değiştiyse `pnpm test:e2e`
+- OpenAPI yüzeyi değiştiyse `pnpm generate:types`
 
-## CI/CD Expectations
+## Katkı Kuralları
 
-- `main` is the protected production branch
-- pull requests run env validation, lint, typecheck, unit tests, build, dependency review, and e2e checks
-- releases are maintainer-controlled from trusted tags or manual dispatches
-- provider-specific previews are example-only and must not be required for contributor PRs
+- Conventional Commit kullanın: `feat:`, `fix:`, `docs:`, `chore:`
+- PR açıklamasında kullanıcı etkisini ve doğrulama adımlarını belirtin
+- Gerçek secret veya provider kimlik bilgilerini commit etmeyin
+- Provider-specific workflow'ları base contributor deneyiminin zorunlu parçası yapmayın
+
+## Repo Yapısı Beklentisi
+
+- route ve layout kodu `app/` altında kalmalı
+- domain davranışı mümkün olduğunca `modules/` altında gruplanmalı
+- tekrar kullanılabilir UI ve yardımcılar `shared/` ve `lib/` katmanında tutulmalı
+- iş mantığı doğrudan page dosyalarına yığılmamalı
+
+## Next.js 16 Notu
+
+Bu repo standart eski Next.js varsayımlarıyla ele alınmamalıdır. Framework düzeyinde değişiklik yapmadan önce `node_modules/next/dist/docs/` altındaki ilgili rehberi okuyun.
+
+Özellikle dikkat edilmesi gerekenler:
+
+- App Router kullanımı
+- route handler davranışı
+- metadata route'ları
+- server/client component ayrımı
+
+## CI/CD Beklentileri
+
+- `main` korumalı ana branch olarak düşünülür
+- pull request'lerde `CI` ve `dependency-review` workflow'ları beklenir
+- release akışı tag veya maintainer manual dispatch ile yürütülür
+- Vercel preview workflow'u örnek amaçlıdır

@@ -1,15 +1,16 @@
 # Geliştirme Rehberi
 
-Bu rehber, projeyi lokal ortamda ayağa kaldırmak ve geliştirirken izlenecek temel akışı özetler.
+Bu rehber, projeyi yerelde ayağa kaldırmak ve standart geliştirme akışını izlemek için gereken adımları toplar.
 
 ## Gereksinimler
 
-- Node.js 20 veya üzeri
-- `pnpm`
-- Çalışan bir FastAPI backend servisi
-- Base repository için herhangi bir hosting hesabı zorunlu değildir
+- Node.js 20+
+- `pnpm` 10+
+- erişilebilir bir FastAPI backend
 
-## Kurulum
+Repo kökünde `.nvmrc` bulunduğu için aynı ana Node sürüm ailesiyle çalışmak gerekir.
+
+## Yerel Kurulum
 
 ### 1. Bağımlılıkları yükleyin
 
@@ -17,67 +18,85 @@ Bu rehber, projeyi lokal ortamda ayağa kaldırmak ve geliştirirken izlenecek t
 pnpm install
 ```
 
-### 2. Ortam değişkenlerini oluşturun
+### 2. Environment dosyasını oluşturun
 
 ```bash
 cp .env.example .env.local
 pnpm env:check
 ```
 
-Varsayılan örnek değerler:
+`.env.example`, desteklenen değişkenlerin canonical listesidir. Secret değerleri commit etmeyin; `.env.local` içinde tutun.
 
-```env
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_FASTAPI_URL=http://localhost:8000
-NEXT_PUBLIC_APP_NAME=Next Admin Panel
-AUTH_ACCESS_COOKIE_NAME=access_token
-OPENAPI_SCHEMA_URL=http://localhost:8000/schema/admin/openapi.json
-PLAYWRIGHT_BASE_URL=http://localhost:3000
-```
-
-`.env.example` desteklenen tüm anahtarların canonical listesidir. Secret veya ortam özel değerleri `.env.local` içinde tutun.
-
-## Geliştirme Sunucusu
+### 3. Geliştirme sunucusunu başlatın
 
 ```bash
 pnpm dev
 ```
 
-Uygulama varsayılan olarak `http://localhost:3000` üzerinde açılır.
+Varsayılan URL'ler:
 
-Ana giriş route'u `/` olsa da uygulama kullanıcıyı `/dashboard` sayfasına yönlendirir.
+- app: `http://localhost:3000`
+- FastAPI: `http://localhost:8000`
+
+Root route `/`, kullanıcıyı `/dashboard` sayfasına yönlendirir.
 
 ## Backend Bağımlılığı
 
-Bu frontend tek başına anlamlı çalışmaz; auth ve veri endpoint'leri için FastAPI servisine ihtiyaç duyar.
+Bu frontend tek başına tam anlamlı çalışmaz. Özellikle şu endpoint aileleri beklenir:
 
-Beklenen kritik endpoint örnekleri:
-
-- auth login/refresh/logout uçları
+- `/api/v1/admin/auth/login`
+- `/api/v1/shared/auth/totp-challenge`
+- `/api/v1/shared/auth/refresh`
+- `/api/v1/shared/auth/logout`
 - `/api/v1/shared/me`
-- OpenAPI şema endpoint'i: `/schema/admin/openapi.json`
+- `/api/v1/admin/users*`
+- `/api/v1/admin/roles*`
+- `/api/v1/admin/audit-logs*`
+- `/api/v1/shared/notifications*`
+- `/api/v1/shared/api-keys*`
+- `/schema/admin/openapi.json`
 
-Backend çalışmıyorsa:
+Backend erişilemezse:
 
-- login akışı tamamlanmaz
-- korumalı sayfalarda veri yüklenmez
-- tip üretim komutu başarısız olur
+- auth akışları tamamlanmaz
+- admin ekranlarının veri sorguları başarısız olur
+- OpenAPI tip üretimi çalışmaz
+
+## Environment Doğrulama
+
+Environment sözleşmesini doğrulamak için:
+
+```bash
+pnpm env:check
+```
+
+CI-safe mod:
+
+```bash
+pnpm env:check -- --ci-safe
+```
+
+Bu kontrol URL, sayı, boolean ve cookie policy alanlarını doğrular. `--ci-safe`, branding benzeri bazı zorunlu alanları gevşetir.
 
 ## OpenAPI Tip Üretimi
 
-Backend şemasından TypeScript tipleri üretmek için:
+Tipleri backend şemasından yeniden üretmek için:
 
 ```bash
 pnpm generate:types
 ```
 
-Bu komut şu dosyayı günceller:
+Üretilen dosya:
 
-- `types/api.generated.ts`
+- [types/api.generated.ts](/Users/suayip-isik/Documents/Github/next-admin-panel/types/api.generated.ts)
 
-Komut önce `OPENAPI_SCHEMA_URL` değerini okur. Bu değişken tanımlı değilse `NEXT_PUBLIC_FASTAPI_URL + /schema/admin/openapi.json` fallback'i kullanılır.
+Kaynak URL çözümleme sırası:
 
-## Test Çalıştırma
+1. `OPENAPI_SCHEMA_URL`
+2. `NEXT_PUBLIC_FASTAPI_URL + /schema/admin/openapi.json`
+3. fallback `http://localhost:8000/schema/admin/openapi.json`
+
+## Testler
 
 ### Unit testler
 
@@ -85,7 +104,7 @@ Komut önce `OPENAPI_SCHEMA_URL` değerini okur. Bu değişken tanımlı değils
 pnpm test:unit
 ```
 
-İzleme modu:
+Watch modu:
 
 ```bash
 pnpm test:watch
@@ -97,7 +116,7 @@ Coverage:
 pnpm test:coverage
 ```
 
-Coverage raporları `coverage/` altında üretilir.
+Coverage çıktısı `coverage/` altında üretilir.
 
 ### E2E testler
 
@@ -105,59 +124,59 @@ Coverage raporları `coverage/` altında üretilir.
 pnpm test:e2e
 ```
 
-Playwright yapılandırması:
+Playwright davranışı:
 
-- testleri `tests/e2e` klasöründen okur
-- gerekirse `pnpm dev` ile lokal sunucuyu ayağa kaldırır
-- varsayılan base URL olarak `PLAYWRIGHT_BASE_URL` kullanır
-- HTML raporunu `playwright-report/`, artefaktları `test-results/` altında üretir
+- test klasörü `tests/e2e`
+- output klasörü `test-results/playwright`
+- HTML raporu `playwright-report/`
+- gerekirse web server olarak `pnpm dev` çalıştırılır
+- `PLAYWRIGHT_BASE_URL` ve `PLAYWRIGHT_WEB_SERVER_URL` env değerleri kullanılır
 
-Farklı bir URL üzerinde test koşmak için `PLAYWRIGHT_BASE_URL` ve gerekirse `PLAYWRIGHT_WEB_SERVER_URL` tanımlanabilir.
+Mevcut e2e kapsamı, auth redirect ve TOTP step geçişine odaklıdır.
 
-## CI/CD ve Deployment
+## Önerilen Yerel Kalite Hattı
 
-- GitHub Actions kalite hattı önce `pnpm env:check -- --ci-safe` çalıştırır
-- ardından `pnpm lint`, `pnpm typecheck`, `pnpm test:unit`, `pnpm test:coverage`, `pnpm build` ve `pnpm test:e2e` komutları çalışır
-- `main` production branch'tir
-- provider-specific deployment örnekleri base contributor CI'dan ayrıdır
-- resmi release akışı trusted tag veya manual dispatch ile çalışır
-- Docker, Kubernetes, Helm ve benzeri deployment stratejileri bu repository kapsamında base davranış değildir
+PR açmadan önce tipik akış:
 
-## Dizinler Arasında Çalışma Kuralı
+```bash
+pnpm env:check
+pnpm lint
+pnpm typecheck
+pnpm test:unit
+pnpm build
+```
 
-Geliştirme yaparken şu sorumluluk ayrımını koruyun:
+E2E, auth veya route davranışı etkileniyorsa ayrıca çalıştırılmalıdır.
 
-- `app/`: route tanımları ve sayfa kabuğu
-- `modules/`: feature veya domain bazlı uygulama kodu
-- `shared/`: tekrar kullanılabilir bileşenler ve ortak hook/util'ler
-- `lib/`: framework veya entegrasyon seviyesindeki yardımcılar
-- `i18n/` ve `messages/`: locale altyapısı ve metinler
+## Dizin Sorumlulukları
 
-Sayfa dosyalarına iş mantığını yığmak yerine bunu ilgili modül veya yardımcı katmana taşımak tercih edilmelidir.
+- `app/`: route, layout, metadata ve route handler katmanı
+- `modules/`: domain bazlı feature kodu
+- `shared/`: ortak bileşenler, hook'lar, util'ler
+- `lib/`: env, auth, API client ve entegrasyon kodu
+- `i18n/`, `messages/`: locale çözümleme ve çeviri mesajları
+- `tests/`: unit ve e2e testleri
 
-## Auth Akışıyla Çalışırken
+Sayfa dosyalarına yoğun iş mantığı yığmak yerine ilgili modül veya yardımcı katmana taşımak tercih edilir.
 
-Auth sistemi cookie tabanlıdır. Geliştirme sırasında şu noktalar önemlidir:
+## Next.js ile Çalışırken
 
-- token'lar `httpOnly` cookie olarak yazılır
-- cookie adı, `path`, `sameSite`, `secure` ve TTL değerleri `.env` ile override edilebilir
-- route koruması `proxy.ts` ile yapılır
-- `/api/v1/*` çağrıları Next.js üzerinden FastAPI'ye iletilir
-- istemci tarafı `401` sonrasında refresh dener
-- refresh sonrası retry mekanizması body taşıyan mutation isteklerini de yeniden gönderebilir
+Repo Next.js 16 kullanır ve davranışları eski sürüm varsayımlarıyla karıştırmamak gerekir. Framework seviyesinde değişiklik yapmadan önce `node_modules/next/dist/docs/` altındaki ilgili rehberi okuyun.
 
-Bu nedenle auth ile ilgili sorunları ayıklarken sadece form bileşenine değil şu katmanlara birlikte bakmak gerekir:
+Bu repo özelinde önemli noktalar:
 
-- `app/api/auth/*`
-- `lib/server-auth.ts`
-- `lib/api-client.ts`
-- `proxy.ts`
+- App Router kullanılır
+- route handler ve metadata route'ları aktif kullanılır
+- auth koruması `proxy.ts` üzerinden yapılır
+- server/client ayrımı bileşen bazında korunur
 
-## i18n ve Tema ile Çalışırken
+## Auth Hata Ayıklama
 
-- Desteklenen locale'ler: `en`, `tr`
-- Varsayılan locale: `en`
-- Locale tercihi cookie ile saklanır
-- Tema tercihi `localStorage` ile saklanır
+Auth veya session kaynaklı bir sorun incelerken genelde birlikte bakılması gereken dosyalar:
 
-Yeni UI eklerken metinleri mümkün olduğunca çeviri dosyalarına taşıyın ve bileşenleri mevcut tema davranışıyla uyumlu kurun.
+- [app/api/auth/login/route.ts](/Users/suayip-isik/Documents/Github/next-admin-panel/app/api/auth/login/route.ts)
+- [app/api/auth/refresh/route.ts](/Users/suayip-isik/Documents/Github/next-admin-panel/app/api/auth/refresh/route.ts)
+- [app/api/auth/logout/route.ts](/Users/suayip-isik/Documents/Github/next-admin-panel/app/api/auth/logout/route.ts)
+- [lib/server-auth.ts](/Users/suayip-isik/Documents/Github/next-admin-panel/lib/server-auth.ts)
+- [lib/api-client.ts](/Users/suayip-isik/Documents/Github/next-admin-panel/lib/api-client.ts)
+- [proxy.ts](/Users/suayip-isik/Documents/Github/next-admin-panel/proxy.ts)

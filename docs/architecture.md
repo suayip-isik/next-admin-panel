@@ -1,38 +1,38 @@
 # Mimari Doküman
 
-Bu doküman, uygulamanın ana mimari kararlarını ve istek akışlarını açıklar. Amaç, projeye yeni giren bir geliştiricinin dosya yapısını ezberlemeden sistemin nerede nasıl davrandığını anlayabilmesidir.
+Bu repo, Next.js App Router üzerinde çalışan bir admin panel frontend'idir. Backend tarafında FastAPI beklenir; Next.js uygulaması hem UI katmanını hem de backend'e giden ara proxy/auth katmanını barındırır.
 
-## Genel Mimari
+## Üst Seviye Yapı
 
-Uygulama üç katmanlı bir yapı gibi düşünülebilir:
+Sistem üç ana parçadan oluşur:
 
-1. Next.js App Router ile oluşturulmuş UI ve route katmanı
-2. Next.js içindeki BFF/proxy route'ları
-3. Ayrı çalışan FastAPI backend servisi
+1. `app/` altındaki route, layout ve metadata katmanı
+2. `app/api/*` ve `lib/server-auth.ts` içindeki BFF/proxy katmanı
+3. Ayrı çalışan FastAPI backend
 
-Tarayıcı doğrudan backend'e bağlanmak yerine çoğu durumda önce Next.js route'larına gider. Bu sayede:
+Temel amaçlar:
 
-- auth cookie yönetimi sunucu tarafında tutulur
-- access token istemci JavaScript'ine açılmaz
-- backend'e giden istekler merkezi olarak yönlendirilir
-- `401` ve refresh davranışı tek yerde kontrol edilir
+- token'ları tarayıcı JavaScript'ine açmamak
+- backend URL ve auth davranışını merkezi yönetmek
+- refresh/retry mantığını tek yerde toplamak
+- UI modüllerini route dosyalarından ayırmak
 
 ## Route Organizasyonu
 
 ### `app/(auth)`
 
-Kullanıcının oturum açmadan eriştiği ekranlar burada bulunur:
+Public auth sayfalarını içerir:
 
 - `/login`
 - `/totp`
 - `/forgot-password`
 - `/reset-password`
 
-Bu grup daha sade bir layout kullanır. Üst alanda locale değiştirici ve tema değiştirici yer alır.
+Bu grup üst barda locale ve tema değiştirme aksiyonları olan sade bir layout kullanır.
 
 ### `app/(admin)`
 
-Oturum gerektiren asıl yönetim paneli ekranları burada bulunur:
+Session gerektiren admin ekranlarını içerir:
 
 - `/dashboard`
 - `/users`
@@ -46,105 +46,163 @@ Oturum gerektiren asıl yönetim paneli ekranları burada bulunur:
 - `/profile`
 - `/profile/security`
 
-Bu grup sidebar + topbar içeren admin layout'u kullanır.
+Bu grup sidebar + topbar kullanan tam admin layout ile render edilir.
 
-### `app/api/auth/*`
+### Sistem route'ları
 
-Auth ile ilgili route handler'lar bu klasörde yer alır. Tipik görevleri:
-
-- login isteğini FastAPI'ye iletmek
-- token'ları cookie olarak yazmak veya temizlemek
-- refresh akışını yönetmek
-- gerekiyorsa TOTP doğrulama adımını tamamlamak
-
-### `app/api/v1/[...path]`
-
-Bu route genel amaçlı bir proxy katmanıdır. Tarayıcıdan gelen `/api/v1/*` istekleri burada alınır ve aynı path FastAPI backend'e forward edilir.
+- `/` doğrudan `/dashboard` adresine yönlendirir.
+- `/unauthorized` basit bir 403 ekranı sağlar.
+- `/manifest.webmanifest`, `/robots.txt`, `/sitemap.xml` metadata route'larıdır.
+- `/api/health` no-store JSON health yanıtı döner.
 
 ## Auth ve Session Tasarımı
 
-Oturum yönetimi cookie tabanlıdır. Cookie isimleri, TTL değerleri ve güvenlik davranışı `.env` üzerinden override edilebilir.
+Auth cookie tabanlıdır. Cookie isimleri ve politikaları `lib/env.ts` üzerinden environment ile kontrol edilir.
 
-- `access_token`: kısa ömürlü token
-- `refresh_token`: daha uzun ömürlü token
+Ana cookie'ler:
 
-Bu cookie'ler `httpOnly` olarak yazılır. Böylece istemci tarafındaki uygulama token değerini doğrudan okuyamaz.
+- `access_token`
+- `refresh_token`
+
+Bu cookie'ler `httpOnly` yazılır ve istemci tarafında doğrudan okunmaz.
 
 ### Login akışı
 
 1. Kullanıcı login formunu gönderir.
-2. Next.js route handler isteği FastAPI'ye iletir.
-3. Başarılı cevap access ve refresh token içeriyorsa cookie'ler set edilir.
-4. Backend bazı durumlarda tam token seti yerine `requires_totp` ve `partial_token` dönebilir.
-5. Bu durumda istemci TOTP sayfasına geçer ve ikinci adımı tamamlar.
+2. `app/api/auth/login/route.ts`, isteği FastAPI'deki `/api/v1/admin/auth/login` endpoint'ine forward eder.
+3. Başarılı yanıtta access + refresh token gelirse cookie'ler yazılır.
+4. Backend `requires_totp` dönerse partial auth yanıtı kullanıcıyı ikinci adıma taşır.
+5. `/api/auth/totp`, FastAPI'deki `/api/v1/shared/auth/totp-challenge` endpoint'iyle akışı tamamlar.
 
-### Route koruması
+### Logout ve refresh
 
-`proxy.ts` dosyası korumalı route'lara gelen istekleri denetler.
+- `/api/auth/logout`, refresh token varsa backend logout endpoint'ini çağırır; ne olursa olsun lokal cookie'leri temizler.
+- `/api/auth/refresh`, refresh token'ı backend'e gönderir; başarılıysa yeni token setini yazar.
+- Refresh yanıtı geçersiz veya başarısız ise cookie'ler temizlenir.
 
-- Statik asset'ler doğrudan geçer
-- `/api/*` route'ları bu kontrolün dışında bırakılır
-- auth dışındaki sayfalarda access token cookie'si yoksa kullanıcı `/login` sayfasına yönlendirilir
-- yönlendirilen URL'ye `from` parametresi eklenir; böylece login sonrası geri dönüş mümkün olur
+### Login sayfasında session kontrolü
 
-### `401` ve refresh akışı
+`app/(auth)/login/page.tsx` şu davranışı uygular:
 
-İstemci tarafındaki API katmanı `401` alınca tek bir refresh isteği paylaşır. Aynı anda birden fazla sorgu başarısız olursa hepsi aynı refresh promise'ini bekler.
+- access cookie varsa
+- aynı origin içindeki `/api/v1/shared/me` endpoint'i `ok` dönüyorsa
+- kullanıcı `/dashboard` sayfasına yönlendirilir
 
-Başarılı durumda:
+Bu kontrol, stale cookie ile yanlış yönlendirmeyi azaltır.
 
-- refresh tamamlanır
-- orijinal istek tekrar denenir
-- body içeren `POST` veya benzeri mutation istekleri de yeniden gönderilebilir şekilde korunur
+## Route Koruması
 
-Başarısız durumda:
+`proxy.ts` dosyası istek öncesi koruma uygular.
 
-- kullanıcı `/login` sayfasına yönlendirilir
+Kurallar:
 
-## Veri Akışı
+- `/_next/*`, `favicon.ico`, `robots.txt` gibi varlıklar doğrudan geçer
+- `/api/*` route'ları middleware benzeri auth kontrolünün dışında bırakılır
+- auth route'ları public kalır
+- diğer sayfalarda access token yoksa kullanıcı `/login?from=...` adresine yönlendirilir
 
-### Tarayıcıdan FastAPI'ye istek
+`from` parametresi, kullanıcının hedeflediği orijinal path + query bilgisini korur.
 
-1. UI bileşeni bir veri sorgusu başlatır.
-2. İstek çoğunlukla `/api/v1/...` endpoint'ine gider.
-3. Next.js route handler cookie'den access token'ı alır.
-4. İstek, gerekli header temizliği ve locale header ayarı ile FastAPI'ye forward edilir.
-5. FastAPI yanıtı Next.js üzerinden tarayıcıya geri döner.
+## API Proxy Katmanı
 
-Bu modelin avantajı, backend URL'si ve auth davranışının istemci katmanından soyutlanması ve environment variable'lar üzerinden merkezi yönetilebilmesidir.
+### Genel proxy
 
-## Provider Yapısı
+`app/api/v1/[...path]/route.ts`, `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS` isteklerini yakalar ve `proxyApiRequestToFastApi()` ile FastAPI'ye forward eder.
 
-Kök layout içinde şu provider'lar kurulur:
+Forward sırasında:
 
-- `NextIntlClientProvider`: çeviri mesajlarını sağlar
-- `NuqsAdapter`: query string state yönetimi için altyapı sağlar
-- `ThemeProvider`: tema durumunu yönetir
-- `QueryProvider`: React Query istemcisini ve devtools'u sağlar
-- `Toaster`: uygulama genelinde toast bildirimleri üretir
+- access token varsa `Authorization: Bearer ...` eklenir
+- locale cookie'si `accept-language` header'ına çevrilir
+- gereksiz request header'ları temizlenir
+- response body ve status upstream'den korunur
 
-Bu yapı, sayfaların tekrar tekrar ortak kurulum yapmasını engeller.
+### Client API katmanı
 
-## i18n Yaklaşımı
+`lib/api-client.ts` içinde `openapi-fetch` tabanlı istemci bulunur.
 
-- Desteklenen locale'ler `en` ve `tr`
-- Varsayılan locale `en`
-- Locale tercihi `NEXT_LOCALE` cookie'sinde saklanır
-- Sunucu tarafındaki forward işlemleri, locale bilgisini `accept-language` header'ına dönüştürebilir
+Önemli davranışlar:
 
-Bu sayede backend gerekli olduğunda locale bilgisinden faydalanabilir.
+- `credentials: "include"` kullanılır
+- locale değişim akışıyla yarış olmaması için request öncesi bekleme yapılır
+- aynı anda gelen tüm `401` yanıtları tek bir refresh promise'ini paylaşır
+- refresh başarılıysa ilk request tekrar denenir
+- refresh başarısızsa istemci `/login` sayfasına yönlenir
+
+## UI ve Provider Katmanı
+
+Kök layout şu ortak katmanları kurar:
+
+- `NextIntlClientProvider`
+- `NuqsAdapter`
+- `ThemeProvider`
+- `QueryProvider`
+- `Toaster`
+
+Ek olarak hydration öncesi çalışan bir script, kayıtlı tema tercihini uygulayıp FOUC etkisini azaltır.
+
+Admin layout:
+
+- `Sidebar`
+- `Topbar`
+- scroll eden `main` alanı
+
+Auth layout:
+
+- üstte locale + tema aksiyonları
+- ortalanmış dar form alanı
 
 ## Modül Organizasyonu
 
-`modules/` dizini domain bazlı bir ayrım için kullanılır. Bu projede kullanıcılar, roller, bildirimler, profil ve benzeri özellikler kendi modül alanları altında tutulur. Amaç:
+Kod, route yerine domain bazlı modüllere ayrılmıştır:
 
-- sayfa dosyalarını sade tutmak
-- veri sorgularını ve UI'ı iş alanı bazında gruplayabilmek
-- yeni özellik eklemeyi daha kontrollü hale getirmek
+- `modules/auth`
+- `modules/users`
+- `modules/roles`
+- `modules/notifications`
+- `modules/audit-logs`
+- `modules/api-keys`
+- `modules/profile`
+
+Bu modüller çoğunlukla:
+
+- query fonksiyonları
+- ekran bileşenleri
+- form şemaları
+- query key tanımları
+
+içerir.
+
+Ortak parçalar:
+
+- `shared/components`: tekrar kullanılabilir UI
+- `shared/hooks`: ortak hook'lar
+- `shared/utils`: saf yardımcı fonksiyonlar
+- `lib`: env, auth forward, API client gibi altyapı kodu
+
+## i18n, Metadata ve Gözlemlenebilirlik
+
+### i18n
+
+- desteklenen locale'ler `en` ve `tr`
+- varsayılan locale `en`
+- locale tercihi `NEXT_LOCALE` cookie'sinde tutulur
+- upstream isteklerde non-default locale `accept-language` header'ına yazılır
+
+### Metadata route'ları
+
+- `manifest.ts` uygulama adı, kısa adı, açıklaması ve tema renklerini env üzerinden üretir
+- `robots.ts` yalnızca production benzeri ve localhost olmayan ortamda indexing açar
+- `sitemap.ts` aynı koşulla public route'ları listeler
+
+### Sentry
+
+- istemci, server ve edge init dosyaları mevcuttur
+- DSN veya build auth token verilmediyse entegrasyon pasif kalabilir
+- source map upload yalnızca build auth token varsa etkinleşir
 
 ## Test Mimarisi
 
-- `tests/unit`: yardımcı fonksiyonlar, proxy mantığı, auth route'ları ve veri sorguları için unit testler
-- `tests/e2e`: kullanıcı akışlarını doğrulayan Playwright senaryoları
+- `tests/unit`: env, proxy, auth route'ları, metadata route'ları, query katmanı ve yardımcı fonksiyonlar
+- `tests/e2e`: auth yönlendirme ve TOTP geçiş akışı
 
-E2E testlerde özellikle auth yönlendirmeleri ve TOTP gibi kullanıcı açısından kritik davranışlar doğrulanır.
+Playwright yapılandırması gerekirse `pnpm dev` ile web server başlatır ve `PLAYWRIGHT_*` env değerlerini kullanır.

@@ -1,37 +1,43 @@
 # Özellikler ve Akışlar
 
-Bu doküman, projedeki temel ekranları ve kullanıcı akışlarını özetler. Amaç, “bu projede hangi admin özellikleri var?” sorusuna hızlı cevap vermektir.
+Bu doküman, uygulamada bugün gerçekten bulunan ekranları ve kullanıcı akışlarını özetler.
 
-## Auth Özellikleri
+## Auth
 
 ### Login
 
-- Kullanıcı e-posta ve parola ile giriş yapar
-- Geçerli oturum varsa login sayfası kullanıcıyı tekrar `/dashboard` sayfasına yönlendirir
-- Login başarısız olursa backend yanıtı üzerinden hata gösterilebilir
+- Kullanıcı `/login` ekranında e-posta ve parola ile giriş yapar.
+- Login isteği `/api/auth/login` üzerinden FastAPI'deki `/api/v1/admin/auth/login` endpoint'ine iletilir.
+- Başarılı token yanıtında access ve refresh token `httpOnly` cookie olarak yazılır.
+- Login sayfası, cookie mevcutsa `/api/v1/shared/me` ile oturumu doğrular ve kullanıcıyı `/dashboard` sayfasına yönlendirir.
 
-### TOTP / İki Adımlı Doğrulama
+### TOTP doğrulama
 
-- Bazı kullanıcılar için login sonrası ek doğrulama gerekir
-- Backend `requires_totp` dönerse kullanıcı `/totp` sayfasına alınır
-- Geçici doğrulama durumu istemci tarafında tamamlanır
+- Backend `requires_totp` ve `partial_token` dönerse kullanıcı `/totp` sayfasına geçer.
+- TOTP doğrulaması `/api/auth/totp` route'u üzerinden tamamlanır.
+- TOTP başarılı olduğunda nihai token seti cookie'lere yazılır.
 
-### Şifre Sıfırlama ve E-posta Doğrulama
+### Şifre sıfırlama
 
-- `forgot-password`
-- `reset-password`
+- `/forgot-password` ekranı şifre sıfırlama talebi başlatır.
+- `/reset-password` ekranı reset token + yeni parola ile akışı tamamlar.
+- Bu akışlar `/api/v1/shared/auth/forgot-password` ve `/api/v1/shared/auth/reset-password` endpoint'lerini kullanır.
 
-Bu ekranlar auth grubunda yer alır ve kullanıcı hesabı yaşam döngüsünün temel parçalarını kapsar.
-
-## Admin Özellikleri
+## Admin Alanları
 
 ### Dashboard
 
-- Uygulamanın varsayılan açılış ekranıdır
-- Kullanıcı istatistikleri gibi özet metrikleri gösterir
-- Üst seviye durum görünümü için tasarlanmıştır
+Route:
 
-### Kullanıcı Yönetimi
+- `/dashboard`
+
+Davranış:
+
+- Sayfa başlığı ve açıklaması gösterir.
+- `UserStatsCards` üzerinden kullanıcı istatistik kartlarını yükler.
+- Veri yüklenene kadar skeleton fallback kullanır.
+
+### Kullanıcı yönetimi
 
 Route'lar:
 
@@ -39,25 +45,43 @@ Route'lar:
 - `/users/deleted`
 - `/users/[id]`
 
-Beklenen görevler:
+Desteklenen işlemler:
 
-- aktif kullanıcıları listelemek
-- silinmiş kullanıcıları görmek
-- kullanıcı detayına gitmek
-- rol veya durum bazlı yönetim işlemleri yapmak
+- aktif kullanıcıları listeleme
+- silinmiş kullanıcıları listeleme
+- kullanıcı detayını görüntüleme
+- kullanıcıyı aktive etme
+- kullanıcıyı deaktive etme
+- kullanıcıyı silme
+- kullanıcıyı geri yükleme
+- kullanıcı rolünü değiştirme
 
-### Rol Yönetimi
+### Rol yönetimi
 
 Route'lar:
 
 - `/roles`
 - `/roles/[id]`
 
-Beklenen görevler:
+Desteklenen işlemler:
 
-- mevcut rolleri listelemek
-- rol detaylarını incelemek
-- rol oluşturma veya düzenleme akışlarını yürütmek
+- rol listesini görüntüleme
+- rol detayını görüntüleme
+- yeni rol oluşturma
+- mevcut rolü güncelleme
+- rol silme
+
+### Audit logs
+
+Route:
+
+- `/audit-logs`
+
+Desteklenen işlemler:
+
+- sayfalı audit log listesi
+- `action`, `user_id`, `date_from`, `date_to` filtreleri
+- tekil audit log detayı görüntüleme
 
 ### Bildirimler
 
@@ -65,82 +89,91 @@ Route:
 
 - `/notifications`
 
-Yönetim paneli içi bildirimlerin veya ilgili kayıtların listelenmesi için kullanılır.
+Desteklenen işlemler:
 
-### Audit Logs
+- bildirim listesi
+- okunmamış bildirim sayısı
+- tek bildirimi okundu işaretleme
+- tüm bildirimleri okundu işaretleme
+- bildirim silme
 
-Route:
+Topbar içindeki bildirim zili, unread count için periyodik sorgu yapar.
 
-- `/audit-logs`
-
-Sistem üzerindeki önemli işlemleri ve değişiklik geçmişini gözlemlemek için kullanılır.
-
-### API Key Yönetimi
+### API key yönetimi
 
 Route:
 
 - `/api-keys`
 
-Entegrasyon veya servis erişimleri için oluşturulan anahtarların görüntülenmesi ve yönetimi amacıyla kullanılır.
+Desteklenen işlemler:
 
-### Profil ve Güvenlik
+- API key listeleme
+- yeni API key oluşturma
+- API key silme
+
+### Profil ve güvenlik
 
 Route'lar:
 
 - `/profile`
 - `/profile/security`
 
-Beklenen görevler:
+Desteklenen işlemler:
 
-- profil bilgilerini güncellemek
-- parola değiştirmek
-- TOTP ayarlarını yönetmek
-- backup code gibi güvenlik unsurlarını yönetmek
+- profil bilgilerini güncelleme
+- parola değiştirme
+- TOTP kurulum bilgisi alma
+- TOTP doğrulama
+- TOTP devre dışı bırakma
+- backup code sayısını görüntüleme
+- backup code'ları yeniden üretme
 
-## Global UI Özellikleri
+## Ortak UI Davranışları
 
-### Sidebar ve Topbar
+### Admin layout
 
-Admin ekranlarında ortak layout şu parçaları içerir:
+- Sidebar, topbar ve scroll eden ana içerik alanı kullanılır.
+- Sidebar içinde dashboard, users, roles, audit logs, API keys, notifications, profile ve security bağlantıları bulunur.
+- Sidebar daraltılıp genişletilebilir.
 
-- sidebar navigasyonu
-- topbar
-- bildirim alanı
-- sayfa içeriği
+### Topbar
 
-Bu yapı tüm korumalı sayfalarda tutarlı gezinme deneyimi sağlar.
+- bildirim zili
+- locale değiştirici
+- tema değiştirici
+- kullanıcı avatar menüsü
+- çıkış işlemi
 
-### Tema Değişimi
+### Locale desteği
 
-- light
-- dark
-- system
+- desteklenen diller: `en`, `tr`
+- varsayılan locale: `en`
+- locale tercihi `NEXT_LOCALE` cookie'sinde saklanır
 
-Tema tercihi kullanıcı bazında tarayıcıda saklanır.
+### Tema desteği
 
-### Dil Değişimi
+- `light`, `dark`, `system`
+- tema tercihi istemci tarafında saklanır
+- hydration öncesi script ile ilk render teması ayarlanır
 
-- İngilizce (`en`)
-- Türkçe (`tr`)
+## Teknik Davranışlar
 
-Locale seçimi cookie ile saklandığı için hem sunucu hem istemci tarafında korunabilir.
+### Route koruması
 
-## Teknik Olarak Önemli Davranışlar
+- `proxy.ts`, `/api/*` ve auth route'ları dışındaki sayfaları korur.
+- Access token cookie'si yoksa kullanıcı `/login?from=...` adresine yönlendirilir.
+- Static asset ve metadata route'ları bypass edilir.
 
-### Korumalı route davranışı
+### API proxy
 
-- Kullanıcı oturum açmamışsa admin sayfalarına gidemez
-- Sistem kullanıcıyı `/login` sayfasına yönlendirir
-- Orijinal hedef route `from` query parametresinde korunur
+- `/api/v1/*` istekleri Next.js route handler tarafından FastAPI'ye forward edilir.
+- Access token varsa `Authorization` header olarak eklenir.
+- `accept-language` header'ı locale cookie'sinden türetilir.
+- `cookie`, `host`, `connection`, `content-length` gibi header'lar upstream'e taşınmaz.
 
-### API proxy davranışı
+### Refresh ve retry
 
-- İstemci, backend detaylarını doğrudan bilmek zorunda kalmaz
-- `/api/v1/*` route'ları sunucu tarafında FastAPI'ye iletilir
-- access token cookie'den okunur ve uygun header ile backend'e taşınır
-
-### Refresh davranışı
-
-- İstekler `401` dönerse token yenileme denenir
-- Aynı anda gelen çoklu `401` durumlarında tek refresh akışı paylaşılır
-- Refresh başarısız olursa kullanıcı tekrar login'e yönlendirilir
+- Client API katmanı `401` durumunda tek bir refresh isteği paylaşır.
+- Refresh başarılıysa ilk request tekrar gönderilir.
+- Refresh başarısızsa kullanıcı `/login` sayfasına yönlendirilir.
+- Retry için original request clone edilerek saklanır; mutation request body'leri de yeniden gönderilebilir.

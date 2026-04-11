@@ -2,15 +2,15 @@
 
 ## Source of Truth
 
-The environment contract lives in:
+Environment sözleşmesi üç yerde tanımlıdır:
 
-1. `.env.example`
-2. `lib/env.ts`
-3. `pnpm env:check`
+1. [.env.example](/Users/suayip-isik/Documents/Github/next-admin-panel/.env.example)
+2. [lib/env.ts](/Users/suayip-isik/Documents/Github/next-admin-panel/lib/env.ts)
+3. [scripts/env-check.mjs](/Users/suayip-isik/Documents/Github/next-admin-panel/scripts/env-check.mjs)
 
-`pnpm env:init` is only a convenience helper. The primary setup path is to inspect `.env.example`, copy it to `.env.local`, and edit values explicitly.
+`pnpm env:init` yalnızca yardımcı script'tir. Canonical kurulum yolu `.env.example` dosyasını kopyalayıp gerçek değerleri açıkça doldurmaktır.
 
-## Local Setup
+## Yerel Kurulum
 
 ```bash
 cp .env.example .env.local
@@ -18,45 +18,153 @@ pnpm env:check
 pnpm dev
 ```
 
-Local development works with safe defaults for URLs and test tooling. Optional observability variables can stay empty until you intentionally adopt Sentry.
+Varsayılan yerel değerler:
 
-## Public vs Server-only Variables
+- `NEXT_PUBLIC_APP_URL=http://localhost:3000`
+- `NEXT_PUBLIC_FASTAPI_URL=http://localhost:8000`
+- `OPENAPI_SCHEMA_URL=http://localhost:8000/schema/admin/openapi.json`
+- `PLAYWRIGHT_BASE_URL=http://localhost:3000`
+- `PLAYWRIGHT_WEB_SERVER_URL=http://localhost:3000`
 
-Public variables use the `NEXT_PUBLIC_` prefix and are exposed to client bundles.
+## Public ve Server-only Alanlar
 
-Server-only variables are not prefixed. They should stay in local `.env.local` files or deployment secret stores only. Typical examples:
+### Public
 
-- auth cookie policy
-- server-side Sentry credentials
-- schema/tooling overrides
+`NEXT_PUBLIC_` ile başlayan değişkenler client bundle'a girer.
 
-## Test and CI-safe Validation
+Bu repo için başlıca public alanlar:
 
-The repository ships with `.env.test` for safe non-secret defaults used by local testing and CI assumptions.
+- uygulama URL ve branding bilgileri
+- tema ve arka plan renkleri
+- istemci Sentry DSN ve trace rate
 
-CI runs:
+### Server-only
+
+Prefix'siz alanlar server tarafında kullanılır.
+
+Başlıca örnekler:
+
+- auth cookie isimleri ve policy ayarları
+- server Sentry DSN ve build upload bilgileri
+- OpenAPI schema override URL'i
+- Playwright base/web server URL ayarları
+
+## Değişken Grupları
+
+### Uygulama URL ve branding
+
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_FASTAPI_URL`
+- `NEXT_PUBLIC_APP_NAME`
+- `NEXT_PUBLIC_APP_SHORT_NAME`
+- `NEXT_PUBLIC_APP_DESCRIPTION`
+- `NEXT_PUBLIC_APP_THEME_COLOR`
+- `NEXT_PUBLIC_APP_BACKGROUND_COLOR`
+
+### Auth cookie ayarları
+
+- `AUTH_ACCESS_COOKIE_NAME`
+- `AUTH_REFRESH_COOKIE_NAME`
+- `AUTH_COOKIE_PATH`
+- `AUTH_COOKIE_SAME_SITE`
+- `AUTH_COOKIE_SECURE`
+- `AUTH_ACCESS_TOKEN_MAX_AGE_SECONDS`
+- `AUTH_REFRESH_TOKEN_MAX_AGE_SECONDS`
+
+### Observability
+
+- `NEXT_PUBLIC_SENTRY_DSN`
+- `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE`
+- `SENTRY_DSN`
+- `SENTRY_TRACES_SAMPLE_RATE`
+- `SENTRY_AUTH_TOKEN`
+- `SENTRY_ORG`
+- `SENTRY_PROJECT`
+- `SENTRY_RELEASE`
+
+### Tooling ve test
+
+- `OPENAPI_SCHEMA_URL`
+- `PLAYWRIGHT_BASE_URL`
+- `PLAYWRIGHT_WEB_SERVER_URL`
+
+## Fallback Davranışları
+
+### App URL
+
+Çözümleme sırası:
+
+1. `NEXT_PUBLIC_APP_URL`
+2. `DEPLOYMENT_URL`
+3. `https://${VERCEL_URL}`
+4. fallback `http://localhost:3000`
+
+### FastAPI URL
+
+Çözümleme sırası:
+
+1. `NEXT_PUBLIC_FASTAPI_URL`
+2. fallback `http://localhost:8000`
+
+### OpenAPI schema URL
+
+Çözümleme sırası:
+
+1. `OPENAPI_SCHEMA_URL`
+2. `${NEXT_PUBLIC_FASTAPI_URL}/schema/admin/openapi.json`
+
+### Deploy environment
+
+Çözümleme sırası:
+
+1. `DEPLOY_ENVIRONMENT`
+2. `VERCEL_ENV`
+3. `NODE_ENV`
+4. fallback `development`
+
+### Sentry release
+
+Çözümleme sırası:
+
+1. `SENTRY_RELEASE`
+2. `VERCEL_GIT_COMMIT_SHA`
+
+## Zorunlu ve Opsiyonel Alanlar
+
+Pratikte tüm alanlar aynı sertlikte zorunlu değildir.
+
+Yerel geliştirme için fiilen gerekli olanlar:
+
+- `NEXT_PUBLIC_APP_NAME`
+- `NEXT_PUBLIC_APP_SHORT_NAME`
+
+Diğer birçok alan güvenli fallback ile çalışır. Sentry değişkenleri ve build upload alanları opsiyoneldir.
+
+## Validation
+
+Standart doğrulama:
+
+```bash
+pnpm env:check
+```
+
+CI-safe doğrulama:
 
 ```bash
 pnpm env:check -- --ci-safe
 ```
 
-`--ci-safe` validates the contract without requiring deployment-only secrets or completed branding values.
+Doğrulanan başlıklar:
 
-## Optional Provider Variables
+- URL biçimi
+- sayısal alanlar
+- boolean alanlar
+- `AUTH_COOKIE_SAME_SITE` değerleri
 
-The base repository is provider-agnostic. Real deployments should set `NEXT_PUBLIC_APP_URL` explicitly.
+`--ci-safe`, branding alanlarından bazılarını zorunlu tutmadan kontrol yapar.
 
-Optional provider/platform fallbacks may still be consumed when present:
+## Template Tüketicileri ve Katkı Verenler
 
-- `DEPLOYMENT_URL`
-- `DEPLOY_ENVIRONMENT`
-- `VERCEL_URL`
-- `VERCEL_ENV`
-- `VERCEL_GIT_COMMIT_SHA`
-
-These are optional conveniences, not part of the required local bootstrap path.
-
-## Template Consumers vs Contributors
-
-- Template consumers should replace branding, URLs, and observability values before the first production deploy.
-- Contributors should keep `.env.local` local-only and never commit real credentials.
+- Template tüketicileri ilk production deploy'dan önce branding, URL ve observability değerlerini değiştirmelidir.
+- Katkı verenler `.env.local` dosyasını yerel tutmalı ve gerçek secret commit etmemelidir.
+- `.env.example` ve `.env.test` commit edilir; `.env.local` edilmez.

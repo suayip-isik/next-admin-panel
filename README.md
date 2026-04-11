@@ -1,135 +1,195 @@
 # Next Admin Panel
 
-Next.js 16 ile geliştirilmiş bu proje, FastAPI tabanlı bir backend'e bağlanan modern bir yönetim paneli arayüzüdür. Uygulama; kimlik doğrulama, iki adımlı giriş, kullanıcı ve rol yönetimi, audit log takibi, bildirimler, API key yönetimi ve profil güvenliği gibi tipik admin panel ihtiyaçlarını kapsayan bir temel sunar.
+Next.js 16, React 19 ve FastAPI odaklı bir backend entegrasyonu için hazırlanmış admin panel temelidir. Uygulama App Router kullanır, auth token'larını `httpOnly` cookie'lerde tutar ve tarayıcı isteklerini Next.js route handler/proxy katmanı üzerinden backend'e iletir.
 
-Bu repository hem açık kaynak katkı akışına hem de template olarak yeni ürün başlatma akışına göre düzenlenmiştir.
+## Ne Var?
 
-## İçindekiler
-
-- [Ne Sunar?](#ne-sunar)
-- [Template mi Fork mu?](#template-mi-fork-mu)
-- [Hızlı Başlangıç](#hızlı-başlangıç)
-- [Ortam Değişkenleri](#ortam-değişkenleri)
-- [NPM Scriptleri](#npm-scriptleri)
-- [CI/CD ve Release](#cicd-ve-release)
-- [Open Source Bakım Dosyaları](#open-source-bakım-dosyaları)
-- [Detaylı Dokümantasyon](#detaylı-dokümantasyon)
-
-## Ne Sunar?
-
-- Next.js App Router tabanlı admin panel yapısı
-- Cookie tabanlı oturum yönetimi
-- İki adımlı doğrulama (TOTP) destekli giriş akışı
-- FastAPI backend'e BFF/proxy katmanı üzerinden erişim
-- React Query ile istemci veri yönetimi
-- `next-intl` ile Türkçe ve İngilizce desteği
-- Vitest ile unit test, Playwright ile e2e test altyapısı
+- E-posta + parola ile giriş
+- Gerekirse TOTP ikinci adım doğrulaması
+- Şifre sıfırlama akışları
+- Dashboard üzerinde kullanıcı istatistik kartları
+- Kullanıcı, silinmiş kullanıcı ve kullanıcı detay ekranları
+- Rol listeleme, oluşturma, güncelleme ve silme
+- Audit log listeleme ve detay görüntüleme
+- Bildirim listeleme, okunma ve silme işlemleri
+- API key listeleme, oluşturma ve silme
+- Profil güncelleme, parola değiştirme, TOTP yönetimi ve backup code yenileme
+- Türkçe ve İngilizce arayüz
+- Tema desteği: `light`, `dark`, `system`
 - OpenAPI şemasından TypeScript tip üretimi
-- Provider-agnostic GitHub Actions CI, security ve governance katmanı
-- Opsiyonel provider deployment örneği olarak Vercel preview workflow'u
+- Vitest unit testleri ve Playwright e2e testleri
+- İsteğe bağlı Sentry entegrasyonu
 
-## Template mi Fork mu?
+## Teknoloji Özeti
 
-- Yeni bir ürün başlatıyorsanız tercih edilen yol `Use this template`.
-- Upstream projeye katkı yapmak istiyorsanız `fork + pull request` akışını kullanın.
+- `next@16.2.2`
+- `react@19.2.4`
+- `typescript@5`
+- `@tanstack/react-query`
+- `next-intl`
+- `openapi-fetch` + `openapi-typescript`
+- `vitest` + `@testing-library/*`
+- `playwright`
 
-Template kullanımının tercih edilme nedeni:
+## Route Yapısı
 
-- yeni ürün için temiz bir git geçmişi sağlar
-- upstream senkronizasyon karmaşasını azaltır
-- ürün tüketicisi ile upstream katkı veren geliştiriciyi ayırır
+Auth ekranları:
+
+- `/login`
+- `/totp`
+- `/forgot-password`
+- `/reset-password`
+
+Admin ekranları:
+
+- `/dashboard`
+- `/users`
+- `/users/deleted`
+- `/users/[id]`
+- `/roles`
+- `/roles/[id]`
+- `/notifications`
+- `/audit-logs`
+- `/api-keys`
+- `/profile`
+- `/profile/security`
+
+API ve sistem route'ları:
+
+- `/api/auth/login`
+- `/api/auth/totp`
+- `/api/auth/refresh`
+- `/api/auth/logout`
+- `/api/v1/*`
+- `/api/health`
+- `/manifest.webmanifest`
+- `/robots.txt`
+- `/sitemap.xml`
+- `/unauthorized`
+
+## Mimari Özeti
+
+- UI, Next.js App Router ile `app/` altında tanımlıdır.
+- Domain mantığı `modules/` altında gruplanır.
+- Tekrarlı UI ve yardımcılar `shared/` ve `lib/` altında tutulur.
+- Tarayıcı backend'e doğrudan değil, çoğunlukla `/api/auth/*` ve `/api/v1/*` üzerinden gider.
+- `proxy.ts`, auth route'ları ve `/api/*` dışındaki sayfalarda access token cookie'si yoksa kullanıcıyı `/login?from=...` adresine yönlendirir.
+- İstemci API katmanı `401` durumunda tek bir refresh isteği paylaşır ve başarılı olursa ilk isteği tekrar dener.
+
+Detaylar için:
+
+- [Mimari](docs/architecture.md)
+- [Özellikler](docs/features.md)
+- [Geliştirme](docs/development.md)
+- [Environment](docs/environment.md)
+- [Operasyonlar](docs/operations.md)
 
 ## Hızlı Başlangıç
 
-### 1. Gereksinimler
+### Gereksinimler
 
 - Node.js 20+
-- `pnpm`
-- Lokal veya erişilebilir bir FastAPI backend servisi
+- `pnpm` 10+
+- Erişilebilir bir FastAPI backend
 
-### 2. Bağımlılıkları kurun
+Repo `.nvmrc` dosyasında Node sürümünü pinler.
+
+### Kurulum
 
 ```bash
 pnpm install
-```
-
-### 3. Ortam değişkenlerini hazırlayın
-
-```bash
 cp .env.example .env.local
 pnpm env:check
-```
-
-`pnpm env:init` yardımcı script olarak bulunur, ancak canonical kurulum yolu `.env.example` dosyasını açık şekilde kopyalamaktır.
-
-### 4. Geliştirme sunucusunu başlatın
-
-```bash
 pnpm dev
 ```
 
-Uygulama varsayılan olarak `http://localhost:3000` üzerinde çalışır.
+Varsayılan uygulama adresi `http://localhost:3000`, varsayılan backend adresi `http://localhost:8000` olur.
 
-## Ortam Değişkenleri
+## Environment
 
-Bu repo için canonical kaynak `.env.example` dosyasıdır. Lokal geliştirmede gerçek değerleri `.env.local` içinde, deployment sırasında ise kullandığınız hosting platformunun secret/environment store'larında tanımlayın.
+Canonical sözleşme şu dosyalardadır:
 
-Ana başlıklar:
+- [.env.example](/Users/suayip-isik/Documents/Github/next-admin-panel/.env.example)
+- [lib/env.ts](/Users/suayip-isik/Documents/Github/next-admin-panel/lib/env.ts)
+- [scripts/env-check.mjs](/Users/suayip-isik/Documents/Github/next-admin-panel/scripts/env-check.mjs)
 
-- public runtime değerleri: `NEXT_PUBLIC_*`
-- server-only değerler: auth cookie ve server observability anahtarları
-- tooling/test değerleri: OpenAPI ve Playwright URL'leri
-- opsiyonel platform fallback'leri: `DEPLOYMENT_URL`, `DEPLOY_ENVIRONMENT`, `VERCEL_*`
+Başlıca değişken aileleri:
 
-Detaylı sözleşme için [docs/environment.md](/Users/suayip-isik/Documents/Github/next-admin-panel/docs/environment.md) dosyasına bakın.
+- public runtime: `NEXT_PUBLIC_*`
+- auth cookie ayarları: `AUTH_*`
+- observability: `NEXT_PUBLIC_SENTRY_*`, `SENTRY_*`
+- tooling/test: `OPENAPI_SCHEMA_URL`, `PLAYWRIGHT_*`
+- platform fallback: `DEPLOYMENT_URL`, `DEPLOY_ENVIRONMENT`, `VERCEL_*`
 
-## NPM Scriptleri
+Detaylar için [docs/environment.md](docs/environment.md).
 
-| Komut                 | Açıklama                                                             |
-| --------------------- | -------------------------------------------------------------------- |
-| `pnpm dev`            | Geliştirme sunucusunu başlatır                                       |
-| `pnpm build`          | Production build alır                                                |
-| `pnpm start`          | Production sunucusunu başlatır                                       |
-| `pnpm env:init`       | `.env.example` dosyasından `.env.local` oluşturur                    |
-| `pnpm env:check`      | Ortam değişkenleri sözleşmesini doğrular                             |
-| `pnpm lint`           | ESLint çalıştırır                                                    |
-| `pnpm typecheck`      | TypeScript type check çalıştırır                                     |
-| `pnpm test`           | `test:unit` alias'ı olarak unit testleri çalıştırır                  |
-| `pnpm test:unit`      | Unit testleri çalıştırır                                             |
-| `pnpm test:watch`     | Unit testleri watch modunda çalıştırır                               |
-| `pnpm test:coverage`  | Coverage raporu üretir                                               |
-| `pnpm test:e2e`       | Playwright e2e testlerini çalıştırır                                 |
-| `pnpm generate:types` | FastAPI OpenAPI şemasından `types/api.generated.ts` dosyasını üretir |
+## Scriptler
 
-## CI/CD ve Release
+| Komut                 | Açıklama                                           |
+| --------------------- | -------------------------------------------------- |
+| `pnpm dev`            | Geliştirme sunucusunu başlatır                     |
+| `pnpm build`          | Production build alır                              |
+| `pnpm start`          | Production sunucusunu başlatır                     |
+| `pnpm env:init`       | `.env.example` tabanlı `.env.local` oluşturur      |
+| `pnpm env:check`      | Environment sözleşmesini doğrular                  |
+| `pnpm lint`           | ESLint çalıştırır                                  |
+| `pnpm typecheck`      | TypeScript type check çalıştırır                   |
+| `pnpm test`           | `pnpm test:unit` alias'ıdır                        |
+| `pnpm test:unit`      | Unit testleri çalıştırır                           |
+| `pnpm test:watch`     | Vitest watch modunu başlatır                       |
+| `pnpm test:coverage`  | Coverage raporu üretir                             |
+| `pnpm test:e2e`       | Playwright e2e testlerini çalıştırır               |
+| `pnpm generate:types` | OpenAPI şemasından `types/api.generated.ts` üretir |
 
-- `CI` workflow'u env validation, lint, typecheck, unit test, coverage, build ve e2e adımlarını otomatik çalıştırır
-- `dependency-review` workflow'u PR'lara yeni güvenlik riski taşıyan bağımlılıkların girmesini engeller
-- `codeql` workflow'u `main` ve schedule üzerinde statik güvenlik taraması yapar
-- `Release` workflow'u yalnızca trusted tag/manual context'te GitHub Release üretir
-- `Preview Example (Vercel)` workflow'u opsiyonel provider örneğidir; base contributor CI'nın parçası değildir
+## CI/CD
 
-Base repo provider-agnostic tutulur. Deployment örnekleri opsiyonel ve ayrı katman olarak düşünülmelidir.
+Repo şu GitHub Actions workflow'larını içerir:
 
-## Open Source Bakım Dosyaları
+- `CI`: `env-check`, `lint`, `typecheck`, `unit-tests`, `build`, `e2e`
+- `dependency-review`: pull request bağımlılık risk kontrolü
+- `codeql`: `main` ve haftalık schedule için statik analiz
+- `Release`: tag veya manuel tetikleme ile GitHub Release üretimi
+- `Preview Example (Vercel)`: opsiyonel Vercel preview build örneği
 
-- `LICENSE`
-- `CONTRIBUTING.md`
-- `CODE_OF_CONDUCT.md`
-- `SECURITY.md`
+Base repo provider-agnostic tutulur. Vercel workflow'u örnek katmandır; contributor PR kalite hattının zorunlu parçası değildir.
+
+## Test ve Kalite
+
+Unit testler:
+
+```bash
+pnpm test:unit
+```
+
+E2E testler:
+
+```bash
+pnpm test:e2e
+```
+
+Önerilen yerel kalite hattı:
+
+```bash
+pnpm env:check
+pnpm lint
+pnpm typecheck
+pnpm test:unit
+pnpm build
+```
+
+## Açık Kaynak Dosyaları
+
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [SECURITY.md](SECURITY.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- [CHANGELOG.md](CHANGELOG.md)
 - `.github/ISSUE_TEMPLATE/*`
 - `.github/pull_request_template.md`
 - `.github/CODEOWNERS`
 
-## Detaylı Dokümantasyon
-
-- [Mimari Doküman](docs/architecture.md)
-- [Geliştirme Rehberi](docs/development.md)
-- [Environment Rehberi](docs/environment.md)
-- [Özellikler ve Akışlar](docs/features.md)
-- [Operasyon Rehberi](docs/operations.md)
-
 ## Notlar
 
-- Repo, standart `create-next-app` şablonundan çıkmış olsa da artık üretim odaklı bir admin panel iskeletidir.
-- Proje Next.js 16 kullanır. Framework davranışlarıyla ilgili geliştirme yaparken mevcut repo sürümüne göre hareket edin.
+- Root route `/`, doğrudan `/dashboard` adresine yönlendirir.
+- Login sayfası, geçerli cookie ve başarılı `/api/v1/shared/me` yanıtı varsa kullanıcıyı tekrar `/dashboard` sayfasına taşır.
+- `robots.txt` ve `sitemap.xml`, yalnızca production benzeri ve localhost olmayan ortamlarda indekslemeye izin verecek şekilde üretilir.
+- Next.js sürüm ailesi standart eğitim verilerinden farklı davranışlar içerebilir; framework değişikliği yaparken `node_modules/next/dist/docs/` altındaki güncel rehberleri referans alın.
