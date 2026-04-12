@@ -4,7 +4,7 @@ import { useForm, Controller } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -50,6 +50,14 @@ interface RoleFormDialogProps {
 // Union type for both create and edit scenarios
 type RoleFormInput = CreateRoleInput | UpdateRoleInput;
 
+function getRoleFormValues(role?: Role, isEdit?: boolean): RoleFormInput {
+  return {
+    ...(isEdit ? {} : { name: "" }),
+    description: role?.description ?? "",
+    permissions: (role?.permissions ?? []) as Permission[],
+  };
+}
+
 export function RoleFormDialog({
   open,
   onOpenChange,
@@ -70,12 +78,12 @@ export function RoleFormDialog({
 
   const form = useForm<RoleFormInput>({
     resolver: standardSchemaResolver(schema),
-    defaultValues: {
-      ...(isEdit ? {} : { name: "" }),
-      description: role?.description ?? "",
-      permissions: (role?.permissions ?? []) as Permission[],
-    },
+    defaultValues: getRoleFormValues(role, isEdit),
   });
+
+  useEffect(() => {
+    form.reset(getRoleFormValues(role, isEdit));
+  }, [form, isEdit, open, role]);
 
   const mutation = useMutation({
     mutationFn: (values: RoleFormInput) =>
@@ -87,7 +95,6 @@ export function RoleFormDialog({
         isEdit ? t("successMessages.updated") : t("successMessages.created"),
       );
       void queryClient.invalidateQueries({ queryKey: rolesKeys.all });
-      form.reset();
       onSuccess();
     },
     onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
@@ -120,6 +127,7 @@ export function RoleFormDialog({
                       <Input
                         placeholder={t("form.namePlaceholder")}
                         {...field}
+                        value={field.value ?? ""}
                       />
                     </FormControl>
                     <p className="text-xs text-muted-foreground">
@@ -141,6 +149,7 @@ export function RoleFormDialog({
                       placeholder={t("form.descriptionPlaceholder")}
                       rows={2}
                       {...field}
+                      value={field.value ?? ""}
                     />
                   </FormControl>
                   <FormMessage />

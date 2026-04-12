@@ -46,7 +46,7 @@ describe("shared hooks", () => {
       data: {
         id: "user-1",
         email: "admin@example.com",
-        role: { name: "admin" },
+        role: { name: "panel_admin" },
       },
     } as never);
 
@@ -69,7 +69,7 @@ describe("shared hooks", () => {
       data: {
         id: "user-1",
         email: "admin@example.com",
-        role: { name: "admin" },
+        role: { name: "panel_admin" },
       },
     } as never);
 
@@ -84,7 +84,7 @@ describe("shared hooks", () => {
       expect(result.current).toEqual({
         id: "user-1",
         email: "admin@example.com",
-        role: "admin",
+        role: "panel_admin",
         avatarUrl: null,
       }),
     );

@@ -39,10 +39,15 @@ export function RolesTable() {
     onSuccess: () => {
       toast.success(t("successMessages.deleted"));
       void queryClient.invalidateQueries({ queryKey: rolesKeys.all });
-      setDialog(null);
+      closeDialog();
     },
     onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
+
+  const closeDialog = () => {
+    setDialog(null);
+    setSelectedRole(null);
+  };
 
   const columns: ColumnDef<Role>[] = [
     {
@@ -134,14 +139,14 @@ export function RolesTable() {
       {selectedRole && (
         <RoleFormDialog
           open={dialog === "edit"}
-          onOpenChange={(open) => !open && setDialog(null)}
+          onOpenChange={(open) => !open && closeDialog()}
           role={selectedRole}
-          onSuccess={() => setDialog(null)}
+          onSuccess={closeDialog}
         />
       )}
       <ConfirmDialog
         open={dialog === "delete"}
-        onOpenChange={(open) => !open && setDialog(null)}
+        onOpenChange={(open) => !open && closeDialog()}
         title={t("deleteDialog.title")}
         description={t("deleteDialog.description", {
           name: selectedRole?.name ?? "",

@@ -53,13 +53,13 @@ describe("/api/v1 catch-all proxy route", () => {
     );
 
     const response = await proxyGet(
-      new Request("http://localhost/api/v1/users?role=admin"),
+      new Request("http://localhost/api/v1/users?role=panel_admin"),
       { params: Promise.resolve({ path: ["users"] }) },
     );
 
     expect(fetch).toHaveBeenCalledTimes(1);
     const [url, init] = vi.mocked(fetch).mock.calls[0]!;
-    expect(url).toBe("http://localhost:8000/api/v1/users?role=admin");
+    expect(url).toBe("http://localhost:8000/api/v1/users?role=panel_admin");
     expect(new Headers(init?.headers).get("authorization")).toBe(
       "Bearer access-1",
     );

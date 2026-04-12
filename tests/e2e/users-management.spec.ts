@@ -17,7 +17,7 @@ test.describe("users management", () => {
           surface: "admin",
           role: {
             id: "role-admin",
-            name: "admin",
+            name: "panel_admin",
             is_system: true,
           },
           is_active: true,
@@ -58,7 +58,7 @@ test.describe("users management", () => {
         body: JSON.stringify([
           {
             id: "role-admin",
-            name: "admin",
+            name: "panel_admin",
             description: "Administrators",
             is_system: true,
             permissions: ["users:create_admin", "users:view", "users:update"],
@@ -92,7 +92,7 @@ test.describe("users management", () => {
             surface: "admin",
             role: {
               id: "role-admin",
-              name: "admin",
+              name: "panel_admin",
               is_system: true,
             },
             is_active: true,
@@ -118,7 +118,7 @@ test.describe("users management", () => {
               surface: "admin",
               role: {
                 id: "role-admin",
-                name: "admin",
+                name: "panel_admin",
                 is_system: true,
               },
               is_active: true,
@@ -148,7 +148,7 @@ test.describe("users management", () => {
 
     await page.getByLabel("Email").fill("new-admin@example.com");
     await page.getByRole("combobox").click();
-    await page.getByRole("option", { name: "admin" }).click();
+    await page.getByRole("option", { name: "panel_admin" }).click();
     await page.getByLabel("Full Name").fill("New Admin");
     await page.getByLabel("Username").fill("new_admin");
     await page.getByRole("button", { name: "Create User" }).click();
@@ -156,7 +156,7 @@ test.describe("users management", () => {
     await expect.poll(() => createdPayload).not.toBeNull();
     expect(createdPayload).toEqual({
       email: "new-admin@example.com",
-      role_name: "admin",
+      role_name: "panel_admin",
       full_name: "New Admin",
       username: "new_admin",
     });

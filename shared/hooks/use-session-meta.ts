@@ -39,7 +39,7 @@ export function useSessionMeta(): SessionMeta | null {
   return {
     id: data.id,
     email: data.email,
-    role: data.role?.name ?? "user",
+    role: data.role?.name ?? "app_user",
     avatarUrl: data.avatar_url ?? null,
   };
 }

@@ -38,7 +38,7 @@ describe("users queries", () => {
     await fetchDeletedUsers({ q: "Grace Hopper" });
     await createAdminUser({
       email: "admin@example.com",
-      role_name: "admin",
+      role_name: "panel_admin",
       full_name: "Ada Lovelace",
       username: "ada",
     });
@@ -71,7 +71,7 @@ describe("users queries", () => {
     expect(apiClient.POST).toHaveBeenNthCalledWith(1, "/api/v1/admin/users", {
       body: {
         email: "admin@example.com",
-        role_name: "admin",
+        role_name: "panel_admin",
         full_name: "Ada Lovelace",
         username: "ada",
       },

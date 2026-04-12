@@ -922,9 +922,13 @@ export interface paths {
      *     Kullanıcı için benzersiz bir API key oluşturur. Ham key değeri
      *     yalnızca bu yanıtta döner ve bir daha görüntülenemez.
      *
+     *     İstenen scope'lar kullanıcının sahip olduğu izinlerle kesiştirilir;
+     *     kullanıcının yetkisi olmayan scope'lar sessizce filtrelenir.
+     *
      *     Args:
      *         data: API key oluşturma bilgileri (isim, scope'lar, son kullanma tarihi).
-     *         current_user: Kimliği doğrulanmış aktif kullanıcı.
+     *         current_auth: Kimliği doğrulanmış auth context.
+     *         permission_provider: Permission çözümleme servisi.
      *         service: API key iş mantığı servisi.
      *
      *     Returns:
@@ -1360,7 +1364,7 @@ export interface paths {
      * Create Role
      * @description Yeni özel rol oluşturur.
      *
-     *     Sistem rolleri (admin, user, moderator) bu endpoint ile
+     *     Sistem rolleri (`panel_admin`, `app_user`) bu endpoint ile
      *     oluşturulamaz. Rol adı küçük harf, rakam ve alt çizgiden
      *     oluşmalıdır (ör: "accountant", "warehouse_manager").
      *
@@ -1411,7 +1415,7 @@ export interface paths {
      * Delete Role
      * @description Özel rolü siler.
      *
-     *     Sistem rolleri (admin, user, moderator) silinemez.
+     *     Sistem rolleri (`panel_admin`, `app_user`) silinemez.
      *
      *     Args:
      *         role_id: Silinecek rolün UUID'si.
@@ -2778,7 +2782,7 @@ export interface operations {
         size?: number;
         /** @description email, kullanıcı adı veya tam ad içinde arama */
         q?: string | null;
-        /** @description Rol adı filtresi (ör: admin, user) */
+        /** @description Rol adı filtresi (ör: panel_admin, app_user) */
         role?: string | null;
         /** @description Aktiflik durumu filtresi */
         is_active?: boolean | null;
@@ -2886,7 +2890,7 @@ export interface operations {
         size?: number;
         /** @description email, kullanıcı adı veya tam ad içinde arama */
         q?: string | null;
-        /** @description Rol adı filtresi (ör: admin, user) */
+        /** @description Rol adı filtresi (ör: panel_admin, app_user) */
         role?: string | null;
         /** @description Silinmeden önceki aktiflik durumu filtresi */
         is_active?: boolean | null;

@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { z } from "zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
@@ -12,6 +15,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/shared/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -24,6 +34,13 @@ import { getErrorMessage } from "@/lib/errors";
 import { changeUserRole, type User } from "../queries/users.queries";
 import { fetchRoles } from "@/modules/roles/queries/roles.queries";
 import { rolesKeys } from "@/modules/roles/roles.keys";
+import { usersKeys } from "../users.keys";
+
+const roleChangeSchema = z.object({
+  role_name: z.string().min(1),
+});
+
+type RoleChangeValues = z.infer<typeof roleChangeSchema>;
 
 interface RoleChangeDialogProps {
   open: boolean;
@@ -42,18 +59,36 @@ export function RoleChangeDialog({
   const tUsers = useTranslations("users");
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("errors");
-  const [roleName, setRoleName] = useState(user.role.name);
+  const queryClient = useQueryClient();
 
-  const { data: rolesData } = useQuery({
+  const form = useForm<RoleChangeValues>({
+    resolver: standardSchemaResolver(roleChangeSchema),
+    defaultValues: { role_name: user.role.name },
+  });
+  const selectedRoleName = useWatch({
+    control: form.control,
+    name: "role_name",
+  });
+
+  useEffect(() => {
+    form.reset({ role_name: user.role.name });
+  }, [form, open, user]);
+
+  const { data: roles } = useQuery({
     queryKey: rolesKeys.list(),
     queryFn: fetchRoles,
     enabled: open,
   });
 
   const mutation = useMutation({
-    mutationFn: () => changeUserRole(user.id, roleName),
+    mutationFn: ({ role_name }: RoleChangeValues) =>
+      changeUserRole(user.id, role_name),
     onSuccess: () => {
       toast.success(tUsers("successMessages.roleChanged"));
+      void queryClient.invalidateQueries({
+        queryKey: usersKeys.detail(user.id),
+      });
+      void queryClient.invalidateQueries({ queryKey: usersKeys.all });
       onSuccess();
     },
     onError: (error) =>
@@ -72,29 +107,53 @@ export function RoleChangeDialog({
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
-        <Select value={roleName} onValueChange={setRoleName}>
-          <SelectTrigger>
-            <SelectValue placeholder={t("selectRole")} />
-          </SelectTrigger>
-          <SelectContent>
-            {(rolesData ?? []).map((role) => (
-              <SelectItem key={role.id} value={role.name}>
-                {role.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {tCommon("cancel")}
-          </Button>
-          <Button
-            onClick={() => mutation.mutate()}
-            disabled={mutation.isPending || roleName === user.role.name}
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+            className="space-y-4"
           >
-            {mutation.isPending ? tCommon("loading") : t("confirm")}
-          </Button>
-        </DialogFooter>
+            <FormField
+              control={form.control}
+              name="role_name"
+              render={({ field }) => (
+                <FormItem>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectRole")} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {(roles ?? []).map((role) => (
+                        <SelectItem key={role.id} value={role.name}>
+                          {role.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                {tCommon("cancel")}
+              </Button>
+              <Button
+                type="submit"
+                disabled={
+                  mutation.isPending || selectedRoleName === user.role.name
+                }
+              >
+                {mutation.isPending ? tCommon("loading") : t("confirm")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
