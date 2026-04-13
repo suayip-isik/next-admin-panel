@@ -96,6 +96,12 @@ export async function proxyApiRequestToFastApi(
 
 export async function createJsonProxyResponse(response: Response) {
   const body = await parseResponseBody(response);
+  if ([204, 205, 304].includes(response.status)) {
+    return withNoStoreApiHeaders(
+      new Response(null, { status: response.status }),
+    );
+  }
+
   return withNoStoreApiHeaders(
     Response.json(body, { status: response.status }),
   );
