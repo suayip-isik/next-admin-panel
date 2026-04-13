@@ -1,41 +1,16 @@
 import type { Metadata } from "next";
-import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getAuthCookieConfig } from "@/lib/env";
+import { resolveServerAuthzSnapshot } from "@/lib/server-auth";
 import { LoginForm } from "@/modules/auth/components/login-form";
-import { APP_ROUTES } from "@/shared/lib/routes";
+import { resolvePostLoginRoute } from "@/shared/lib/authz-routing";
 
 export const metadata: Metadata = { title: "Sign In" };
 
-async function hasValidSession() {
-  const requestHeaders = await headers();
-  const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
-  const host = requestHeaders.get("host");
-  const cookieHeader = requestHeaders.get("cookie");
-
-  if (!host) {
-    return false;
-  }
-
-  try {
-    const response = await fetch(`${protocol}://${host}/api/v1/shared/me`, {
-      headers: cookieHeader ? { cookie: cookieHeader } : undefined,
-      cache: "no-store",
-    });
-
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
 export default async function LoginPage() {
-  const authEnv = getAuthCookieConfig();
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get(authEnv.accessCookieName);
+  const snapshot = await resolveServerAuthzSnapshot();
 
-  if (accessToken && (await hasValidSession())) {
-    redirect(APP_ROUTES.dashboard);
+  if (snapshot) {
+    redirect(resolvePostLoginRoute(snapshot));
   }
 
   return <LoginForm />;

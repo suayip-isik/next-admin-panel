@@ -12,6 +12,7 @@ import {
 import { DEFAULT_QUERY_STALE_TIME_MS } from "@/shared/lib/ui-config";
 import { getAvatarPresentation } from "@/shared/utils/avatar";
 export { AUTH_ME_QUERY_KEY };
+export { AUTHZ_SNAPSHOT_QUERY_KEY };
 
 export function useAuthzSnapshot() {
   return useQuery({
@@ -36,7 +37,7 @@ export interface SessionMeta {
   id: string;
   email: string;
   fullName: string | null;
-  role: string;
+  role: string | null;
   avatarUrl: string | null;
   avatarSrc: string | null;
   avatarFallback: string;
@@ -85,7 +86,7 @@ export function useSessionMeta(): SessionMeta | null {
     id: data.id,
     email: data.email,
     fullName: data.full_name ?? null,
-    role: data.role?.name ?? "app_user",
+    role: data.role?.name ?? null,
     avatarUrl: data.avatar_url ?? null,
     avatarSrc: avatar.src,
     avatarFallback: avatar.fallback,

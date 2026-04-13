@@ -1,4 +1,5 @@
 import { requireAdminSurface } from "@/lib/server-auth";
+import { AuthzHydration } from "@/shared/components/auth/authz-hydration";
 import { Sidebar } from "@/shared/components/layout/sidebar";
 import { Topbar } from "@/shared/components/layout/topbar";
 
@@ -7,15 +8,17 @@ interface AdminLayoutProps {
 }
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-  await requireAdminSurface();
+  const snapshot = await requireAdminSurface();
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar />
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+    <AuthzHydration snapshot={snapshot}>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Topbar />
+          <main className="flex-1 overflow-auto p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </AuthzHydration>
   );
 }

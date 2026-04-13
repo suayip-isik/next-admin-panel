@@ -34,7 +34,7 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <NuqsAdapter>
             <ThemeProvider defaultTheme="system">
-              <QueryProvider key={locale}>
+              <QueryProvider>
                 {children}
                 <Toaster richColors position="top-right" />
               </QueryProvider>

@@ -50,7 +50,9 @@
     "notifications": "Bildirimler",
     "profile": "Profil",
     "security": "Güvenlik",
-    "signOut": "Çıkış Yap"
+    "signOut": "Çıkış Yap",
+    "currentUser": "Mevcut Kullanıcı",
+    "switchLocale": "Dili {locale} olarak değiştir"
   },
   "system": {
     "forbidden": {

@@ -19,7 +19,7 @@ import { ThemeToggle } from "@/shared/components/theme-toggle";
 import { LocaleSwitcher } from "@/shared/components/locale-switcher";
 import { NotificationBell } from "@/shared/components/layout/notification-bell";
 import {
-  AUTH_ME_QUERY_KEY,
+  AUTHZ_SNAPSHOT_QUERY_KEY,
   useSessionMeta,
 } from "@/shared/hooks/use-session-meta";
 import { logoutMutation } from "@/modules/auth/queries/auth.queries";
@@ -35,13 +35,16 @@ export function Topbar() {
   async function handleSignOut() {
     try {
       await logoutMutation();
-      queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
+      queryClient.removeQueries({ queryKey: AUTHZ_SNAPSHOT_QUERY_KEY });
       router.push(APP_ROUTES.login);
       router.refresh();
     } catch {
       toast.error(tErrors("generic"));
     }
   }
+
+  const currentUserLabel =
+    sessionMeta?.fullName ?? sessionMeta?.email ?? t("currentUser");
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4">
@@ -57,8 +60,8 @@ export function Topbar() {
           <Button variant="ghost" size="icon" className="rounded-full">
             <AppAvatar
               src={sessionMeta?.avatarSrc ?? null}
-              fallback={sessionMeta?.avatarFallback ?? "AD"}
-              alt={sessionMeta?.fullName ?? sessionMeta?.email ?? "Admin"}
+              fallback={sessionMeta?.avatarFallback ?? ""}
+              alt={currentUserLabel}
               className="h-8 w-8"
               fallbackClassName="text-xs"
             />
@@ -66,9 +69,7 @@ export function Topbar() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>
-            <p className="font-medium text-sm truncate">
-              {sessionMeta?.email ?? "Admin"}
-            </p>
+            <p className="font-medium text-sm truncate">{currentUserLabel}</p>
             {sessionMeta?.role && (
               <p className="text-xs text-muted-foreground capitalize">
                 {sessionMeta.role}

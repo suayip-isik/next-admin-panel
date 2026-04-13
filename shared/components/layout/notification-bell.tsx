@@ -23,14 +23,6 @@ export function NotificationBell() {
     enabled: gate.status === "allowed",
   });
 
-  if (gate.isLoading) {
-    return (
-      <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground opacity-50">
-        <Bell className="h-4 w-4" />
-      </span>
-    );
-  }
-
   if (!gate.isAllowed) {
     return null;
   }

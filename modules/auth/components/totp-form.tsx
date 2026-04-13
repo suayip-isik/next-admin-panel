@@ -72,7 +72,7 @@ export function TOTPForm() {
       });
       sessionStorage.removeItem("partial_token");
       // Full page navigation ensures cookies are included in all subsequent requests
-      window.location.replace(APP_ROUTES.dashboard);
+      window.location.replace(APP_ROUTES.home);
     } catch (err: unknown) {
       const apiErr = err as { code?: string };
       if (apiErr?.code === "INVALID_SESSION") {

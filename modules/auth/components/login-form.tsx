@@ -57,7 +57,7 @@ export function LoginForm() {
       }
 
       // Full page navigation ensures cookies are included in all subsequent requests
-      window.location.replace(APP_ROUTES.dashboard);
+      window.location.replace(APP_ROUTES.home);
     } catch (err: unknown) {
       const apiErr = err as { code?: string; message?: string };
       if (apiErr?.code === "INACTIVE_USER") {

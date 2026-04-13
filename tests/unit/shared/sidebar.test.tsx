@@ -46,4 +46,17 @@ describe("Sidebar", () => {
       screen.queryByRole("link", { name: "roles" }),
     ).not.toBeInTheDocument();
   });
+
+  it("does not render navigation placeholders while permissions are loading", () => {
+    permissionGateMock.mockReturnValue({
+      isAllowed: false,
+      isLoading: true,
+      status: "loading",
+    });
+
+    render(<Sidebar />);
+
+    expect(screen.queryByText("users")).not.toBeInTheDocument();
+    expect(screen.queryByText("roles")).not.toBeInTheDocument();
+  });
 });

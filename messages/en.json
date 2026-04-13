@@ -50,7 +50,9 @@
     "notifications": "Notifications",
     "profile": "Profile",
     "security": "Security",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "currentUser": "Current User",
+    "switchLocale": "Switch language to {locale}"
   },
   "system": {
     "forbidden": {

@@ -139,22 +139,6 @@ function SidebarNavItem({
 }: SidebarNavItemProps) {
   const gate = usePermissionGate(item.access);
 
-  if (gate.isLoading) {
-    const Icon = item.icon;
-
-    return (
-      <div
-        className={cn(
-          "flex items-center gap-2 rounded-md px-2 py-2 text-sm opacity-50",
-          collapsed && "justify-center px-2",
-        )}
-      >
-        <Icon className="h-4 w-4 shrink-0" />
-        {!collapsed && <span className="truncate">{label}</span>}
-      </div>
-    );
-  }
-
   if (!gate.isAllowed) {
     return null;
   }
