@@ -9,6 +9,7 @@ const sentryBuildConfig = getSentryBuildConfig();
 const hasSentryAuthToken = Boolean(sentryBuildConfig.authToken);
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   experimental: {
     authInterrupts: true,
   },
