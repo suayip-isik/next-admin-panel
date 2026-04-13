@@ -28,7 +28,8 @@ test.describe("auth flows", () => {
     await page.getByRole("button", { name: "Sign In" }).click();
 
     await expect(page).toHaveURL(/\/totp$/);
-    await expect(page.getByText("Two-Factor Authentication")).toBeVisible();
+    await expect(page.getByLabel("Authentication Code")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Verify" })).toBeVisible();
 
     const storedToken = await page.evaluate(() =>
       window.sessionStorage.getItem("partial_token"),
