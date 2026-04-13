@@ -7,34 +7,30 @@ import { getErrorMessage } from "@/lib/errors";
 import { AvatarManagementCard } from "@/shared/components/avatar-management-card";
 import {
   AUTH_ME_QUERY_KEY,
+  mergeCurrentUserCache,
   useCurrentUser,
 } from "@/shared/hooks/use-session-meta";
+import { getAvatarPresentation } from "@/shared/utils/avatar";
 import { deleteMyAvatar, uploadMyAvatar } from "../queries/profile.queries";
-
-function getInitials(email: string, fullName: string | null) {
-  if (fullName) {
-    const initials = fullName
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("");
-
-    if (initials) return initials;
-  }
-
-  return email.slice(0, 2).toUpperCase();
-}
 
 export function ProfileAvatarSection() {
   const t = useTranslations("profile.avatar");
   const tErrors = useTranslations("errors");
   const queryClient = useQueryClient();
-  const { data: user } = useCurrentUser();
+  const { data: user, dataUpdatedAt } = useCurrentUser();
+  const avatar = user
+    ? getAvatarPresentation({
+        email: user.email,
+        fullName: user.full_name,
+        avatarUrl: user.avatar_url,
+        revision: dataUpdatedAt,
+      })
+    : null;
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => uploadMyAvatar(file),
-    onSuccess: () => {
+    onSuccess: (updatedUser) => {
+      mergeCurrentUserCache(queryClient, updatedUser);
       toast.success(t("successUploaded"));
       void queryClient.invalidateQueries({ queryKey: AUTH_ME_QUERY_KEY });
     },
@@ -43,7 +39,8 @@ export function ProfileAvatarSection() {
 
   const deleteMutation = useMutation({
     mutationFn: deleteMyAvatar,
-    onSuccess: () => {
+    onSuccess: (updatedUser) => {
+      mergeCurrentUserCache(queryClient, updatedUser);
       toast.success(t("successDeleted"));
       void queryClient.invalidateQueries({ queryKey: AUTH_ME_QUERY_KEY });
     },
@@ -56,8 +53,9 @@ export function ProfileAvatarSection() {
     <AvatarManagementCard
       title={t("title")}
       description={t("description")}
-      imageUrl={user.avatar_url}
-      fallback={getInitials(user.email, user.full_name)}
+      imageUrl={avatar?.src ?? null}
+      imageVersion={dataUpdatedAt}
+      fallback={avatar?.fallback ?? ""}
       uploadLabel={t("upload")}
       removeLabel={t("remove")}
       uploadedLabel={t("uploaded")}

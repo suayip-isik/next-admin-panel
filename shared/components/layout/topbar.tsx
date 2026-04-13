@@ -5,12 +5,8 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { AppAvatar } from "@/shared/components/app-avatar";
 import { Button } from "@/shared/components/ui/button";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/shared/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,10 +42,6 @@ export function Topbar() {
     }
   }
 
-  const initials = sessionMeta?.email
-    ? sessionMeta.email.slice(0, 2).toUpperCase()
-    : "AD";
-
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4">
       <div className="flex-1" />
@@ -62,15 +54,13 @@ export function Topbar() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="rounded-full">
-            <Avatar className="h-8 w-8">
-              {sessionMeta?.avatarUrl && (
-                <AvatarImage
-                  src={sessionMeta.avatarUrl}
-                  alt={sessionMeta.email}
-                />
-              )}
-              <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-            </Avatar>
+            <AppAvatar
+              src={sessionMeta?.avatarSrc ?? null}
+              fallback={sessionMeta?.avatarFallback ?? "AD"}
+              alt={sessionMeta?.fullName ?? sessionMeta?.email ?? "Admin"}
+              className="h-8 w-8"
+              fallbackClassName="text-xs"
+            />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">

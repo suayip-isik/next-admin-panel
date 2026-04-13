@@ -21,6 +21,7 @@ import { fetchRoles } from "@/modules/roles/queries/roles.queries";
 import { rolesKeys } from "@/modules/roles/roles.keys";
 import { AvatarManagementCard } from "@/shared/components/avatar-management-card";
 import { PageHeader } from "@/shared/components/page-header";
+import { getAvatarPresentation } from "@/shared/utils/avatar";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -51,21 +52,6 @@ interface UserDetailClientProps {
   id: string;
 }
 
-function getInitials(email: string, fullName: string | null) {
-  if (fullName) {
-    const initials = fullName
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("");
-
-    if (initials) return initials;
-  }
-
-  return email.slice(0, 2).toUpperCase();
-}
-
 export function UserDetailClient({ id }: UserDetailClientProps) {
   const t = useTranslations("users");
   const tDetail = useTranslations("users.detail");
@@ -81,7 +67,7 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
     "activate" | "deactivate" | "delete" | null
   >(null);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, dataUpdatedAt } = useQuery({
     queryKey: usersKeys.detail(id),
     queryFn: () => fetchUser(id),
     retry: false,
@@ -199,6 +185,12 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
 
   const verificationNeeded =
     !data.is_verified || data.has_pending_email || data.verification_required;
+  const avatar = getAvatarPresentation({
+    email: data.email,
+    fullName: data.full_name,
+    avatarUrl: data.avatar_url,
+    revision: dataUpdatedAt,
+  });
 
   return (
     <div className="space-y-6">
@@ -227,8 +219,9 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
           <AvatarManagementCard
             title={t("avatar.title")}
             description={t("avatar.description")}
-            imageUrl={data.avatar_url}
-            fallback={getInitials(data.email, data.full_name)}
+            imageUrl={avatar.src}
+            imageVersion={dataUpdatedAt}
+            fallback={avatar.fallback}
             uploadLabel={t("avatar.upload")}
             removeLabel={t("avatar.remove")}
             uploadedLabel={t("avatar.uploaded")}
