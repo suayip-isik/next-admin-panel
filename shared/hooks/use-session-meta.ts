@@ -9,6 +9,7 @@ import {
   type CurrentUser,
   resolveClientAuthzSnapshot,
 } from "@/shared/lib/authz";
+import { DEFAULT_QUERY_STALE_TIME_MS } from "@/shared/lib/ui-config";
 import { getAvatarPresentation } from "@/shared/utils/avatar";
 export { AUTH_ME_QUERY_KEY };
 
@@ -16,7 +17,7 @@ export function useAuthzSnapshot() {
   return useQuery({
     queryKey: AUTHZ_SNAPSHOT_QUERY_KEY,
     queryFn: resolveClientAuthzSnapshot,
-    staleTime: 5 * 60 * 1000,
+    staleTime: DEFAULT_QUERY_STALE_TIME_MS,
     retry: false,
   });
 }
@@ -26,7 +27,7 @@ export function useCurrentUser() {
     queryKey: AUTHZ_SNAPSHOT_QUERY_KEY,
     queryFn: resolveClientAuthzSnapshot,
     select: (snapshot) => snapshot.user,
-    staleTime: 5 * 60 * 1000,
+    staleTime: DEFAULT_QUERY_STALE_TIME_MS,
     retry: false,
   });
 }

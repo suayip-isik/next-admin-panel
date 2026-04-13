@@ -52,6 +52,20 @@
     "security": "Güvenlik",
     "signOut": "Çıkış Yap"
   },
+  "system": {
+    "forbidden": {
+      "code": "403",
+      "title": "Erişim reddedildi",
+      "description": "Bu kaynağa erişim izniniz yok.",
+      "backToDashboard": "Panele dön"
+    },
+    "unauthorized": {
+      "code": "403",
+      "title": "Erişim Reddedildi",
+      "description": "Bu sayfaya erişim izniniz yok.",
+      "backToDashboard": "Panele Git"
+    }
+  },
   "auth": {
     "login": {
       "title": "Hesabınıza giriş yapın",
@@ -285,7 +299,9 @@
     "permissionsCount": "{count} izin",
     "actions": {
       "viewDetail": "Detayı Gör",
-      "delete": "Sil"
+      "delete": "Sil",
+      "editDescription": "Açıklamayı Düzenle",
+      "editPermissions": "İzinleri Düzenle"
     },
     "form": {
       "createTitle": "Rol Oluştur",
@@ -309,6 +325,14 @@
     },
     "empty": "Rol bulunamadı.",
     "systemRoleProtected": "Sistem rolleri silinemez.",
+    "descriptionDialog": {
+      "title": "Açıklamayı Düzenle",
+      "description": "İzinleri değiştirmeden rol açıklamasını güncelleyin."
+    },
+    "permissionsDialog": {
+      "title": "İzinleri Değiştir",
+      "description": "Bu rolün tüm izin setini değiştirin."
+    },
     "successMessages": {
       "created": "Rol oluşturuldu.",
       "updated": "Rol güncellendi.",
@@ -344,7 +368,9 @@
     "empty": "Denetim günlüğü bulunamadı.",
     "loadMore": "Daha Fazla Yükle",
     "loadMoreLoading": "Yükleniyor...",
-    "anonymous": "Anonim"
+    "anonymous": "Anonim",
+    "enableLiveMode": "Canlı Modu Etkinleştir",
+    "disableLiveMode": "Canlı Modu Kapat"
   },
   "apiKeys": {
     "title": "API Anahtarları",

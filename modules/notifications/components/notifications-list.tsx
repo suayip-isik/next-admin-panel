@@ -12,6 +12,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";
 import { DataTablePagination } from "@/shared/components/data-table/data-table-pagination";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { usePermissionGate } from "@/shared/hooks/use-permissions";
+import { DEFAULT_TABLE_PAGE_SIZE } from "@/shared/lib/ui-config";
 import { formatRelativeTime } from "@/shared/utils/date";
 import { getErrorMessage } from "@/lib/errors";
 import {
@@ -43,7 +44,7 @@ export function NotificationsList() {
 
   const { data, isLoading } = useQuery({
     queryKey: notificationsKeys.list(page),
-    queryFn: () => fetchNotifications({ page, size: 20 }),
+    queryFn: () => fetchNotifications({ page, size: DEFAULT_TABLE_PAGE_SIZE }),
   });
 
   function invalidate() {

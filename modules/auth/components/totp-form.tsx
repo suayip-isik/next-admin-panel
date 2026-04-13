@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { APP_ROUTES } from "@/shared/lib/routes";
 import {
   createTotpChallengeSchema,
   type TOTPChallengeInput,
@@ -41,7 +42,7 @@ export function TOTPForm() {
   useEffect(() => {
     const token = sessionStorage.getItem("partial_token");
     if (!token) {
-      router.replace("/login");
+      router.replace(APP_ROUTES.login);
       return;
     }
     setPartialToken(token);
@@ -59,7 +60,7 @@ export function TOTPForm() {
 
   async function onSubmit(values: TOTPChallengeInput) {
     if (!partialToken) {
-      router.replace("/login");
+      router.replace(APP_ROUTES.login);
       return;
     }
 
@@ -71,7 +72,7 @@ export function TOTPForm() {
       });
       sessionStorage.removeItem("partial_token");
       // Full page navigation ensures cookies are included in all subsequent requests
-      window.location.replace("/dashboard");
+      window.location.replace(APP_ROUTES.dashboard);
     } catch (err: unknown) {
       const apiErr = err as { code?: string };
       if (apiErr?.code === "INVALID_SESSION") {
@@ -126,7 +127,7 @@ export function TOTPForm() {
 
             <p className="text-center text-sm text-muted-foreground">
               <Link
-                href="/login"
+                href={APP_ROUTES.login}
                 className="hover:text-foreground underline underline-offset-4"
               >
                 {t("backToLogin")}

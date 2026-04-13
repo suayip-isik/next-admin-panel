@@ -1,6 +1,7 @@
 import createClient from "openapi-fetch";
 import type { paths } from "@/types/api.generated";
 import { waitForLocaleSwitch } from "@/shared/lib/locale-switch";
+import { APP_ROUTES } from "@/shared/lib/routes";
 
 export const apiClient = createClient<paths>({
   baseUrl: "",
@@ -46,8 +47,8 @@ apiClient.use({
       retryableRequests.delete(request);
       if (typeof window !== "undefined" && !isRedirecting) {
         isRedirecting = true;
-        if (!window.location.pathname.includes("/login")) {
-          window.location.href = "/login";
+        if (!window.location.pathname.includes(APP_ROUTES.login)) {
+          window.location.href = APP_ROUTES.login;
         }
       }
       return response;

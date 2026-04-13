@@ -17,72 +17,43 @@ import {
 } from "lucide-react";
 import { getAppShortName } from "@/lib/env";
 import { usePermissionGate } from "@/shared/hooks/use-permissions";
-import type { PermissionCheck } from "@/shared/utils/permissions";
 import { cn } from "@/shared/utils/cn";
 import { Button } from "@/shared/components/ui/button";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { useState } from "react";
+import {
+  ADMIN_NAV_ITEMS,
+  PROFILE_NAV_ITEMS,
+  type NavigationItem,
+} from "@/shared/lib/routes";
 
 interface NavItem {
   key: string;
   href: string;
   icon: typeof LayoutDashboard;
-  access?: PermissionCheck;
+  access?: NavigationItem["access"];
 }
 
-const navItems: NavItem[] = [
-  {
-    key: "dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    access: { any: ["users.read.stats"] },
-  },
-  {
-    key: "users",
-    href: "/users",
-    icon: Users,
-    access: { all: ["users.list"] },
-  },
-  {
-    key: "roles",
-    href: "/roles",
-    icon: Shield,
-    access: { all: ["roles.list"] },
-  },
-  {
-    key: "auditLogs",
-    href: "/audit-logs",
-    icon: ScrollText,
-    access: { all: ["audit_logs.list"] },
-  },
-  {
-    key: "apiKeys",
-    href: "/api-keys",
-    icon: Key,
-    access: { all: ["api_keys.list"] },
-  },
-  {
-    key: "notifications",
-    href: "/notifications",
-    icon: Bell,
-    access: { all: ["notifications.list"] },
-  },
-];
+const navItems: NavItem[] = ADMIN_NAV_ITEMS.map((item) => ({
+  ...item,
+  icon:
+    item.key === "dashboard"
+      ? LayoutDashboard
+      : item.key === "users"
+        ? Users
+        : item.key === "roles"
+          ? Shield
+          : item.key === "auditLogs"
+            ? ScrollText
+            : item.key === "apiKeys"
+              ? Key
+              : Bell,
+}));
 
-const profileItems: NavItem[] = [
-  {
-    key: "profile",
-    href: "/profile",
-    icon: User,
-    access: { all: ["profile.read.self"] },
-  },
-  {
-    key: "security",
-    href: "/profile/security",
-    icon: Lock,
-    access: { all: ["profile.read.self"] },
-  },
-];
+const profileItems: NavItem[] = PROFILE_NAV_ITEMS.map((item) => ({
+  ...item,
+  icon: item.key === "profile" ? User : Lock,
+}));
 
 export function Sidebar() {
   const t = useTranslations("nav");

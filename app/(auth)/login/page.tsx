@@ -3,6 +3,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAuthCookieConfig } from "@/lib/env";
 import { LoginForm } from "@/modules/auth/components/login-form";
+import { APP_ROUTES } from "@/shared/lib/routes";
 
 export const metadata: Metadata = { title: "Sign In" };
 
@@ -34,7 +35,7 @@ export default async function LoginPage() {
   const accessToken = cookieStore.get(authEnv.accessCookieName);
 
   if (accessToken && (await hasValidSession())) {
-    redirect("/dashboard");
+    redirect(APP_ROUTES.dashboard);
   }
 
   return <LoginForm />;

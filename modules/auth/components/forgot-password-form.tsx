@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { APP_ROUTES } from "@/shared/lib/routes";
 import {
   createForgotPasswordSchema,
   type ForgotPasswordInput,
@@ -67,7 +68,7 @@ export function ForgotPasswordForm() {
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">{t("successMessage")}</p>
           <Link
-            href="/login"
+            href={APP_ROUTES.login}
             className="text-sm text-primary underline underline-offset-4"
           >
             {t("backToLogin")}
@@ -106,7 +107,7 @@ export function ForgotPasswordForm() {
 
             <p className="text-center text-sm">
               <Link
-                href="/login"
+                href={APP_ROUTES.login}
                 className="text-muted-foreground hover:text-foreground underline underline-offset-4"
               >
                 {t("backToLogin")}

@@ -23,6 +23,8 @@ import { ActionGuard } from "@/shared/components/auth/action-guard";
 import { AvatarManagementCard } from "@/shared/components/avatar-management-card";
 import { PageHeader } from "@/shared/components/page-header";
 import { usePermissionGate } from "@/shared/hooks/use-permissions";
+import { APP_ROUTES } from "@/shared/lib/routes";
+import { DEFAULT_QUERY_STALE_TIME_MS } from "@/shared/lib/ui-config";
 import { getAvatarPresentation } from "@/shared/utils/avatar";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -94,7 +96,7 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
   useQuery({
     queryKey: rolesKeys.list(),
     queryFn: fetchRoles,
-    staleTime: 5 * 60 * 1000,
+    staleTime: DEFAULT_QUERY_STALE_TIME_MS,
     enabled: updateRoleGate.isAllowed,
   });
 
@@ -140,7 +142,7 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
     onSuccess: () => {
       toast.success(t("successMessages.deleted"));
       void queryClient.invalidateQueries({ queryKey: usersKeys.all });
-      router.push("/users");
+      router.push(APP_ROUTES.users);
     },
     onError: (mutationError) =>
       toast.error(
@@ -215,7 +217,7 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/users">
+          <Link href={APP_ROUTES.users}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>

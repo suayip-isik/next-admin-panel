@@ -23,6 +23,7 @@ import {
   useSessionMeta,
 } from "@/shared/hooks/use-session-meta";
 import { logoutMutation } from "@/modules/auth/queries/auth.queries";
+import { APP_ROUTES } from "@/shared/lib/routes";
 
 export function Topbar() {
   const t = useTranslations("nav");
@@ -35,7 +36,7 @@ export function Topbar() {
     try {
       await logoutMutation();
       queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
-      router.push("/login");
+      router.push(APP_ROUTES.login);
       router.refresh();
     } catch {
       toast.error(tErrors("generic"));

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { APP_ROUTES } from "@/shared/lib/routes";
 import { createLoginSchema, type LoginInput } from "../schemas/auth.schemas";
 import { loginMutation } from "../queries/auth.queries";
 import {
@@ -51,12 +52,12 @@ export function LoginForm() {
 
       if (result.requires_totp) {
         sessionStorage.setItem("partial_token", result.partial_token);
-        router.push("/totp");
+        router.push(APP_ROUTES.totp);
         return;
       }
 
       // Full page navigation ensures cookies are included in all subsequent requests
-      window.location.replace("/dashboard");
+      window.location.replace(APP_ROUTES.dashboard);
     } catch (err: unknown) {
       const apiErr = err as { code?: string; message?: string };
       if (apiErr?.code === "INACTIVE_USER") {
@@ -108,7 +109,7 @@ export function LoginForm() {
                   <div className="flex items-center justify-between">
                     <FormLabel>{t("password")}</FormLabel>
                     <Link
-                      href="/forgot-password"
+                      href={APP_ROUTES.forgotPassword}
                       className="text-xs text-muted-foreground hover:text-foreground"
                     >
                       {t("forgotPassword")}

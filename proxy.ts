@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getAuthCookieConfig } from "@/lib/env";
-
-const AUTH_PATHS = ["/login", "/totp", "/forgot-password", "/reset-password"];
+import { APP_ROUTES, AUTH_ROUTE_PATHS } from "@/shared/lib/routes";
 
 function isAuthPath(pathname: string): boolean {
-  return AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  return AUTH_ROUTE_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(path + "/"),
+  );
 }
 
 export function proxy(request: NextRequest) {
@@ -29,9 +30,9 @@ export function proxy(request: NextRequest) {
       getAuthCookieConfig().accessCookieName,
     )?.value;
     if (!accessToken) {
-      const loginUrl = new URL("/login", request.url);
+      const loginUrl = new URL(APP_ROUTES.login, request.url);
       const from = request.nextUrl.pathname + request.nextUrl.search;
-      if (from !== "/login") {
+      if (from !== APP_ROUTES.login) {
         loginUrl.searchParams.set("from", from);
       }
       return NextResponse.redirect(loginUrl);

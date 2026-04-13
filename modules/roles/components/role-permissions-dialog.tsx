@@ -86,9 +86,9 @@ export function RolePermissionsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Replace Permissions</DialogTitle>
+          <DialogTitle>{t("permissionsDialog.title")}</DialogTitle>
           <DialogDescription>
-            Replace the entire permission set for this role.
+            {t("permissionsDialog.description")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

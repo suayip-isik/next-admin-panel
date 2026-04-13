@@ -11,6 +11,7 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { usePermissionGate } from "@/shared/hooks/use-permissions";
+import { DEFAULT_TABLE_PAGE_SIZE } from "@/shared/lib/ui-config";
 import { formatDateTime } from "@/shared/utils/date";
 import {
   fetchAuditLog,
@@ -45,7 +46,7 @@ export function AuditLogsTable() {
   });
 
   const filters = {
-    size: 20,
+    size: DEFAULT_TABLE_PAGE_SIZE,
     user_id: userId || undefined,
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
@@ -176,7 +177,7 @@ export function AuditLogsTable() {
             onClick={() => setStreamMode((current) => !current)}
             disabled={streamAuditLogsGate.isLoading}
           >
-            {streamMode ? "Disable Live Mode" : "Enable Live Mode"}
+            {streamMode ? t("disableLiveMode") : t("enableLiveMode")}
           </Button>
         )}
       </div>

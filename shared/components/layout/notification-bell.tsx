@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchUnreadCount } from "@/modules/notifications/queries/notifications.queries";
 import { usePermissionGate } from "@/shared/hooks/use-permissions";
 import { notificationsKeys } from "@/modules/notifications/notifications.keys";
+import { APP_ROUTES } from "@/shared/lib/routes";
 
 export function NotificationBell() {
   const gate = usePermissionGate({
@@ -38,7 +39,7 @@ export function NotificationBell() {
 
   return (
     <Link
-      href="/notifications"
+      href={APP_ROUTES.notifications}
       className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
     >
       <Bell className="h-4 w-4" />

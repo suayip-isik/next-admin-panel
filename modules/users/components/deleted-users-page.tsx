@@ -13,6 +13,10 @@ import { Button } from "@/shared/components/ui/button";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { useDebounce } from "@/shared/hooks/use-debounce";
 import { Input } from "@/shared/components/ui/input";
+import {
+  DEFAULT_SEARCH_DEBOUNCE_MS,
+  DEFAULT_TABLE_PAGE_SIZE,
+} from "@/shared/lib/ui-config";
 import { getErrorMessage } from "@/lib/errors";
 import {
   fetchDeletedUsers,
@@ -28,7 +32,7 @@ export function DeletedUsersPageClient() {
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 400);
+  const debouncedSearch = useDebounce(search, DEFAULT_SEARCH_DEBOUNCE_MS);
   const [selectedUser, setSelectedUser] = useState<DeletedUser | null>(null);
   const [restoreOpen, setRestoreOpen] = useState(false);
 
@@ -40,7 +44,7 @@ export function DeletedUsersPageClient() {
     queryFn: () =>
       fetchDeletedUsers({
         page,
-        size: 20,
+        size: DEFAULT_TABLE_PAGE_SIZE,
         q: debouncedSearch || undefined,
       }),
   });

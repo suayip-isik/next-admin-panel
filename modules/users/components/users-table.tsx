@@ -20,6 +20,12 @@ import { DataTablePagination } from "@/shared/components/data-table/data-table-p
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { useDebounce } from "@/shared/hooks/use-debounce";
 import { usePermissionGate } from "@/shared/hooks/use-permissions";
+import { getUserDetailRoute } from "@/shared/lib/routes";
+import {
+  DEFAULT_QUERY_STALE_TIME_MS,
+  DEFAULT_SEARCH_DEBOUNCE_MS,
+  DEFAULT_TABLE_PAGE_SIZE,
+} from "@/shared/lib/ui-config";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -29,14 +35,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import { Input } from "@/shared/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
 import { getErrorMessage } from "@/lib/errors";
 import { fetchRoles } from "@/modules/roles/queries/roles.queries";
 import { rolesKeys } from "@/modules/roles/roles.keys";
@@ -50,6 +48,7 @@ import {
 import { usersKeys } from "../users.keys";
 import { CreateAdminUserDialog } from "./create-admin-user-dialog";
 import { RoleChangeDialog } from "./role-change-dialog";
+import { UsersTableToolbar } from "./users-table-toolbar";
 
 export function UsersTable() {
   const t = useTranslations("users");
@@ -80,7 +79,7 @@ export function UsersTable() {
     "is_verified",
     parseAsString.withDefault("all"),
   );
-  const debouncedSearch = useDebounce(search, 400);
+  const debouncedSearch = useDebounce(search, DEFAULT_SEARCH_DEBOUNCE_MS);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [dialog, setDialog] = useState<
@@ -89,7 +88,7 @@ export function UsersTable() {
 
   const filters = {
     page,
-    size: 20,
+    size: DEFAULT_TABLE_PAGE_SIZE,
     q: debouncedSearch || undefined,
     role: role === "all" ? undefined : role,
     is_active: status === "all" ? undefined : status === "true",
@@ -103,7 +102,7 @@ export function UsersTable() {
   const { data: roles } = useQuery({
     queryKey: rolesKeys.list(),
     queryFn: fetchRoles,
-    staleTime: 5 * 60 * 1000,
+    staleTime: DEFAULT_QUERY_STALE_TIME_MS,
   });
 
   const invalidate = () =>
@@ -203,7 +202,7 @@ export function UsersTable() {
     },
     {
       accessorKey: "username",
-      header: "Username",
+      header: t("detail.username"),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
           {row.original.username ?? "—"}
@@ -249,7 +248,7 @@ export function UsersTable() {
             <DropdownMenuContent align="end">
               {readDetailGate.isAllowed && (
                 <DropdownMenuItem
-                  onClick={() => router.push(`/users/${user.id}`)}
+                  onClick={() => router.push(getUserDetailRoute(user.id))}
                 >
                   <Eye className="mr-2 h-4 w-4" />
                   {t("actions.viewDetail")}
@@ -320,80 +319,41 @@ export function UsersTable() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-1 flex-wrap gap-2">
-          <Input
-            placeholder={t("searchPlaceholder")}
-            value={search}
-            onChange={(event) => {
-              void setSearch(event.target.value || null);
-              void setPage(1);
-            }}
-            className="max-w-sm"
-          />
-          <Select
-            value={role}
-            onValueChange={(value) => {
-              void setRole(value === "all" ? null : value);
-              void setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={t("filters.allRoles")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("filters.allRoles")}</SelectItem>
-              {roleOptions.map((roleName) => (
-                <SelectItem key={roleName} value={roleName}>
-                  {roleName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={status}
-            onValueChange={(value) => {
-              void setStatus(value === "all" ? null : value);
-              void setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={t("filters.allStatuses")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
-              <SelectItem value="true">{t("filters.active")}</SelectItem>
-              <SelectItem value="false">{t("filters.inactive")}</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={verified}
-            onValueChange={(value) => {
-              void setVerified(value === "all" ? null : value);
-              void setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={t("filters.allVerification")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">
-                {t("filters.allVerification")}
-              </SelectItem>
-              <SelectItem value="true">{t("filters.verified")}</SelectItem>
-              <SelectItem value="false">{t("filters.unverified")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {(createAdminGate.isAllowed || createAdminGate.isLoading) && (
-          <Button
-            onClick={() => setCreateOpen(true)}
-            disabled={createAdminGate.isLoading}
-          >
-            {t("createAdmin")}
-          </Button>
-        )}
-      </div>
+      <UsersTableToolbar
+        searchPlaceholder={t("searchPlaceholder")}
+        rolePlaceholder={t("filters.allRoles")}
+        statusPlaceholder={t("filters.allStatuses")}
+        verificationPlaceholder={t("filters.allVerification")}
+        createLabel={t("createAdmin")}
+        activeLabel={t("filters.active")}
+        inactiveLabel={t("filters.inactive")}
+        verifiedLabel={t("filters.verified")}
+        unverifiedLabel={t("filters.unverified")}
+        search={search}
+        role={role}
+        status={status}
+        verified={verified}
+        roleOptions={roleOptions}
+        canCreate={createAdminGate.isAllowed || createAdminGate.isLoading}
+        createLoading={createAdminGate.isLoading}
+        onSearchChange={(value) => {
+          void setSearch(value || null);
+          void setPage(1);
+        }}
+        onRoleChange={(value) => {
+          void setRole(value === "all" ? null : value);
+          void setPage(1);
+        }}
+        onStatusChange={(value) => {
+          void setStatus(value === "all" ? null : value);
+          void setPage(1);
+        }}
+        onVerifiedChange={(value) => {
+          void setVerified(value === "all" ? null : value);
+          void setPage(1);
+        }}
+        onCreate={() => setCreateOpen(true)}
+      />
 
       <DataTable
         columns={columns}

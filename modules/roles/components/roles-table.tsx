@@ -19,6 +19,7 @@ import {
 } from "@/shared/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { usePermissionGate } from "@/shared/hooks/use-permissions";
+import { getRoleDetailRoute } from "@/shared/lib/routes";
 import { getErrorMessage } from "@/lib/errors";
 import { fetchRoles, deleteRole, type Role } from "../queries/roles.queries";
 import { rolesKeys } from "../roles.keys";
@@ -117,7 +118,7 @@ export function RolesTable() {
             <DropdownMenuContent align="end">
               {readDetailGate.isAllowed && (
                 <DropdownMenuItem asChild>
-                  <Link href={`/roles/${role.id}`}>
+                  <Link href={getRoleDetailRoute(role.id)}>
                     <Eye className="mr-2 h-4 w-4" />
                     {t("actions.viewDetail")}
                   </Link>

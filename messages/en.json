@@ -52,6 +52,20 @@
     "security": "Security",
     "signOut": "Sign Out"
   },
+  "system": {
+    "forbidden": {
+      "code": "403",
+      "title": "Access denied",
+      "description": "You do not have permission to access this resource.",
+      "backToDashboard": "Return to dashboard"
+    },
+    "unauthorized": {
+      "code": "403",
+      "title": "Access Denied",
+      "description": "You don't have permission to access this page.",
+      "backToDashboard": "Go to Dashboard"
+    }
+  },
   "auth": {
     "login": {
       "title": "Sign in to your account",
@@ -285,7 +299,9 @@
     "permissionsCount": "{count} permissions",
     "actions": {
       "viewDetail": "View Details",
-      "delete": "Delete"
+      "delete": "Delete",
+      "editDescription": "Edit Description",
+      "editPermissions": "Edit Permissions"
     },
     "form": {
       "createTitle": "Create Role",
@@ -309,6 +325,14 @@
     },
     "empty": "No roles found.",
     "systemRoleProtected": "System roles cannot be deleted.",
+    "descriptionDialog": {
+      "title": "Edit Description",
+      "description": "Update the role description without changing its permissions."
+    },
+    "permissionsDialog": {
+      "title": "Replace Permissions",
+      "description": "Replace the entire permission set for this role."
+    },
     "successMessages": {
       "created": "Role created successfully.",
       "updated": "Role updated successfully.",
@@ -344,7 +368,9 @@
     "empty": "No audit logs found.",
     "loadMore": "Load More",
     "loadMoreLoading": "Loading more...",
-    "anonymous": "Anonymous"
+    "anonymous": "Anonymous",
+    "enableLiveMode": "Enable Live Mode",
+    "disableLiveMode": "Disable Live Mode"
   },
   "apiKeys": {
     "title": "API Keys",

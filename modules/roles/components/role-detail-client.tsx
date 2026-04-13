@@ -19,6 +19,7 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Separator } from "@/shared/components/ui/separator";
 import { Skeleton } from "@/shared/components/ui/skeleton";
+import { APP_ROUTES } from "@/shared/lib/routes";
 import { PERMISSION_LABELS } from "@/shared/utils/permissions";
 import { RoleDescriptionDialog } from "./role-description-dialog";
 import { RolePermissionsDialog } from "./role-permissions-dialog";
@@ -68,7 +69,7 @@ export function RoleDetailClient({ id }: RoleDetailClientProps) {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/roles">
+          <Link href={APP_ROUTES.roles}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
@@ -87,13 +88,13 @@ export function RoleDetailClient({ id }: RoleDetailClientProps) {
           loadingFallback={
             <Button variant="outline" disabled>
               <Pencil className="mr-2 h-4 w-4" />
-              Edit Description
+              {t("actions.editDescription")}
             </Button>
           }
         >
           <Button variant="outline" onClick={() => setDescriptionOpen(true)}>
             <Pencil className="mr-2 h-4 w-4" />
-            Edit Description
+            {t("actions.editDescription")}
           </Button>
         </ActionGuard>
         <ActionGuard
@@ -101,13 +102,13 @@ export function RoleDetailClient({ id }: RoleDetailClientProps) {
           loadingFallback={
             <Button variant="outline" disabled>
               <Shield className="mr-2 h-4 w-4" />
-              Edit Permissions
+              {t("actions.editPermissions")}
             </Button>
           }
         >
           <Button variant="outline" onClick={() => setPermissionsOpen(true)}>
             <Shield className="mr-2 h-4 w-4" />
-            Edit Permissions
+            {t("actions.editPermissions")}
           </Button>
         </ActionGuard>
       </div>

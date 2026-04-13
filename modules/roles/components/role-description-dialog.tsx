@@ -80,9 +80,9 @@ export function RoleDescriptionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Description</DialogTitle>
+          <DialogTitle>{t("descriptionDialog.title")}</DialogTitle>
           <DialogDescription>
-            Update the role description without changing its permissions.
+            {t("descriptionDialog.description")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

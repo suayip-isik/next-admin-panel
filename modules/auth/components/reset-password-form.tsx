@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { APP_ROUTES } from "@/shared/lib/routes";
 import {
   createResetPasswordSchema,
   type ResetPasswordInput,
@@ -85,13 +86,15 @@ export function ResetPasswordForm() {
           <p className="text-sm text-destructive">{t("errors.missingToken")}</p>
           <div className="flex flex-col gap-2">
             <Button asChild className="w-full">
-              <Link href="/forgot-password">{t("requestNewLink")}</Link>
+              <Link href={APP_ROUTES.forgotPassword}>
+                {t("requestNewLink")}
+              </Link>
             </Button>
             <Button
               type="button"
               variant="ghost"
               className="w-full"
-              onClick={() => router.push("/login")}
+              onClick={() => router.push(APP_ROUTES.login)}
             >
               {t("backToLogin")}
             </Button>
@@ -113,7 +116,7 @@ export function ResetPasswordForm() {
           <Button
             type="button"
             className="w-full"
-            onClick={() => router.push("/login")}
+            onClick={() => router.push(APP_ROUTES.login)}
           >
             {t("backToLogin")}
           </Button>
