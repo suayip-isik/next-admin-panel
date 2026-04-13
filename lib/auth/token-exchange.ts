@@ -1,5 +1,6 @@
 import { setAuthCookies } from "@/lib/auth/cookies";
 import { forwardToFastApi } from "@/lib/auth/fastapi";
+import { withNoStoreApiHeaders } from "@/lib/security";
 
 interface ApiErrorBody {
   error?: {
@@ -43,14 +44,16 @@ export function createInternalAuthErrorResponse(
   code: string,
   details?: unknown,
 ) {
-  return Response.json(
-    {
-      error: {
-        code,
-        ...(details === undefined ? {} : { details }),
+  return withNoStoreApiHeaders(
+    Response.json(
+      {
+        error: {
+          code,
+          ...(details === undefined ? {} : { details }),
+        },
       },
-    },
-    { status },
+      { status },
+    ),
   );
 }
 
@@ -61,7 +64,7 @@ export async function finalizeAuthResponse(body: unknown): Promise<Response> {
 
   await setAuthCookies(body);
 
-  return Response.json({ success: true });
+  return withNoStoreApiHeaders(Response.json({ success: true }));
 }
 
 async function parseBody(response: Response) {
@@ -83,9 +86,11 @@ export async function exchangeTokens(
   const body = await parseBody(response);
 
   if (!response.ok) {
-    return Response.json((body ?? {}) as ApiErrorBody, {
-      status: response.status,
-    });
+    return withNoStoreApiHeaders(
+      Response.json((body ?? {}) as ApiErrorBody, {
+        status: response.status,
+      }),
+    );
   }
 
   return finalizeAuthResponse(body);

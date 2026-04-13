@@ -90,8 +90,29 @@ try {
   parseNumber("SENTRY_TRACES_SAMPLE_RATE", 0.1);
   parseNumber("AUTH_ACCESS_TOKEN_MAX_AGE_SECONDS", 1800);
   parseNumber("AUTH_REFRESH_TOKEN_MAX_AGE_SECONDS", 2592000);
-  parseBoolean("AUTH_COOKIE_SECURE", false);
-  parseSameSite("AUTH_COOKIE_SAME_SITE", "lax");
+  const cookieSecure = parseBoolean("AUTH_COOKIE_SECURE", false);
+  const cookieSameSite = parseSameSite("AUTH_COOKIE_SAME_SITE", "lax");
+  const isProductionDeployment =
+    optionalEnv("DEPLOY_ENVIRONMENT") === "production" ||
+    optionalEnv("VERCEL_ENV") === "production";
+
+  if (isProductionDeployment && new URL(appUrl).protocol !== "https:") {
+    throw new Error(
+      "NEXT_PUBLIC_APP_URL must use https in production deployments.",
+    );
+  }
+
+  if (isProductionDeployment && !cookieSecure) {
+    throw new Error(
+      "AUTH_COOKIE_SECURE must be true in production deployments.",
+    );
+  }
+
+  if (cookieSameSite === "none" && !cookieSecure) {
+    throw new Error(
+      "AUTH_COOKIE_SAME_SITE=none requires AUTH_COOKIE_SECURE=true.",
+    );
+  }
 
   if (!isCiSafe) {
     if (!readEnv("NEXT_PUBLIC_APP_NAME")) {

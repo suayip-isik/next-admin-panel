@@ -9,6 +9,9 @@ function createQueryClient() {
     defaultOptions: {
       queries: {
         staleTime: 60 * 1000,
+        gcTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
         retry: (failureCount, error) => {
           if (error instanceof Error && "status" in error) {
             const status = (error as { status: number }).status;

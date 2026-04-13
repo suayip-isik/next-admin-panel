@@ -157,4 +157,27 @@ describe("env helpers", () => {
       'Invalid numeric value for environment variable AUTH_ACCESS_TOKEN_MAX_AGE_SECONDS: "oops"',
     );
   });
+
+  it("requires secure cookies for production deployments", async () => {
+    process.env.DEPLOY_ENVIRONMENT = "production";
+    process.env.NEXT_PUBLIC_APP_URL = "https://admin.example.com";
+    process.env.AUTH_COOKIE_SECURE = "false";
+
+    const { getAuthCookieConfig } = await import("@/lib/env");
+
+    expect(() => getAuthCookieConfig()).toThrow(
+      "AUTH_COOKIE_SECURE must be true in production deployments.",
+    );
+  });
+
+  it("requires secure cookies when same-site is none", async () => {
+    process.env.AUTH_COOKIE_SAME_SITE = "none";
+    process.env.AUTH_COOKIE_SECURE = "false";
+
+    const { getAuthCookieConfig } = await import("@/lib/env");
+
+    expect(() => getAuthCookieConfig()).toThrow(
+      "AUTH_COOKIE_SAME_SITE=none requires AUTH_COOKIE_SECURE=true.",
+    );
+  });
 });

@@ -66,6 +66,7 @@ describe("/api/v1 catch-all proxy route", () => {
     expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
     expect(new Headers(init?.headers).get("cookie")).toBeNull();
     expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     await expect(response.json()).resolves.toEqual({ ok: true });
   });
 
@@ -91,6 +92,7 @@ describe("/api/v1 catch-all proxy route", () => {
     expect(new Headers(init?.headers).get("authorization")).toBeNull();
     expect(new Headers(init?.headers).get("accept-language")).toBeNull();
     expect(response.status).toBe(401);
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     await expect(response.json()).resolves.toEqual({ detail: "Unauthorized" });
   });
 
@@ -203,6 +205,36 @@ describe("/api/v1 catch-all proxy route", () => {
 
     expect(response.status).toBe(502);
     expect(response.headers.get("content-type")).toBe("text/plain");
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     await expect(response.text()).resolves.toBe("plain-text-error");
+  });
+
+  it("filters unsafe upstream response headers", async () => {
+    cookieStore.get.mockImplementation((name: string) => {
+      if (name === "access_token") return { value: "access-5" };
+      return undefined;
+    });
+
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "set-cookie": "session=bad",
+          server: "upstream",
+          "www-authenticate": 'Bearer realm="admin"',
+        },
+      }),
+    );
+
+    const response = await proxyGet(new Request("http://localhost/api/v1/me"), {
+      params: Promise.resolve({ path: ["me"] }),
+    });
+
+    expect(response.headers.get("set-cookie")).toBeNull();
+    expect(response.headers.get("server")).toBeNull();
+    expect(response.headers.get("www-authenticate")).toBe(
+      'Bearer realm="admin"',
+    );
   });
 });

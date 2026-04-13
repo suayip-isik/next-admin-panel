@@ -148,7 +148,7 @@ Repo şu GitHub Actions workflow'larını içerir:
 
 - `CI`: `env-check`, `lint`, `typecheck`, `unit-tests`, `build`, `e2e`
 - `dependency-review`: pull request bağımlılık risk kontrolü
-- `codeql`: `main` ve haftalık schedule için statik analiz
+- `codeql`: pull request, `main` ve haftalık schedule için statik analiz
 - `Release`: tag veya manuel tetikleme ile GitHub Release üretimi
 - `Preview Example (Vercel)`: opsiyonel Vercel preview build örneği
 
@@ -177,6 +177,12 @@ pnpm typecheck
 pnpm test:unit
 pnpm build
 ```
+
+Production benzeri deploylarda:
+
+- `NEXT_PUBLIC_APP_URL` https olmalıdır
+- `AUTH_COOKIE_SECURE=true` olmalıdır
+- `AUTH_COOKIE_SAME_SITE=none` ise `AUTH_COOKIE_SECURE=true` zorunludur
 
 ## Açık Kaynak Dosyaları
 

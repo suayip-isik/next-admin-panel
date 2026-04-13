@@ -38,12 +38,20 @@ pnpm build
 - auth, navigation, protected route veya form akışları değiştiyse `pnpm test:e2e`
 - OpenAPI yüzeyi değiştiyse `pnpm generate:types`
 
+GitHub PR açmadan önce beklenen minimum alanlar:
+
+- kullanıcı etkisi özeti
+- güvenlik ve performans etkisi
+- environment veya deploy etkisi
+- çalıştırılan doğrulama komutları
+
 ## Katkı Kuralları
 
 - Conventional Commit kullanın: `feat:`, `fix:`, `docs:`, `chore:`
 - PR açıklamasında kullanıcı etkisini ve doğrulama adımlarını belirtin
 - Gerçek secret veya provider kimlik bilgilerini commit etmeyin
 - Provider-specific workflow'ları base contributor deneyiminin zorunlu parçası yapmayın
+- Auth, proxy veya env kontratı değiştiyse güvenlik etkisini PR açıklamasında açık yazın
 
 ## Repo Yapısı Beklentisi
 
@@ -66,6 +74,12 @@ Bu repo standart eski Next.js varsayımlarıyla ele alınmamalıdır. Framework 
 ## CI/CD Beklentileri
 
 - `main` korumalı ana branch olarak düşünülür
-- pull request'lerde `CI` ve `dependency-review` workflow'ları beklenir
+- pull request'lerde `CI`, `dependency-review` ve `codeql` workflow'ları beklenir
 - release akışı tag veya maintainer manual dispatch ile yürütülür
 - Vercel preview workflow'u örnek amaçlıdır
+
+Production benzeri deploy beklentileri:
+
+- `NEXT_PUBLIC_APP_URL` https olmalıdır
+- `AUTH_COOKIE_SECURE=true` olmalıdır
+- `AUTH_COOKIE_SAME_SITE=none` ise `AUTH_COOKIE_SECURE=true` zorunludur
