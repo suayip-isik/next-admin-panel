@@ -19,6 +19,7 @@ import { DataTable } from "@/shared/components/data-table/data-table";
 import { DataTablePagination } from "@/shared/components/data-table/data-table-pagination";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { useDebounce } from "@/shared/hooks/use-debounce";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -55,6 +56,12 @@ export function UsersTable() {
   const tErrors = useTranslations("errors");
   const router = useRouter();
   const queryClient = useQueryClient();
+  const readDetailGate = usePermissionGate({ all: ["users.read.basic"] });
+  const createAdminGate = usePermissionGate({ all: ["users.create.admin"] });
+  const activateGate = usePermissionGate({ all: ["users.activate"] });
+  const deactivateGate = usePermissionGate({ all: ["users.deactivate"] });
+  const deleteGate = usePermissionGate({ all: ["users.delete"] });
+  const changeRoleGate = usePermissionGate({ all: ["users.update.role"] });
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [search, setSearch] = useQueryState(
@@ -207,6 +214,31 @@ export function UsersTable() {
       id: "actions",
       cell: ({ row }) => {
         const user = row.original;
+        const isActionLoading =
+          readDetailGate.isLoading ||
+          activateGate.isLoading ||
+          deactivateGate.isLoading ||
+          deleteGate.isLoading ||
+          changeRoleGate.isLoading;
+        const hasActions =
+          readDetailGate.isAllowed ||
+          activateGate.isAllowed ||
+          deactivateGate.isAllowed ||
+          deleteGate.isAllowed ||
+          changeRoleGate.isAllowed;
+
+        if (isActionLoading) {
+          return (
+            <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          );
+        }
+
+        if (!hasActions) {
+          return null;
+        }
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -215,54 +247,68 @@ export function UsersTable() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => router.push(`/users/${user.id}`)}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                {t("actions.viewDetail")}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {user.is_active ? (
+              {readDetailGate.isAllowed && (
                 <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedUser(user);
-                    setDialog("deactivate");
-                  }}
+                  onClick={() => router.push(`/users/${user.id}`)}
                 >
-                  <UserX className="mr-2 h-4 w-4" />
-                  {t("actions.deactivate")}
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedUser(user);
-                    setDialog("activate");
-                  }}
-                >
-                  <UserCheck className="mr-2 h-4 w-4" />
-                  {t("actions.activate")}
+                  <Eye className="mr-2 h-4 w-4" />
+                  {t("actions.viewDetail")}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedUser(user);
-                  setDialog("role");
-                }}
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                {t("actions.changeRole")}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => {
-                  setSelectedUser(user);
-                  setDialog("delete");
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {t("actions.delete")}
-              </DropdownMenuItem>
+              {readDetailGate.isAllowed &&
+                (activateGate.isAllowed ||
+                  deactivateGate.isAllowed ||
+                  deleteGate.isAllowed ||
+                  changeRoleGate.isAllowed) && <DropdownMenuSeparator />}
+              {user.is_active
+                ? deactivateGate.isAllowed && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setDialog("deactivate");
+                      }}
+                    >
+                      <UserX className="mr-2 h-4 w-4" />
+                      {t("actions.deactivate")}
+                    </DropdownMenuItem>
+                  )
+                : activateGate.isAllowed && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setDialog("activate");
+                      }}
+                    >
+                      <UserCheck className="mr-2 h-4 w-4" />
+                      {t("actions.activate")}
+                    </DropdownMenuItem>
+                  )}
+              {changeRoleGate.isAllowed && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedUser(user);
+                    setDialog("role");
+                  }}
+                >
+                  <Shield className="mr-2 h-4 w-4" />
+                  {t("actions.changeRole")}
+                </DropdownMenuItem>
+              )}
+              {deleteGate.isAllowed && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setDialog("delete");
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {t("actions.delete")}
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -339,7 +385,14 @@ export function UsersTable() {
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>{t("createAdmin")}</Button>
+        {(createAdminGate.isAllowed || createAdminGate.isLoading) && (
+          <Button
+            onClick={() => setCreateOpen(true)}
+            disabled={createAdminGate.isLoading}
+          >
+            {t("createAdmin")}
+          </Button>
+        )}
       </div>
 
       <DataTable
@@ -420,7 +473,9 @@ export function UsersTable() {
           }}
         />
       )}
-      <CreateAdminUserDialog open={createOpen} onOpenChange={setCreateOpen} />
+      {createAdminGate.isAllowed && (
+        <CreateAdminUserDialog open={createOpen} onOpenChange={setCreateOpen} />
+      )}
     </div>
   );
 }

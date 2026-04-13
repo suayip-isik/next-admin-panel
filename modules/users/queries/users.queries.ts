@@ -7,8 +7,8 @@ export type DeletedUser = components["schemas"]["DeletedUserResponse"];
 export type UserStats = components["schemas"]["UserStatsResponse"];
 export type CreateAdminUserInput =
   components["schemas"]["CreateAdminUserRequest"];
-export type UpdateAdminUserInput =
-  components["schemas"]["AdminUpdateUserRequest"];
+export type UpdateUserProfileInput =
+  components["schemas"]["AdminUpdateUserProfileRequest"];
 export type ChangeUserEmailInput =
   components["schemas"]["AdminChangeUserEmailRequest"];
 
@@ -51,9 +51,12 @@ export async function createAdminUser(input: CreateAdminUserInput) {
   );
 }
 
-export async function updateUser(id: string, input: UpdateAdminUserInput) {
+export async function updateUserProfile(
+  id: string,
+  input: UpdateUserProfileInput,
+) {
   return unwrapApiResult(
-    await apiClient.PATCH("/api/v1/admin/users/{user_id}", {
+    await apiClient.PATCH("/api/v1/admin/users/{user_id}/profile", {
       params: { path: { user_id: id } },
       body: input,
     }),

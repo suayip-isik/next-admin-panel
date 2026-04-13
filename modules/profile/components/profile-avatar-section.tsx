@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
 import { AvatarManagementCard } from "@/shared/components/avatar-management-card";
 import {
   AUTH_ME_QUERY_KEY,
@@ -18,6 +19,12 @@ export function ProfileAvatarSection() {
   const tErrors = useTranslations("errors");
   const queryClient = useQueryClient();
   const { data: user, dataUpdatedAt } = useCurrentUser();
+  const uploadAvatarGate = usePermissionGate({
+    all: ["profile.update.avatar"],
+  });
+  const deleteAvatarGate = usePermissionGate({
+    all: ["profile.delete.avatar"],
+  });
   const avatar = user
     ? getAvatarPresentation({
         email: user.email,
@@ -47,7 +54,15 @@ export function ProfileAvatarSection() {
     onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
-  if (!user) return null;
+  if (
+    !user ||
+    (!uploadAvatarGate.isAllowed &&
+      !deleteAvatarGate.isAllowed &&
+      !uploadAvatarGate.isLoading &&
+      !deleteAvatarGate.isLoading)
+  ) {
+    return null;
+  }
 
   return (
     <AvatarManagementCard
@@ -62,8 +77,14 @@ export function ProfileAvatarSection() {
       emptyLabel={t("empty")}
       uploading={uploadMutation.isPending}
       removing={deleteMutation.isPending}
-      onUpload={(file) => uploadMutation.mutate(file)}
-      onRemove={() => deleteMutation.mutate()}
+      onUpload={
+        uploadAvatarGate.isAllowed
+          ? (file) => uploadMutation.mutate(file)
+          : undefined
+      }
+      onRemove={
+        deleteAvatarGate.isAllowed ? () => deleteMutation.mutate() : undefined
+      }
     />
   );
 }

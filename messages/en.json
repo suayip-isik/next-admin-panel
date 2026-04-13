@@ -283,6 +283,10 @@
     "systemRole": "System",
     "customRole": "Custom",
     "permissionsCount": "{count} permissions",
+    "actions": {
+      "viewDetail": "View Details",
+      "delete": "Delete"
+    },
     "form": {
       "createTitle": "Create Role",
       "createDescription": "Set the name, description, and permissions for the new role.",

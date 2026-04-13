@@ -19,8 +19,10 @@ import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
 import { fetchRoles } from "@/modules/roles/queries/roles.queries";
 import { rolesKeys } from "@/modules/roles/roles.keys";
+import { ActionGuard } from "@/shared/components/auth/action-guard";
 import { AvatarManagementCard } from "@/shared/components/avatar-management-card";
 import { PageHeader } from "@/shared/components/page-header";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
 import { getAvatarPresentation } from "@/shared/utils/avatar";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -59,6 +61,22 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
   const tErrors = useTranslations("errors");
   const router = useRouter();
   const queryClient = useQueryClient();
+  const updateProfileGate = usePermissionGate({
+    all: ["users.update.profile"],
+  });
+  const updateEmailGate = usePermissionGate({ all: ["users.update.email"] });
+  const updateRoleGate = usePermissionGate({ all: ["users.update.role"] });
+  const updateAvatarGate = usePermissionGate({ all: ["users.update.avatar"] });
+  const deleteAvatarGate = usePermissionGate({ all: ["users.delete.avatar"] });
+  const resendVerificationGate = usePermissionGate({
+    all: ["users.resend.verification"],
+  });
+  const resendInviteGate = usePermissionGate({
+    all: ["users.resend.admin_invite"],
+  });
+  const activateGate = usePermissionGate({ all: ["users.activate"] });
+  const deactivateGate = usePermissionGate({ all: ["users.deactivate"] });
+  const deleteGate = usePermissionGate({ all: ["users.delete"] });
 
   const [editOpen, setEditOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -77,6 +95,7 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
     queryKey: rolesKeys.list(),
     queryFn: fetchRoles,
     staleTime: 5 * 60 * 1000,
+    enabled: updateRoleGate.isAllowed,
   });
 
   const invalidate = () => {
@@ -207,10 +226,12 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
           <Badge variant={data.is_active ? "default" : "secondary"}>
             {data.is_active ? t("filters.active") : t("filters.inactive")}
           </Badge>
-          <Button variant="outline" onClick={() => setEditOpen(true)}>
-            <Pencil className="mr-2 h-4 w-4" />
-            {t("actions.edit")}
-          </Button>
+          <ActionGuard all={["users.update.profile"]}>
+            <Button variant="outline" onClick={() => setEditOpen(true)}>
+              <Pencil className="mr-2 h-4 w-4" />
+              {t("actions.edit")}
+            </Button>
+          </ActionGuard>
         </PageHeader>
       </div>
 
@@ -228,8 +249,16 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
             emptyLabel={t("avatar.empty")}
             uploading={uploadAvatarMutation.isPending}
             removing={deleteAvatarMutation.isPending}
-            onUpload={(file) => uploadAvatarMutation.mutate(file)}
-            onRemove={() => deleteAvatarMutation.mutate()}
+            onUpload={
+              updateAvatarGate.isAllowed
+                ? (file) => uploadAvatarMutation.mutate(file)
+                : undefined
+            }
+            onRemove={
+              deleteAvatarGate.isAllowed
+                ? () => deleteAvatarMutation.mutate()
+                : undefined
+            }
           />
 
           <Card>
@@ -297,19 +326,25 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid gap-2">
-              <Button variant="outline" onClick={() => setEditOpen(true)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                {t("actions.edit")}
-              </Button>
-              <Button variant="outline" onClick={() => setEmailOpen(true)}>
-                <Mail className="mr-2 h-4 w-4" />
-                {t("actions.changeEmail")}
-              </Button>
-              <Button variant="outline" onClick={() => setRoleOpen(true)}>
-                <Shield className="mr-2 h-4 w-4" />
-                {t("actions.changeRole")}
-              </Button>
-              {verificationNeeded && (
+              {updateProfileGate.isAllowed && (
+                <Button variant="outline" onClick={() => setEditOpen(true)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  {t("actions.edit")}
+                </Button>
+              )}
+              {updateEmailGate.isAllowed && (
+                <Button variant="outline" onClick={() => setEmailOpen(true)}>
+                  <Mail className="mr-2 h-4 w-4" />
+                  {t("actions.changeEmail")}
+                </Button>
+              )}
+              {updateRoleGate.isAllowed && (
+                <Button variant="outline" onClick={() => setRoleOpen(true)}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  {t("actions.changeRole")}
+                </Button>
+              )}
+              {verificationNeeded && resendVerificationGate.isAllowed && (
                 <Button
                   variant="outline"
                   disabled={verificationMutation.isPending}
@@ -319,38 +354,44 @@ export function UserDetailClient({ id }: UserDetailClientProps) {
                   {t("actions.resendVerification")}
                 </Button>
               )}
-              <Button
-                variant="outline"
-                disabled={inviteMutation.isPending}
-                onClick={() => inviteMutation.mutate()}
-              >
-                <Send className="mr-2 h-4 w-4" />
-                {t("actions.resendInvite")}
-              </Button>
-              {data.is_active ? (
+              {resendInviteGate.isAllowed && (
                 <Button
                   variant="outline"
-                  onClick={() => setConfirmAction("deactivate")}
+                  disabled={inviteMutation.isPending}
+                  onClick={() => inviteMutation.mutate()}
                 >
-                  <UserX className="mr-2 h-4 w-4" />
-                  {t("actions.deactivate")}
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={() => setConfirmAction("activate")}
-                >
-                  <UserCheck className="mr-2 h-4 w-4" />
-                  {t("actions.activate")}
+                  <Send className="mr-2 h-4 w-4" />
+                  {t("actions.resendInvite")}
                 </Button>
               )}
-              <Button
-                variant="destructive"
-                onClick={() => setConfirmAction("delete")}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {t("actions.delete")}
-              </Button>
+              {data.is_active
+                ? deactivateGate.isAllowed && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setConfirmAction("deactivate")}
+                    >
+                      <UserX className="mr-2 h-4 w-4" />
+                      {t("actions.deactivate")}
+                    </Button>
+                  )
+                : activateGate.isAllowed && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setConfirmAction("activate")}
+                    >
+                      <UserCheck className="mr-2 h-4 w-4" />
+                      {t("actions.activate")}
+                    </Button>
+                  )}
+              {deleteGate.isAllowed && (
+                <Button
+                  variant="destructive"
+                  onClick={() => setConfirmAction("delete")}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {t("actions.delete")}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -29,6 +29,7 @@ import {
 } from "@/shared/components/ui/form";
 import { Input } from "@/shared/components/ui/input";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
 import { formatDateTime, formatRelativeTime } from "@/shared/utils/date";
 import { PERMISSIONS, type Permission } from "@/shared/utils/permissions";
 import { getErrorMessage } from "@/lib/errors";
@@ -58,6 +59,8 @@ export function ApiKeysList() {
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("errors");
   const queryClient = useQueryClient();
+  const createApiKeyGate = usePermissionGate({ all: ["api_keys.create"] });
+  const revokeApiKeyGate = usePermissionGate({ all: ["api_keys.revoke"] });
 
   const [createOpen, setCreateOpen] = useState(false);
   const [revealedKey, setRevealedKey] = useState<ApiKeyCreated | null>(null);
@@ -181,26 +184,32 @@ export function ApiKeysList() {
     },
     {
       id: "actions",
-      cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-destructive hover:text-destructive"
-          onClick={() => setDeleteTarget(row.original)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      ),
+      cell: ({ row }) =>
+        revokeApiKeyGate.isAllowed ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={() => setDeleteTarget(row.original)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        ) : null,
     },
   ];
 
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={() => setCreateOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t("createKey")}
-        </Button>
+        {(createApiKeyGate.isAllowed || createApiKeyGate.isLoading) && (
+          <Button
+            onClick={() => setCreateOpen(true)}
+            disabled={createApiKeyGate.isLoading}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {t("createKey")}
+          </Button>
+        )}
       </div>
 
       <DataTable
@@ -211,7 +220,10 @@ export function ApiKeysList() {
       />
 
       {/* Create dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <Dialog
+        open={createApiKeyGate.isAllowed && createOpen}
+        onOpenChange={setCreateOpen}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("form.title")}</DialogTitle>
@@ -349,19 +361,23 @@ export function ApiKeysList() {
       </Dialog>
 
       {/* Delete confirm dialog */}
-      <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title={t("deleteDialog.title")}
-        description={t("deleteDialog.description", {
-          name: deleteTarget?.name ?? "",
-        })}
-        confirmLabel={t("deleteDialog.confirm")}
-        cancelLabel={tCommon("cancel")}
-        variant="destructive"
-        loading={deleteMutation.isPending}
-        onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
-      />
+      {revokeApiKeyGate.isAllowed && (
+        <ConfirmDialog
+          open={!!deleteTarget}
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+          title={t("deleteDialog.title")}
+          description={t("deleteDialog.description", {
+            name: deleteTarget?.name ?? "",
+          })}
+          confirmLabel={t("deleteDialog.confirm")}
+          cancelLabel={tCommon("cancel")}
+          variant="destructive"
+          loading={deleteMutation.isPending}
+          onConfirm={() =>
+            deleteTarget && deleteMutation.mutate(deleteTarget.id)
+          }
+        />
+      )}
     </div>
   );
 }

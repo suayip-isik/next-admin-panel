@@ -4,29 +4,37 @@ import type { components } from "@/types/api.generated";
 
 export type UserProfile = components["schemas"]["UserResponse"];
 
-export interface UpdateProfileInput {
-  full_name?: string | null;
-  username?: string | null;
-  email?: string;
-  current_password?: string | null;
-}
+export type UpdateProfileBasicInput =
+  components["schemas"]["UpdateOwnProfileRequest"];
+export type UpdateProfileEmailInput =
+  components["schemas"]["UpdateOwnEmailRequest"];
+export type UpdateProfilePasswordInput =
+  components["schemas"]["UpdateOwnPasswordRequest"];
 
 export async function fetchProfile() {
   return unwrapApiResult(await apiClient.GET("/api/v1/shared/me"));
 }
 
-export async function updateProfile(input: UpdateProfileInput) {
+export async function updateProfileBasic(input: UpdateProfileBasicInput) {
   return unwrapApiResult(
-    await apiClient.PATCH("/api/v1/shared/me", {
+    await apiClient.PATCH("/api/v1/shared/me/profile", {
       body: input,
     }),
   );
 }
 
-export async function changePassword(newPassword: string) {
+export async function updateProfileEmail(input: UpdateProfileEmailInput) {
   return unwrapApiResult(
-    await apiClient.PATCH("/api/v1/shared/me", {
-      body: { password: newPassword },
+    await apiClient.PATCH("/api/v1/shared/me/email", {
+      body: input,
+    }),
+  );
+}
+
+export async function updateProfilePassword(input: UpdateProfilePasswordInput) {
+  return unwrapApiResult(
+    await apiClient.PATCH("/api/v1/shared/me/password", {
+      body: input,
     }),
   );
 }

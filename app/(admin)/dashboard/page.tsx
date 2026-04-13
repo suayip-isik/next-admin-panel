@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { requireNamedPageAccess } from "@/lib/server-auth";
 import { PageHeader } from "@/shared/components/page-header";
 import { UserStatsCards } from "@/modules/users/components/user-stats-cards";
 import { Suspense } from "react";
@@ -11,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function DashboardPage() {
+  await requireNamedPageAccess("dashboard");
   const t = await getTranslations("dashboard");
 
   return (

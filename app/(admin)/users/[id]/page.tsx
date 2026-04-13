@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { requireNamedPageAccess } from "@/lib/server-auth";
 import { UserDetailClient } from "@/modules/users/components/user-detail-client";
 
 interface PageProps {
@@ -15,6 +16,7 @@ export async function generateMetadata({
 }
 
 export default async function UserDetailPage({ params }: PageProps) {
+  await requireNamedPageAccess("userDetail");
   const { id } = await params;
   return <UserDetailClient id={id} />;
 }

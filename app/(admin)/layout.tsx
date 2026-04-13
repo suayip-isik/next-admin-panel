@@ -1,3 +1,4 @@
+import { requireAdminSurface } from "@/lib/server-auth";
 import { Sidebar } from "@/shared/components/layout/sidebar";
 import { Topbar } from "@/shared/components/layout/topbar";
 
@@ -5,7 +6,9 @@ interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default async function AdminLayout({ children }: AdminLayoutProps) {
+  await requireAdminSurface();
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />

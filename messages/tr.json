@@ -283,6 +283,10 @@
     "systemRole": "Sistem",
     "customRole": "Özel",
     "permissionsCount": "{count} izin",
+    "actions": {
+      "viewDetail": "Detayı Gör",
+      "delete": "Sil"
+    },
     "form": {
       "createTitle": "Rol Oluştur",
       "createDescription": "Yeni bir rol oluşturmak için ad, açıklama ve izinleri belirleyin.",

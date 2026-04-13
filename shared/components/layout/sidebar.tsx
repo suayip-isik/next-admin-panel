@@ -16,6 +16,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { getAppShortName } from "@/lib/env";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
+import type { PermissionCheck } from "@/shared/utils/permissions";
 import { cn } from "@/shared/utils/cn";
 import { Button } from "@/shared/components/ui/button";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
@@ -25,20 +27,61 @@ interface NavItem {
   key: string;
   href: string;
   icon: typeof LayoutDashboard;
+  access?: PermissionCheck;
 }
 
 const navItems: NavItem[] = [
-  { key: "dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { key: "users", href: "/users", icon: Users },
-  { key: "roles", href: "/roles", icon: Shield },
-  { key: "auditLogs", href: "/audit-logs", icon: ScrollText },
-  { key: "apiKeys", href: "/api-keys", icon: Key },
-  { key: "notifications", href: "/notifications", icon: Bell },
+  {
+    key: "dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    access: { any: ["users.read.stats"] },
+  },
+  {
+    key: "users",
+    href: "/users",
+    icon: Users,
+    access: { all: ["users.list"] },
+  },
+  {
+    key: "roles",
+    href: "/roles",
+    icon: Shield,
+    access: { all: ["roles.list"] },
+  },
+  {
+    key: "auditLogs",
+    href: "/audit-logs",
+    icon: ScrollText,
+    access: { all: ["audit_logs.list"] },
+  },
+  {
+    key: "apiKeys",
+    href: "/api-keys",
+    icon: Key,
+    access: { all: ["api_keys.list"] },
+  },
+  {
+    key: "notifications",
+    href: "/notifications",
+    icon: Bell,
+    access: { all: ["notifications.list"] },
+  },
 ];
 
 const profileItems: NavItem[] = [
-  { key: "profile", href: "/profile", icon: User },
-  { key: "security", href: "/profile/security", icon: Lock },
+  {
+    key: "profile",
+    href: "/profile",
+    icon: User,
+    access: { all: ["profile.read.self"] },
+  },
+  {
+    key: "security",
+    href: "/profile/security",
+    icon: Lock,
+    access: { all: ["profile.read.self"] },
+  },
 ];
 
 export function Sidebar() {
@@ -82,10 +125,9 @@ export function Sidebar() {
       <ScrollArea className="flex-1 py-2">
         <nav className="space-y-1 px-2">
           {navItems.map((item) => (
-            <SidebarItem
+            <SidebarNavItem
               key={item.key}
-              href={item.href}
-              icon={item.icon}
+              item={item}
               label={t(item.key as Parameters<typeof t>[0])}
               isActive={pathname.startsWith(item.href)}
               collapsed={collapsed}
@@ -97,10 +139,9 @@ export function Sidebar() {
 
         <nav className="space-y-1 px-2">
           {profileItems.map((item) => (
-            <SidebarItem
+            <SidebarNavItem
               key={item.key}
-              href={item.href}
-              icon={item.icon}
+              item={item}
               label={t(item.key as Parameters<typeof t>[0])}
               isActive={pathname === item.href}
               collapsed={collapsed}
@@ -112,26 +153,46 @@ export function Sidebar() {
   );
 }
 
-interface SidebarItemProps {
-  href: string;
-  icon: NavItem["icon"];
+interface SidebarNavItemProps {
+  item: NavItem;
   label: string;
   isActive: boolean;
   collapsed: boolean;
 }
 
-function SidebarItem({
-  href,
-  icon,
+function SidebarNavItem({
+  item,
   label,
   isActive,
   collapsed,
-}: SidebarItemProps) {
-  const Icon = icon;
+}: SidebarNavItemProps) {
+  const gate = usePermissionGate(item.access);
+
+  if (gate.isLoading) {
+    const Icon = item.icon;
+
+    return (
+      <div
+        className={cn(
+          "flex items-center gap-2 rounded-md px-2 py-2 text-sm opacity-50",
+          collapsed && "justify-center px-2",
+        )}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        {!collapsed && <span className="truncate">{label}</span>}
+      </div>
+    );
+  }
+
+  if (!gate.isAllowed) {
+    return null;
+  }
+
+  const Icon = item.icon;
 
   return (
     <Link
-      href={href}
+      href={item.href}
       title={collapsed ? label : undefined}
       className={cn(
         "flex items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors",

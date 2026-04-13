@@ -291,22 +291,67 @@ export interface paths {
     delete?: never;
     options?: never;
     head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/shared/me/profile": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
     /**
-     * Update Me
-     * @description Giriş yapmış kullanıcının profil bilgilerini günceller.
-     *
-     *     Kullanıcının kendi profil alanlarını günceller. Email değişikliğinde
-     *     mevcut şifre doğrulanır ve yeni adrese doğrulama e-postası gönderilir.
-     *
-     *     Args:
-     *         data: Güncellenecek profil alanlarını içeren istek verisi.
-     *         current_user: JWT token ile doğrulanmış mevcut kullanıcı.
-     *         service: Kullanıcı işlemlerini yöneten servis.
-     *
-     *     Returns:
-     *         Güncellenmiş kullanıcı profil bilgileri.
+     * Update My Profile
+     * @description Giriş yapmış kullanıcının temel profil alanlarını günceller.
      */
-    patch: operations["update_me_api_v1_shared_me_patch"];
+    patch: operations["update_my_profile_api_v1_shared_me_profile_patch"];
+    trace?: never;
+  };
+  "/api/v1/shared/me/email": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Update My Email
+     * @description Giriş yapmış kullanıcının e-posta değişikliğini başlatır.
+     */
+    patch: operations["update_my_email_api_v1_shared_me_email_patch"];
+    trace?: never;
+  };
+  "/api/v1/shared/me/password": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Update My Password
+     * @description Giriş yapmış kullanıcının şifresini günceller.
+     */
+    patch: operations["update_my_password_api_v1_shared_me_password_patch"];
     trace?: never;
   };
   "/api/v1/shared/me/avatar": {
@@ -494,11 +539,27 @@ export interface paths {
     delete: operations["delete_user_api_v1_admin_users__user_id__delete"];
     options?: never;
     head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/users/{user_id}/profile": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
     /**
-     * Update User
+     * Update User Profile
      * @description Admin user-management ile kullanıcı profil alanlarını günceller.
      */
-    patch: operations["update_user_api_v1_admin_users__user_id__patch"];
+    patch: operations["update_user_profile_api_v1_admin_users__user_id__profile_patch"];
     trace?: never;
   };
   "/api/v1/admin/users/{user_id}/avatar": {
@@ -922,8 +983,7 @@ export interface paths {
      *     Kullanıcı için benzersiz bir API key oluşturur. Ham key değeri
      *     yalnızca bu yanıtta döner ve bir daha görüntülenemez.
      *
-     *     İstenen scope'lar kullanıcının sahip olduğu izinlerle kesiştirilir;
-     *     kullanıcının yetkisi olmayan scope'lar sessizce filtrelenir.
+     *     İstenen scope'ların tamamı kullanıcının sahip olduğu izinler içinde olmalıdır.
      *
      *     Args:
      *         data: API key oluşturma bilgileri (isim, scope'lar, son kullanma tarihi).
@@ -1432,27 +1492,47 @@ export interface paths {
     delete: operations["delete_role_api_v1_admin_roles__role_id__delete"];
     options?: never;
     head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/roles/{role_id}/description": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
     /**
-     * Update Role
-     * @description Rol açıklamasını ve/veya permission setini günceller.
-     *
-     *     Sistem rollerinin permission seti değiştirilemez, yalnızca
-     *     açıklaması güncellenebilir.
-     *
-     *     Args:
-     *         role_id: Güncellenecek rolün UUID'si.
-     *         data: Yeni açıklama ve/veya permission listesi.
-     *         _: Admin yetkisi kontrolü.
-     *         service: Rol işlemlerini yöneten servis.
-     *
-     *     Returns:
-     *         Güncellenmiş rol bilgileri.
-     *
-     *     Raises:
-     *         NotFoundError: Rol bulunamazsa.
-     *         BusinessRuleError: Sistem rolünün permission seti değiştirilmeye çalışılırsa.
+     * Update Role Description
+     * @description Rol açıklamasını günceller.
      */
-    patch: operations["update_role_api_v1_admin_roles__role_id__patch"];
+    patch: operations["update_role_description_api_v1_admin_roles__role_id__description_patch"];
+    trace?: never;
+  };
+  "/api/v1/admin/roles/{role_id}/permissions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Replace Role Permissions
+     * @description Rol permission setini topluca değiştirir.
+     */
+    put: operations["replace_role_permissions_api_v1_admin_roles__role_id__permissions_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/health/live": {
@@ -1590,16 +1670,14 @@ export interface components {
       email: string;
     };
     /**
-     * AdminUpdateUserRequest
+     * AdminUpdateUserProfileRequest
      * @description Admin user-management için kullanıcı güncelleme isteği.
      */
-    AdminUpdateUserRequest: {
+    AdminUpdateUserProfileRequest: {
       /** Full Name */
       full_name?: string | null;
       /** Username */
       username?: string | null;
-      /** Avatar Url */
-      avatar_url?: string | null;
     };
     /**
      * AssignRoleRequest
@@ -2056,89 +2134,55 @@ export interface components {
      * Permission
      * @description Sistemdeki tüm yetki tanımları.
      *
-     *     Format: "kaynak:aksiyon" (ör: "users:update").
+     *     Format: "resource.action.scope" (ör: "users.update.profile").
      *     Roller bu enum değerlerinin kombinasyonlarına sahip olur.
      *     Yeni bir özellik eklendiğinde buraya permission eklenir,
      *     ardından ilgili rol(ler)e atanır — migration gerekmez.
-     *
-     *     Attributes:
-     *         ADMIN_PANEL_ACCESS: Admin paneline erişim
-     *         USERS_LIST: Kullanıcı listesini görüntüleme
-     *         USERS_VIEW: Kullanıcı detayını görüntüleme
-     *         USERS_VIEW_STATS: Kullanıcı istatistiklerini görüntüleme
-     *         USERS_LIST_DELETED: Silinmiş kullanıcıları görüntüleme
-     *         USERS_CREATE_ADMIN: Admin kullanıcı oluşturma
-     *         USERS_UPDATE: Kullanıcı bilgilerini güncelleme
-     *         USERS_UPLOAD_AVATAR: Diğer kullanıcıların profil fotoğrafını yükleme
-     *         USERS_DELETE_AVATAR: Diğer kullanıcıların profil fotoğrafını silme
-     *         USERS_CHANGE_EMAIL: Kullanıcı e-posta adresini değiştirme
-     *         USERS_RESEND_VERIFICATION: Kullanıcıya doğrulama e-postası yeniden gönderme
-     *         USERS_RESEND_ADMIN_INVITE: Admin davetini yeniden gönderme
-     *         USERS_ACTIVATE: Kullanıcıyı aktif etme
-     *         USERS_DEACTIVATE: Kullanıcıyı pasif etme
-     *         USERS_ASSIGN_ROLE: Kullanıcı rolünü değiştirme
-     *         USERS_DELETE: Kullanıcıyı silme
-     *         USERS_RESTORE: Kullanıcıyı geri yükleme
-     *         ROLES_LIST: Rol listesini görüntüleme
-     *         ROLES_VIEW: Rol detayını görüntüleme
-     *         ROLES_CREATE: Rol oluşturma
-     *         ROLES_UPDATE: Rol güncelleme
-     *         ROLES_DELETE: Rol silme
-     *         AUDIT_LIST: Audit log listesini görüntüleme
-     *         AUDIT_STREAM: Audit log akışını görüntüleme
-     *         AUDIT_VIEW: Audit log detayını görüntüleme
-     *         API_KEYS_LIST: API key listesini görüntüleme
-     *         API_KEYS_CREATE: API key oluşturma
-     *         API_KEYS_REVOKE: API key silme
-     *         NOTIFICATIONS_LIST: Bildirimleri görüntüleme
-     *         NOTIFICATIONS_VIEW_UNREAD_COUNT: Okunmamış bildirim sayısını görüntüleme
-     *         NOTIFICATIONS_MARK_ALL_READ: Tüm bildirimleri okundu işaretleme
-     *         NOTIFICATIONS_MARK_READ: Tek bildirimi okundu işaretleme
-     *         NOTIFICATIONS_DELETE: Bildirimi silme
-     *         PROFILE_VIEW: Kendi profilini görüntüleme
-     *         PROFILE_UPDATE: Kendi profilini güncelleme
-     *         PROFILE_UPLOAD_AVATAR: Kendi profil fotoğrafını yükleme
-     *         PROFILE_DELETE_AVATAR: Kendi profil fotoğrafını silme
      * @enum {string}
      */
     Permission:
-      | "admin:panel_access"
-      | "users:list"
-      | "users:view"
-      | "users:view_stats"
-      | "users:list_deleted"
-      | "users:create_admin"
-      | "users:update"
-      | "users:upload_avatar"
-      | "users:delete_avatar"
-      | "users:change_email"
-      | "users:resend_verification"
-      | "users:resend_admin_invite"
-      | "users:activate"
-      | "users:deactivate"
-      | "users:assign_role"
-      | "users:delete"
-      | "users:restore"
-      | "roles:list"
-      | "roles:view"
-      | "roles:create"
-      | "roles:update"
-      | "roles:delete"
-      | "audit:list"
-      | "audit:stream"
-      | "audit:view"
-      | "api_keys:list"
-      | "api_keys:create"
-      | "api_keys:revoke"
-      | "notifications:list"
-      | "notifications:view_unread_count"
-      | "notifications:mark_all_read"
-      | "notifications:mark_read"
-      | "notifications:delete"
-      | "profile:view"
-      | "profile:update"
-      | "profile:upload_avatar"
-      | "profile:delete_avatar";
+      | "profile.read.self"
+      | "profile.update.basic"
+      | "profile.update.email"
+      | "profile.update.password"
+      | "profile.update.avatar"
+      | "profile.delete.avatar"
+      | "uploads.create.own"
+      | "uploads.delete.own"
+      | "uploads.delete.any"
+      | "users.list"
+      | "users.read.basic"
+      | "users.read.deleted"
+      | "users.read.stats"
+      | "users.create.admin"
+      | "users.update.profile"
+      | "users.update.email"
+      | "users.update.role"
+      | "users.update.avatar"
+      | "users.delete.avatar"
+      | "users.resend.verification"
+      | "users.resend.admin_invite"
+      | "users.activate"
+      | "users.deactivate"
+      | "users.delete"
+      | "users.restore"
+      | "roles.list"
+      | "roles.read.detail"
+      | "roles.create"
+      | "roles.update.description"
+      | "roles.update.permissions"
+      | "roles.delete"
+      | "audit_logs.list"
+      | "audit_logs.stream"
+      | "audit_logs.read.detail"
+      | "api_keys.list"
+      | "api_keys.create"
+      | "api_keys.revoke"
+      | "notifications.list"
+      | "notifications.read.unread_count"
+      | "notifications.update.all_read"
+      | "notifications.update.read"
+      | "notifications.delete";
     /**
      * RefreshRequest
      * @description Access token yenileme için request schema.
@@ -2155,6 +2199,14 @@ export interface components {
     RefreshRequest: {
       /** Refresh Token */
       refresh_token: string;
+    };
+    /**
+     * ReplaceRolePermissionsRequest
+     * @description Rol permission setini topluca değiştirme isteği.
+     */
+    ReplaceRolePermissionsRequest: {
+      /** Permissions */
+      permissions?: components["schemas"]["Permission"][];
     };
     /**
      * ResetPasswordRequest
@@ -2308,42 +2360,43 @@ export interface components {
       count: number;
     };
     /**
-     * UpdateRoleRequest
-     * @description Rol güncelleme isteği.
-     *
-     *     Attributes:
-     *         description: Yeni açıklama
-     *         permissions: Yeni permission seti (mevcut setin yerini alır)
+     * UpdateOwnEmailRequest
+     * @description Kullanıcının kendi e-posta değişikliği isteği.
      */
-    UpdateRoleRequest: {
-      /** Description */
-      description?: string | null;
-      /** Permissions */
-      permissions?: components["schemas"]["Permission"][] | null;
+    UpdateOwnEmailRequest: {
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      /** Current Password */
+      current_password: string;
     };
     /**
-     * UpdateUserRequest
-     * @description Kullanıcı bilgilerini güncelleme için request schema.
-     *
-     *     Tüm alanlar opsiyoneldir, sadece gönderilen alanlar güncellenir (PATCH semantics).
-     *
-     *     Attributes:
-     *         email: Yeni email adresi (benzersiz olmalı)
-     *         full_name: Yeni tam ad (max 255 karakter)
-     *         username: Yeni kullanıcı adı (max 50 karakter, benzersiz olmalı)
-     *         password: Yeni şifre (min 8 karakter, bcrypt ile hash'lenecek)
+     * UpdateOwnPasswordRequest
+     * @description Kullanıcının kendi şifre değişikliği isteği.
      */
-    UpdateUserRequest: {
-      /** Email */
-      email?: string | null;
+    UpdateOwnPasswordRequest: {
+      /** Password */
+      password: string;
+    };
+    /**
+     * UpdateOwnProfileRequest
+     * @description Kullanıcının kendi temel profil alanlarını güncelleme isteği.
+     */
+    UpdateOwnProfileRequest: {
       /** Full Name */
       full_name?: string | null;
       /** Username */
       username?: string | null;
-      /** Password */
-      password?: string | null;
-      /** Current Password */
-      current_password?: string | null;
+    };
+    /**
+     * UpdateRoleDescriptionRequest
+     * @description Rol açıklaması güncelleme isteği.
+     */
+    UpdateRoleDescriptionRequest: {
+      /** Description */
+      description?: string | null;
     };
     /**
      * UploadResponse
@@ -2674,7 +2727,7 @@ export interface operations {
       };
     };
   };
-  update_me_api_v1_shared_me_patch: {
+  update_my_profile_api_v1_shared_me_profile_patch: {
     parameters: {
       query?: never;
       header?: {
@@ -2685,7 +2738,77 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UpdateUserRequest"];
+        "application/json": components["schemas"]["UpdateOwnProfileRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_my_email_api_v1_shared_me_email_patch: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateOwnEmailRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_my_password_api_v1_shared_me_password_patch: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateOwnPasswordRequest"];
       };
     };
     responses: {
@@ -2991,7 +3114,7 @@ export interface operations {
       };
     };
   };
-  update_user_api_v1_admin_users__user_id__patch: {
+  update_user_profile_api_v1_admin_users__user_id__profile_patch: {
     parameters: {
       query?: never;
       header?: {
@@ -3004,7 +3127,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AdminUpdateUserRequest"];
+        "application/json": components["schemas"]["AdminUpdateUserProfileRequest"];
       };
     };
     responses: {
@@ -4078,7 +4201,7 @@ export interface operations {
       };
     };
   };
-  update_role_api_v1_admin_roles__role_id__patch: {
+  update_role_description_api_v1_admin_roles__role_id__description_patch: {
     parameters: {
       query?: never;
       header?: {
@@ -4091,7 +4214,44 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UpdateRoleRequest"];
+        "application/json": components["schemas"]["UpdateRoleDescriptionRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RoleResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  replace_role_permissions_api_v1_admin_roles__role_id__permissions_put: {
+    parameters: {
+      query?: never;
+      header?: {
+        "X-API-Key"?: string | null;
+      };
+      path: {
+        role_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ReplaceRolePermissionsRequest"];
       };
     };
     responses: {

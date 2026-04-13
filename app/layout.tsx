@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -21,19 +20,6 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-// Theme initialization script to prevent FOUC
-// This runs before React hydrates, setting the correct theme class
-const themeScript = `
-  (function() {
-    const storageKey = 'theme';
-    const theme = localStorage.getItem(storageKey);
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const resolved = theme === 'system' || !theme ? (systemDark ? 'dark' : 'light') : theme;
-    document.documentElement.classList.add(resolved);
-    document.documentElement.style.colorScheme = resolved;
-  })();
-`;
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -44,13 +30,6 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <head>
-        <Script
-          id="theme-script"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: themeScript }}
-        />
-      </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <NuqsAdapter>

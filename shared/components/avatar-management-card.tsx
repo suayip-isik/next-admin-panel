@@ -26,8 +26,8 @@ export interface AvatarManagementCardProps {
   emptyLabel: string;
   uploading?: boolean;
   removing?: boolean;
-  onUpload: (file: File) => void;
-  onRemove: () => void;
+  onUpload?: (file: File) => void;
+  onRemove?: () => void;
 }
 
 export function AvatarManagementCard({
@@ -86,8 +86,8 @@ interface AvatarManagementCardBodyProps {
   emptyLabel: string;
   uploading: boolean;
   removing: boolean;
-  onUpload: (file: File) => void;
-  onRemove: () => void;
+  onUpload?: (file: File) => void;
+  onRemove?: () => void;
 }
 
 function AvatarManagementCardBody({
@@ -112,7 +112,7 @@ function AvatarManagementCardBody({
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !onUpload) return;
 
     setSelectedFileName(file.name);
     onUpload(file);
@@ -147,32 +147,36 @@ function AvatarManagementCardBody({
           className="hidden"
           onChange={handleFileChange}
         />
-        <Button
-          type="button"
-          variant="outline"
-          disabled={uploading || removing}
-          onClick={() => inputRef.current?.click()}
-        >
-          {uploading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Upload className="mr-2 h-4 w-4" />
-          )}
-          {uploadLabel}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={!imageUrl || uploading || removing}
-          onClick={onRemove}
-        >
-          {removing ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Trash2 className="mr-2 h-4 w-4" />
-          )}
-          {removeLabel}
-        </Button>
+        {onUpload && (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={uploading || removing}
+            onClick={() => inputRef.current?.click()}
+          >
+            {uploading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="mr-2 h-4 w-4" />
+            )}
+            {uploadLabel}
+          </Button>
+        )}
+        {onRemove && (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!imageUrl || uploading || removing}
+            onClick={onRemove}
+          >
+            {removing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="mr-2 h-4 w-4" />
+            )}
+            {removeLabel}
+          </Button>
+        )}
       </div>
     </>
   );

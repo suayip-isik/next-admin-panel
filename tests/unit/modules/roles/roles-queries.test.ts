@@ -5,7 +5,8 @@ import {
   deleteRole,
   fetchRole,
   fetchRoles,
-  updateRole,
+  replaceRolePermissions,
+  updateRoleDescription,
 } from "@/modules/roles/queries/roles.queries";
 
 vi.mock("@/lib/api-client", () => ({
@@ -13,6 +14,7 @@ vi.mock("@/lib/api-client", () => ({
     GET: vi.fn(),
     POST: vi.fn(),
     PATCH: vi.fn(),
+    PUT: vi.fn(),
     DELETE: vi.fn(),
   },
 }));
@@ -23,6 +25,7 @@ describe("roles queries", () => {
     vi.mocked(apiClient.GET).mockResolvedValue({ data: {} } as never);
     vi.mocked(apiClient.POST).mockResolvedValue({ data: {} } as never);
     vi.mocked(apiClient.PATCH).mockResolvedValue({ data: {} } as never);
+    vi.mocked(apiClient.PUT).mockResolvedValue({ data: {} } as never);
     vi.mocked(apiClient.DELETE).mockResolvedValue({ data: {} } as never);
   });
 
@@ -32,11 +35,13 @@ describe("roles queries", () => {
     await createRole({
       name: "support_agent",
       description: "Support",
-      permissions: ["users:view"],
+      permissions: ["users.read.basic"],
     });
-    await updateRole("role-1", {
+    await updateRoleDescription("role-1", {
       description: "Updated",
-      permissions: ["roles:update"],
+    });
+    await replaceRolePermissions("role-1", {
+      permissions: ["roles.update.permissions"],
     });
     await deleteRole("role-1");
 
@@ -52,16 +57,24 @@ describe("roles queries", () => {
       body: {
         name: "support_agent",
         description: "Support",
-        permissions: ["users:view"],
+        permissions: ["users.read.basic"],
       },
     });
     expect(apiClient.PATCH).toHaveBeenCalledWith(
-      "/api/v1/admin/roles/{role_id}",
+      "/api/v1/admin/roles/{role_id}/description",
       {
         params: { path: { role_id: "role-1" } },
         body: {
           description: "Updated",
-          permissions: ["roles:update"],
+        },
+      },
+    );
+    expect(apiClient.PUT).toHaveBeenCalledWith(
+      "/api/v1/admin/roles/{role_id}/permissions",
+      {
+        params: { path: { role_id: "role-1" } },
+        body: {
+          permissions: ["roles.update.permissions"],
         },
       },
     );

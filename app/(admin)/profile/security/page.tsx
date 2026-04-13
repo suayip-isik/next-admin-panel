@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { requireNamedPageAccess } from "@/lib/server-auth";
 import { PageHeader } from "@/shared/components/page-header";
 import { ChangePasswordForm } from "@/modules/profile/components/change-password-form";
 import { TotpSection } from "@/modules/profile/components/totp-section";
@@ -11,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SecurityPage() {
+  await requireNamedPageAccess("profileSecurity");
   const t = await getTranslations("profile.security");
 
   return (

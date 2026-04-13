@@ -8,7 +8,7 @@ import {
   fetchUsers,
   resendAdminInvite,
   resendUserVerification,
-  updateUser,
+  updateUserProfile,
 } from "@/modules/users/queries/users.queries";
 
 vi.mock("@/lib/api-client", () => ({
@@ -42,7 +42,10 @@ describe("users queries", () => {
       full_name: "Ada Lovelace",
       username: "ada",
     });
-    await updateUser("user-1", { full_name: "Ada Byron", username: "abyron" });
+    await updateUserProfile("user-1", {
+      full_name: "Ada Byron",
+      username: "abyron",
+    });
     await changeUserEmail("user-1", { email: "new@example.com" });
     await resendUserVerification("user-1");
     await resendAdminInvite("user-1");
@@ -77,7 +80,7 @@ describe("users queries", () => {
       },
     });
     expect(apiClient.PATCH).toHaveBeenCalledWith(
-      "/api/v1/admin/users/{user_id}",
+      "/api/v1/admin/users/{user_id}/profile",
       {
         params: { path: { user_id: "user-1" } },
         body: { full_name: "Ada Byron", username: "abyron" },

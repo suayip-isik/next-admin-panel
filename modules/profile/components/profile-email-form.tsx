@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Form,
@@ -23,55 +24,58 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
-import { getErrorMessage } from "@/lib/errors";
+import { useCurrentUser } from "@/shared/hooks/use-session-meta";
 import { usePermissionGate } from "@/shared/hooks/use-permissions";
-import { updateProfilePassword } from "../queries/profile.queries";
+import { getErrorMessage } from "@/lib/errors";
+import { AUTH_ME_QUERY_KEY } from "@/shared/hooks/use-session-meta";
+import { updateProfileEmail } from "../queries/profile.queries";
 
-function createPasswordSchema(
-  t: (key: string, params?: Record<string, string | number>) => string,
-) {
-  return z
-    .object({
-      new_password: z
-        .string()
-        .min(8, { error: t("passwordMinLength", { min: 8 }) }),
-      confirm_password: z.string().min(1),
-    })
-    .refine((data) => data.new_password === data.confirm_password, {
-      error: t("passwordMismatch"),
-      path: ["confirm_password"],
-    });
-}
+const profileEmailSchema = z.object({
+  email: z.email(),
+  current_password: z.string().min(1),
+});
 
-type PasswordFormValues = { new_password: string; confirm_password: string };
+type ProfileEmailFormValues = z.infer<typeof profileEmailSchema>;
 
-export function ChangePasswordForm() {
-  const t = useTranslations("profile.security.password");
-  const tProfile = useTranslations("profile");
-  const tValidation = useTranslations("validation");
+export function ProfileEmailForm() {
+  const t = useTranslations("profile");
   const tErrors = useTranslations("errors");
-  const updatePasswordGate = usePermissionGate({
-    all: ["profile.update.password"],
+  const queryClient = useQueryClient();
+  const { data: user, isLoading } = useCurrentUser();
+  const updateEmailGate = usePermissionGate({ all: ["profile.update.email"] });
+
+  const form = useForm<ProfileEmailFormValues>({
+    resolver: standardSchemaResolver(profileEmailSchema),
+    defaultValues: { email: "", current_password: "" },
   });
 
-  const schema = createPasswordSchema(tValidation);
-
-  const form = useForm<PasswordFormValues>({
-    resolver: standardSchemaResolver(schema),
-    defaultValues: { new_password: "", confirm_password: "" },
-  });
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        email: user.email,
+        current_password: "",
+      });
+    }
+  }, [form, user]);
 
   const mutation = useMutation({
-    mutationFn: (values: PasswordFormValues) =>
-      updateProfilePassword({ password: values.new_password }),
+    mutationFn: (values: ProfileEmailFormValues) => updateProfileEmail(values),
     onSuccess: () => {
-      toast.success(tProfile("successMessages.passwordChanged"));
-      form.reset();
+      toast.success(t("successMessages.emailChanged"));
+      form.reset({
+        email: form.getValues("email"),
+        current_password: "",
+      });
+      void queryClient.invalidateQueries({ queryKey: AUTH_ME_QUERY_KEY });
     },
     onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
-  if (updatePasswordGate.isLoading) {
+  if (!updateEmailGate.isAllowed && !updateEmailGate.isLoading) {
+    return null;
+  }
+
+  if (isLoading || updateEmailGate.isLoading) {
     return (
       <Card>
         <CardHeader>
@@ -80,39 +84,30 @@ export function ChangePasswordForm() {
         <CardContent className="space-y-4">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-10 w-full" />
-          <Skeleton className="ml-auto h-10 w-28" />
         </CardContent>
       </Card>
     );
   }
 
-  if (!updatePasswordGate.isAllowed) {
-    return null;
-  }
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{t("title")}</CardTitle>
+        <CardTitle className="text-base">Change Email</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+            onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
             className="space-y-4"
           >
             <FormField
               control={form.control}
-              name="new_password"
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("new")}</FormLabel>
+                  <FormLabel>{t("form.email")}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      {...field}
-                    />
+                    <Input type="email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -120,14 +115,14 @@ export function ChangePasswordForm() {
             />
             <FormField
               control={form.control}
-              name="confirm_password"
+              name="current_password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("confirm")}</FormLabel>
+                  <FormLabel>Current Password</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      autoComplete="new-password"
+                      autoComplete="current-password"
                       {...field}
                     />
                   </FormControl>
@@ -137,7 +132,7 @@ export function ChangePasswordForm() {
             />
             <div className="flex justify-end">
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? t("submitting") : t("submit")}
+                {mutation.isPending ? t("form.submitting") : "Update Email"}
               </Button>
             </div>
           </form>

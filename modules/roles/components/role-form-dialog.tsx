@@ -33,35 +33,20 @@ import {
 import { getErrorMessage } from "@/lib/errors";
 import {
   createRoleSchema,
-  createUpdateRoleSchema,
   type CreateRoleInput,
-  type UpdateRoleInput,
 } from "../schemas/roles.schemas";
-import { createRole, updateRole, type Role } from "../queries/roles.queries";
+import { createRole } from "../queries/roles.queries";
 import { rolesKeys } from "../roles.keys";
 
 interface RoleFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  role?: Role;
   onSuccess: () => void;
-}
-
-// Union type for both create and edit scenarios
-type RoleFormInput = CreateRoleInput | UpdateRoleInput;
-
-function getRoleFormValues(role?: Role, isEdit?: boolean): RoleFormInput {
-  return {
-    ...(isEdit ? {} : { name: "" }),
-    description: role?.description ?? "",
-    permissions: (role?.permissions ?? []) as Permission[],
-  };
 }
 
 export function RoleFormDialog({
   open,
   onOpenChange,
-  role,
   onSuccess,
 }: RoleFormDialogProps) {
   const t = useTranslations("roles");
@@ -69,31 +54,30 @@ export function RoleFormDialog({
   const tErrors = useTranslations("errors");
   const tValidation = useTranslations("validation");
   const queryClient = useQueryClient();
-  const isEdit = !!role;
+  const schema = useMemo(() => createRoleSchema(tValidation), [tValidation]);
 
-  const schema = useMemo(
-    () => (isEdit ? createUpdateRoleSchema() : createRoleSchema(tValidation)),
-    [isEdit, tValidation],
-  );
-
-  const form = useForm<RoleFormInput>({
+  const form = useForm<CreateRoleInput>({
     resolver: standardSchemaResolver(schema),
-    defaultValues: getRoleFormValues(role, isEdit),
+    defaultValues: {
+      name: "",
+      description: "",
+      permissions: [] as Permission[],
+    },
   });
 
   useEffect(() => {
-    form.reset(getRoleFormValues(role, isEdit));
-  }, [form, isEdit, open, role]);
+    if (!open) return;
+    form.reset({
+      name: "",
+      description: "",
+      permissions: [] as Permission[],
+    });
+  }, [form, open]);
 
   const mutation = useMutation({
-    mutationFn: (values: RoleFormInput) =>
-      isEdit
-        ? updateRole(role!.id, values)
-        : createRole(values as CreateRoleInput),
+    mutationFn: (values: CreateRoleInput) => createRole(values),
     onSuccess: () => {
-      toast.success(
-        isEdit ? t("successMessages.updated") : t("successMessages.created"),
-      );
+      toast.success(t("successMessages.created"));
       void queryClient.invalidateQueries({ queryKey: rolesKeys.all });
       onSuccess();
     },
@@ -104,40 +88,34 @@ export function RoleFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? t("form.editTitle") : t("form.createTitle")}
-          </DialogTitle>
-          <DialogDescription>
-            {isEdit ? t("form.editDescription") : t("form.createDescription")}
-          </DialogDescription>
+          <DialogTitle>{t("form.createTitle")}</DialogTitle>
+          <DialogDescription>{t("form.createDescription")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
             className="space-y-4"
           >
-            {!isEdit && (
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("form.name")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder={t("form.namePlaceholder")}
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground">
-                      {t("form.nameHint")}
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("form.name")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t("form.namePlaceholder")}
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    {t("form.nameHint")}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="description"

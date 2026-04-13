@@ -22,63 +22,55 @@ import {
   FormLabel,
   FormMessage,
 } from "@/shared/components/ui/form";
-import { Input } from "@/shared/components/ui/input";
+import { Textarea } from "@/shared/components/ui/textarea";
 import { Button } from "@/shared/components/ui/button";
 import { getErrorMessage } from "@/lib/errors";
-import { updateUserProfile, type User } from "../queries/users.queries";
-import { usersKeys } from "../users.keys";
+import {
+  type Role,
+  updateRoleDescription,
+} from "@/modules/roles/queries/roles.queries";
+import { rolesKeys } from "@/modules/roles/roles.keys";
 
-const editUserSchema = z.object({
-  full_name: z.string().optional(),
-  username: z.string().optional(),
+const descriptionSchema = z.object({
+  description: z.string().optional(),
 });
 
-type EditUserValues = z.infer<typeof editUserSchema>;
+type DescriptionValues = z.infer<typeof descriptionSchema>;
 
-interface EditUserDialogProps {
+interface RoleDescriptionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user: User;
+  role: Role;
 }
 
-export function EditUserDialog({
+export function RoleDescriptionDialog({
   open,
   onOpenChange,
-  user,
-}: EditUserDialogProps) {
-  const t = useTranslations("users.editDialog");
-  const tUsers = useTranslations("users");
+  role,
+}: RoleDescriptionDialogProps) {
+  const t = useTranslations("roles");
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("errors");
   const queryClient = useQueryClient();
-
-  const form = useForm<EditUserValues>({
-    resolver: standardSchemaResolver(editUserSchema),
+  const form = useForm<DescriptionValues>({
+    resolver: standardSchemaResolver(descriptionSchema),
     defaultValues: {
-      full_name: user.full_name ?? "",
-      username: user.username ?? "",
+      description: role.description ?? "",
     },
   });
 
   useEffect(() => {
-    form.reset({
-      full_name: user.full_name ?? "",
-      username: user.username ?? "",
-    });
-  }, [form, user]);
+    form.reset({ description: role.description ?? "" });
+  }, [form, role, open]);
 
   const mutation = useMutation({
-    mutationFn: (values: EditUserValues) =>
-      updateUserProfile(user.id, {
-        full_name: values.full_name || null,
-        username: values.username || null,
+    mutationFn: (values: DescriptionValues) =>
+      updateRoleDescription(role.id, {
+        description: values.description || null,
       }),
     onSuccess: () => {
-      toast.success(tUsers("successMessages.updated"));
-      void queryClient.invalidateQueries({
-        queryKey: usersKeys.detail(user.id),
-      });
-      void queryClient.invalidateQueries({ queryKey: usersKeys.all });
+      toast.success(t("successMessages.updated"));
+      void queryClient.invalidateQueries({ queryKey: rolesKeys.all });
       onOpenChange(false);
     },
     onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
@@ -88,8 +80,10 @@ export function EditUserDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
+          <DialogTitle>Edit Description</DialogTitle>
+          <DialogDescription>
+            Update the role description without changing its permissions.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -98,31 +92,23 @@ export function EditUserDialog({
           >
             <FormField
               control={form.control}
-              name="full_name"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("fullName")}</FormLabel>
+                  <FormLabel>{t("form.description")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t("fullNamePlaceholder")} {...field} />
+                    <Textarea
+                      rows={4}
+                      placeholder={t("form.descriptionPlaceholder")}
+                      {...field}
+                      value={field.value ?? ""}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("username")}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t("usernamePlaceholder")} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -131,7 +117,7 @@ export function EditUserDialog({
                 {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? t("submitting") : t("submit")}
+                {mutation.isPending ? t("form.submitting") : t("form.submit")}
               </Button>
             </div>
           </form>

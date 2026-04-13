@@ -25,13 +25,13 @@ import {
 } from "@/shared/components/ui/card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { useCurrentUser } from "@/shared/hooks/use-session-meta";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
 import { getErrorMessage } from "@/lib/errors";
-import { updateProfile } from "../queries/profile.queries";
+import { updateProfileBasic } from "../queries/profile.queries";
 
 const profileSchema = z.object({
   full_name: z.string().optional(),
   username: z.string().optional(),
-  email: z.string().min(1),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -41,10 +41,11 @@ export function ProfileForm() {
   const tErrors = useTranslations("errors");
   const queryClient = useQueryClient();
   const { data: user, isLoading } = useCurrentUser();
+  const updateBasicGate = usePermissionGate({ all: ["profile.update.basic"] });
 
   const form = useForm<ProfileFormValues>({
     resolver: standardSchemaResolver(profileSchema),
-    defaultValues: { full_name: "", username: "", email: "" },
+    defaultValues: { full_name: "", username: "" },
   });
 
   useEffect(() => {
@@ -52,17 +53,15 @@ export function ProfileForm() {
       form.reset({
         full_name: user.full_name ?? "",
         username: user.username ?? "",
-        email: user.email,
       });
     }
   }, [user, form]);
 
   const mutation = useMutation({
     mutationFn: (values: ProfileFormValues) =>
-      updateProfile({
+      updateProfileBasic({
         full_name: values.full_name || null,
         username: values.username || null,
-        email: values.email,
       }),
     onSuccess: () => {
       toast.success(t("successMessages.updated"));
@@ -71,7 +70,7 @@ export function ProfileForm() {
     onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
 
-  if (isLoading) {
+  if (isLoading || updateBasicGate.isLoading) {
     return (
       <Card>
         <CardHeader>
@@ -84,6 +83,10 @@ export function ProfileForm() {
         </CardContent>
       </Card>
     );
+  }
+
+  if (!updateBasicGate.isAllowed) {
+    return null;
   }
 
   return (
@@ -124,19 +127,6 @@ export function ProfileForm() {
                       placeholder={t("form.usernamePlaceholder")}
                       {...field}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("form.email")}</FormLabel>
-                  <FormControl>
-                    <Input type="email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

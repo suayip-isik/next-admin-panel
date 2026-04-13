@@ -9,6 +9,9 @@ const sentryBuildConfig = getSentryBuildConfig();
 const hasSentryAuthToken = Boolean(sentryBuildConfig.authToken);
 
 const nextConfig: NextConfig = {
+  experimental: {
+    authInterrupts: true,
+  },
   reactStrictMode: true,
   poweredByHeader: false,
   productionBrowserSourceMaps: hasSentryAuthToken,

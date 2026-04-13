@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { requireNamedPageAccess } from "@/lib/server-auth";
 import { PageHeader } from "@/shared/components/page-header";
 import { UsersTable } from "@/modules/users/components/users-table";
 import { UserStatsCards } from "@/modules/users/components/user-stats-cards";
@@ -12,6 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function UsersPage() {
+  await requireNamedPageAccess("usersList");
   const t = await getTranslations("users");
 
   return (

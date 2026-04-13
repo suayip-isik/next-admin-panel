@@ -1,6 +1,6 @@
 "use client";
 
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Eye } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -10,8 +10,11 @@ import { DataTable } from "@/shared/components/data-table/data-table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
 import { formatDateTime } from "@/shared/utils/date";
 import {
+  fetchAuditLog,
+  fetchAuditLogs,
   fetchAuditLogsStream,
   type AuditLog,
 } from "../queries/audit-logs.queries";
@@ -31,8 +34,15 @@ export function AuditLogsTable() {
     "date_to",
     parseAsString.withDefault(""),
   );
+  const [streamMode, setStreamMode] = useState(false);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const readDetailGate = usePermissionGate({
+    all: ["audit_logs.read.detail"],
+  });
+  const streamAuditLogsGate = usePermissionGate({
+    all: ["audit_logs.stream"],
+  });
 
   const filters = {
     size: 20,
@@ -40,6 +50,12 @@ export function AuditLogsTable() {
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
   };
+
+  const listQuery = useQuery({
+    queryKey: ["audit-logs", "list", filters],
+    queryFn: () => fetchAuditLogs(filters),
+    enabled: !streamMode,
+  });
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
@@ -52,9 +68,18 @@ export function AuditLogsTable() {
         }),
       getNextPageParam: (lastPage) =>
         lastPage.has_more ? (lastPage.next_cursor ?? undefined) : undefined,
+      enabled: streamMode && streamAuditLogsGate.isAllowed,
     });
 
-  const items = data?.pages.flatMap((page) => page.items) ?? [];
+  const detailQuery = useQuery({
+    queryKey: ["audit-logs", "detail", selectedLog?.id],
+    queryFn: () => fetchAuditLog(selectedLog!.id),
+    enabled: sheetOpen && !!selectedLog && readDetailGate.isAllowed,
+  });
+
+  const items = streamMode
+    ? (data?.pages.flatMap((page) => page.items) ?? [])
+    : (listQuery.data?.items ?? []);
 
   const columns: ColumnDef<AuditLog>[] = [
     {
@@ -95,19 +120,24 @@ export function AuditLogsTable() {
     },
     {
       id: "actions",
-      cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => {
-            setSelectedLog(row.original);
-            setSheetOpen(true);
-          }}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-      ),
+      cell: ({ row }) =>
+        readDetailGate.isLoading ? (
+          <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+            <Eye className="h-4 w-4" />
+          </Button>
+        ) : readDetailGate.isAllowed ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => {
+              setSelectedLog(row.original);
+              setSheetOpen(true);
+            }}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        ) : null,
     },
   ];
 
@@ -140,12 +170,21 @@ export function AuditLogsTable() {
             void setDateTo(event.target.value || null);
           }}
         />
+        {(streamAuditLogsGate.isAllowed || streamAuditLogsGate.isLoading) && (
+          <Button
+            variant={streamMode ? "default" : "outline"}
+            onClick={() => setStreamMode((current) => !current)}
+            disabled={streamAuditLogsGate.isLoading}
+          >
+            {streamMode ? "Disable Live Mode" : "Enable Live Mode"}
+          </Button>
+        )}
       </div>
 
       <DataTable
         columns={columns}
         data={items}
-        isLoading={isLoading}
+        isLoading={streamMode ? isLoading : listQuery.isLoading}
         emptyMessage={t("empty")}
       />
 
@@ -162,7 +201,7 @@ export function AuditLogsTable() {
       )}
 
       <AuditLogDetailSheet
-        log={selectedLog}
+        log={detailQuery.data ?? selectedLog}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
       />

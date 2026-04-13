@@ -11,6 +11,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { DataTablePagination } from "@/shared/components/data-table/data-table-pagination";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
 import { formatRelativeTime } from "@/shared/utils/date";
 import { getErrorMessage } from "@/lib/errors";
 import {
@@ -27,6 +28,15 @@ export function NotificationsList() {
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("errors");
   const queryClient = useQueryClient();
+  const markReadGate = usePermissionGate({
+    all: ["notifications.update.read"],
+  });
+  const markAllReadGate = usePermissionGate({
+    all: ["notifications.update.all_read"],
+  });
+  const deleteNotificationGate = usePermissionGate({
+    all: ["notifications.delete"],
+  });
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [deleteTarget, setDeleteTarget] = useState<Notification | null>(null);
@@ -82,16 +92,22 @@ export function NotificationsList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => markAllMutation.mutate()}
-          disabled={markAllMutation.isPending || items.every((n) => n.is_read)}
-        >
-          {t("markAllRead")}
-        </Button>
-      </div>
+      {(markAllReadGate.isAllowed || markAllReadGate.isLoading) && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => markAllMutation.mutate()}
+            disabled={
+              markAllReadGate.isLoading ||
+              markAllMutation.isPending ||
+              items.every((n) => n.is_read)
+            }
+          >
+            {t("markAllRead")}
+          </Button>
+        </div>
+      )}
 
       {items.length === 0 ? (
         <p className="py-12 text-center text-sm text-muted-foreground">
@@ -103,9 +119,19 @@ export function NotificationsList() {
             <NotificationRow
               key={notification.id}
               notification={notification}
-              onMarkRead={(id) => markReadMutation.mutate(id)}
-              onDelete={(n) => setDeleteTarget(n)}
-              isMarkingRead={markReadMutation.isPending}
+              onMarkRead={
+                markReadGate.isAllowed
+                  ? (id) => markReadMutation.mutate(id)
+                  : undefined
+              }
+              onDelete={
+                deleteNotificationGate.isAllowed
+                  ? (n) => setDeleteTarget(n)
+                  : undefined
+              }
+              isMarkingRead={
+                markReadGate.isLoading || markReadMutation.isPending
+              }
             />
           ))}
         </div>
@@ -120,25 +146,29 @@ export function NotificationsList() {
         />
       )}
 
-      <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title={t("deleteDialog.title")}
-        description={t("deleteDialog.description")}
-        confirmLabel={t("deleteDialog.confirm")}
-        cancelLabel={tCommon("cancel")}
-        variant="destructive"
-        loading={deleteMutation.isPending}
-        onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
-      />
+      {deleteNotificationGate.isAllowed && (
+        <ConfirmDialog
+          open={!!deleteTarget}
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+          title={t("deleteDialog.title")}
+          description={t("deleteDialog.description")}
+          confirmLabel={t("deleteDialog.confirm")}
+          cancelLabel={tCommon("cancel")}
+          variant="destructive"
+          loading={deleteMutation.isPending}
+          onConfirm={() =>
+            deleteTarget && deleteMutation.mutate(deleteTarget.id)
+          }
+        />
+      )}
     </div>
   );
 }
 
 interface NotificationRowProps {
   notification: Notification;
-  onMarkRead: (id: string) => void;
-  onDelete: (n: Notification) => void;
+  onMarkRead?: (id: string) => void;
+  onDelete?: (n: Notification) => void;
   isMarkingRead: boolean;
 }
 
@@ -191,7 +221,7 @@ function NotificationRow({
         )}
       </div>
       <div className="flex items-center gap-1 shrink-0">
-        {!notification.is_read && (
+        {!notification.is_read && onMarkRead && (
           <Button
             variant="ghost"
             size="icon"
@@ -202,14 +232,16 @@ function NotificationRow({
             <Check className="h-4 w-4" />
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-destructive hover:text-destructive"
-          onClick={() => onDelete(notification)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {onDelete && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={() => onDelete(notification)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );

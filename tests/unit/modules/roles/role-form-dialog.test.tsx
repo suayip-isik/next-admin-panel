@@ -3,16 +3,13 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RoleFormDialog } from "@/modules/roles/components/role-form-dialog";
-import type { Role } from "@/modules/roles/queries/roles.queries";
 
 const createRoleMock = vi.fn();
-const updateRoleMock = vi.fn();
 const toastSuccessMock = vi.fn();
 const toastErrorMock = vi.fn();
 
 vi.mock("@/modules/roles/queries/roles.queries", () => ({
   createRole: (...args: unknown[]) => createRoleMock(...args),
-  updateRole: (...args: unknown[]) => updateRoleMock(...args),
 }));
 
 vi.mock("sonner", () => ({
@@ -37,78 +34,57 @@ function createWrapper() {
   };
 }
 
-const firstRole: Role = {
-  id: "role-1",
-  name: "panel_admin",
-  description: "Admin role",
-  is_system: true,
-  permissions: ["users:view", "roles:update"],
-};
-
-const secondRole: Role = {
-  id: "role-2",
-  name: "support_agent",
-  description: "Support role",
-  is_system: false,
-  permissions: ["users:view"],
-};
-
 describe("RoleFormDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("resets form values when opened for a different role", async () => {
-    const onOpenChange = vi.fn();
-    const onSuccess = vi.fn();
+  it("submits a create request with canonical permissions", async () => {
+    const user = userEvent.setup();
     const wrapper = createWrapper();
+    const onSuccess = vi.fn();
 
-    const { rerender } = render(
-      <RoleFormDialog
-        open
-        onOpenChange={onOpenChange}
-        onSuccess={onSuccess}
-        role={firstRole}
-      />,
+    createRoleMock.mockResolvedValue(undefined);
+
+    render(
+      <RoleFormDialog open onOpenChange={vi.fn()} onSuccess={onSuccess} />,
       { wrapper },
     );
 
-    expect(screen.getByLabelText("form.description")).toHaveValue("Admin role");
+    await user.type(screen.getByLabelText("form.name"), "support_agent");
+    await user.type(screen.getByLabelText("form.description"), "Support role");
+    await user.click(screen.getByText("Read User Detail"));
+    await user.click(screen.getByRole("button", { name: "form.submit" }));
+
+    await waitFor(() => {
+      expect(createRoleMock).toHaveBeenCalledWith({
+        name: "support_agent",
+        description: "Support role",
+        permissions: ["users.read.basic"],
+      });
+    });
+
+    expect(onSuccess).toHaveBeenCalled();
+    expect(toastSuccessMock).toHaveBeenCalled();
+  });
+
+  it("resets create form values when reopened", async () => {
+    const user = userEvent.setup();
+    const wrapper = createWrapper();
+    const { rerender } = render(
+      <RoleFormDialog open onOpenChange={vi.fn()} onSuccess={vi.fn()} />,
+      { wrapper },
+    );
+
+    await user.type(screen.getByLabelText("form.name"), "temp_role");
 
     rerender(
       <RoleFormDialog
-        open
-        onOpenChange={onOpenChange}
-        onSuccess={onSuccess}
-        role={secondRole}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(screen.getByLabelText("form.description")).toHaveValue(
-        "Support role",
-      );
-    });
-  });
-
-  it("does not carry edit state into create mode", async () => {
-    const user = userEvent.setup();
-    const wrapper = createWrapper();
-
-    const { rerender } = render(
-      <RoleFormDialog
-        open
+        open={false}
         onOpenChange={vi.fn()}
         onSuccess={vi.fn()}
-        role={firstRole}
       />,
-      { wrapper },
     );
-
-    const descriptionInput = screen.getByLabelText("form.description");
-    await user.clear(descriptionInput);
-    await user.type(descriptionInput, "Unsaved changes");
-
     rerender(
       <RoleFormDialog open onOpenChange={vi.fn()} onSuccess={vi.fn()} />,
     );
@@ -116,62 +92,6 @@ describe("RoleFormDialog", () => {
     await waitFor(() => {
       expect(screen.getByLabelText("form.name")).toHaveValue("");
       expect(screen.getByLabelText("form.description")).toHaveValue("");
-    });
-  });
-
-  it("shows updated values when the dialog is reopened after a successful save", async () => {
-    const user = userEvent.setup();
-    const onSuccess = vi.fn();
-    const wrapper = createWrapper();
-
-    updateRoleMock.mockResolvedValue(undefined);
-
-    const { rerender } = render(
-      <RoleFormDialog
-        open
-        onOpenChange={vi.fn()}
-        onSuccess={onSuccess}
-        role={firstRole}
-      />,
-      { wrapper },
-    );
-
-    const descriptionInput = screen.getByLabelText("form.description");
-    await user.clear(descriptionInput);
-    await user.type(descriptionInput, "Updated admin role");
-    await user.click(screen.getByRole("button", { name: "form.submit" }));
-
-    await waitFor(() => {
-      expect(updateRoleMock).toHaveBeenCalledWith("role-1", {
-        description: "Updated admin role",
-        permissions: ["users:view", "roles:update"],
-      });
-    });
-
-    expect(onSuccess).toHaveBeenCalled();
-
-    rerender(
-      <RoleFormDialog
-        open={false}
-        onOpenChange={vi.fn()}
-        onSuccess={onSuccess}
-        role={firstRole}
-      />,
-    );
-
-    rerender(
-      <RoleFormDialog
-        open
-        onOpenChange={vi.fn()}
-        onSuccess={onSuccess}
-        role={{ ...firstRole, description: "Updated admin role" }}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(screen.getByLabelText("form.description")).toHaveValue(
-        "Updated admin role",
-      );
     });
   });
 });

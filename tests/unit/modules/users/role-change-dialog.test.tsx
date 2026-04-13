@@ -46,14 +46,14 @@ const roles: Role[] = [
     name: "panel_admin",
     description: "Admin role",
     is_system: true,
-    permissions: ["users:view"],
+    permissions: ["users.read.basic"],
   },
   {
     id: "role-2",
     name: "support_agent",
     description: "Support role",
     is_system: false,
-    permissions: ["users:view"],
+    permissions: ["users.read.basic"],
   },
 ];
 

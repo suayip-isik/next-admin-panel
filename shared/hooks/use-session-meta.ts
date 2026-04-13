@@ -2,26 +2,30 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api-client";
-import { unwrapApiResult } from "@/lib/errors";
+import {
+  AUTH_ME_QUERY_KEY,
+  AUTHZ_SNAPSHOT_QUERY_KEY,
+  type AuthzSnapshot,
+  type CurrentUser,
+  resolveClientAuthzSnapshot,
+} from "@/shared/lib/authz";
 import { getAvatarPresentation } from "@/shared/utils/avatar";
-import type { components } from "@/types/api.generated";
+export { AUTH_ME_QUERY_KEY };
 
-export const AUTH_ME_QUERY_KEY = ["auth", "me"] as const;
-export type CurrentUser = components["schemas"]["UserResponse"] & {
-  role:
-    | components["schemas"]["RoleResponse"]
-    | components["schemas"]["RoleInfo"];
-};
+export function useAuthzSnapshot() {
+  return useQuery({
+    queryKey: AUTHZ_SNAPSHOT_QUERY_KEY,
+    queryFn: resolveClientAuthzSnapshot,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+}
 
 export function useCurrentUser() {
   return useQuery({
-    queryKey: AUTH_ME_QUERY_KEY,
-    queryFn: async () => {
-      return unwrapApiResult<CurrentUser>(
-        await apiClient.GET("/api/v1/shared/me"),
-      );
-    },
+    queryKey: AUTHZ_SNAPSHOT_QUERY_KEY,
+    queryFn: resolveClientAuthzSnapshot,
+    select: (snapshot) => snapshot.user,
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
@@ -41,8 +45,27 @@ export function mergeCurrentUserCache(
   queryClient: QueryClient,
   updatedUser: CurrentUser,
 ) {
-  queryClient.setQueryData<CurrentUser>(AUTH_ME_QUERY_KEY, (currentUser) =>
-    currentUser ? { ...currentUser, ...updatedUser } : updatedUser,
+  queryClient.setQueryData<AuthzSnapshot>(
+    AUTHZ_SNAPSHOT_QUERY_KEY,
+    (currentSnapshot) => {
+      if (!currentSnapshot) {
+        return {
+          user: updatedUser,
+          permissions: [],
+          state: "unavailable",
+          source: "unavailable",
+        };
+      }
+
+      return {
+        ...currentSnapshot,
+        user: {
+          ...currentSnapshot.user,
+          ...updatedUser,
+          role: updatedUser.role ?? currentSnapshot.user.role,
+        },
+      };
+    },
   );
 }
 
