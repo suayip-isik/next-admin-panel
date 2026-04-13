@@ -277,6 +277,12 @@ export function getClientSentryConfig() {
   };
 }
 
+export function isClientSentryTracingEnabled() {
+  const env = getPublicEnv();
+
+  return process.env.NODE_ENV === "production" && Boolean(env.sentryDsn);
+}
+
 export function getServerSentryConfig() {
   const sentry = getServerEnv().sentry;
 

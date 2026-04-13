@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 describe("env helpers", () => {
   afterEach(() => {
     vi.resetModules();
+    vi.unstubAllEnvs();
     delete process.env.NEXT_PUBLIC_APP_URL;
     delete process.env.NEXT_PUBLIC_FASTAPI_URL;
     delete process.env.NEXT_PUBLIC_APP_NAME;
@@ -89,6 +90,25 @@ describe("env helpers", () => {
       enabled: true,
       tracesSampleRate: 0.25,
     });
+  });
+
+  it("enables client sentry tracing only in production with a DSN", async () => {
+    process.env.NEXT_PUBLIC_SENTRY_DSN =
+      "https://public@example.ingest.sentry.io/1";
+    vi.stubEnv("NODE_ENV", "development");
+
+    const { isClientSentryTracingEnabled } = await import("@/lib/env");
+
+    expect(isClientSentryTracingEnabled()).toBe(false);
+
+    vi.resetModules();
+    process.env.NEXT_PUBLIC_SENTRY_DSN =
+      "https://public@example.ingest.sentry.io/1";
+    vi.stubEnv("NODE_ENV", "production");
+
+    const productionEnv = await import("@/lib/env");
+
+    expect(productionEnv.isClientSentryTracingEnabled()).toBe(true);
   });
 
   it("parses auth cookie and tooling settings", async () => {
