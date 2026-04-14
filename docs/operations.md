@@ -1,5 +1,9 @@
 # Operations Guide
 
+Bu belgeyi deploy, GitHub workflow'ları, branch protection ve runtime işletim beklentilerini netleştirmek istediğinizde okuyun.
+
+İlk local kurulum için [Başlangıç Rehberi](getting-started.md), release gate ve smoke test için [Production Readiness](production-readiness.md) daha uygundur.
+
 ## Deployment Model
 
 Repo provider-agnostic bir temel sunar. CI, güvenlik ve release akışları GitHub Actions ile tanımlıdır; provider özel deployment örnekleri ayrı katman olarak tutulur.

@@ -1,6 +1,8 @@
 # Özellikler ve Akışlar
 
-Bu doküman, uygulamada bugün gerçekten bulunan ekranları ve kullanıcı akışlarını özetler.
+Bu belgeyi repoda bugün gerçekten hangi ekranların ve akışların bulunduğunu hızlıca görmek istediğinizde okuyun.
+
+Kurulum için [Başlangıç Rehberi](getting-started.md), backend bağımlılıkları için [Backend Kontratı](backend-contract.md) daha doğru başlangıç noktalarıdır.
 
 ## Auth
 

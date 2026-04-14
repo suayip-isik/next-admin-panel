@@ -1,5 +1,9 @@
 # Mimari Doküman
 
+Bu belgeyi auth/proxy/BFF yapısının neden böyle kurulduğunu, request akışını veya route korumasını anlamak istediğinizde okuyun.
+
+Sadece repo'yu ayağa kaldırmak istiyorsanız önce [Başlangıç Rehberi](getting-started.md), backend beklentileri için [Backend Kontratı](backend-contract.md) daha hızlı cevap verir.
+
 Bu repo, Next.js App Router üzerinde çalışan bir admin panel frontend'idir. Backend tarafında FastAPI beklenir; Next.js uygulaması hem UI katmanını hem de backend'e giden ara proxy/auth katmanını barındırır.
 
 ## Üst Seviye Yapı

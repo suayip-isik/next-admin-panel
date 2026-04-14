@@ -1,38 +1,118 @@
 # Next Admin Panel
 
-Next.js 16, React 19 ve FastAPI odaklı bir backend entegrasyonu için hazırlanmış admin panel temelidir. Uygulama App Router kullanır, auth token'larını `httpOnly` cookie'lerde tutar ve tarayıcı isteklerini Next.js route handler/proxy katmanı üzerinden backend'e iletir.
+Next.js 16, React 19 ve FastAPI odaklı backend entegrasyonu için hazırlanmış admin panel template'i. Repo; UI katmanını, auth cookie yönetimini ve Next.js üzerinden çalışan BFF/proxy katmanını birlikte sunar.
 
-## Ne Var?
+Bu proje özellikle şu kullanım için tasarlanmıştır:
 
-- E-posta + parola ile giriş
-- Gerekirse TOTP ikinci adım doğrulaması
-- Şifre sıfırlama akışları
-- Dashboard üzerinde kullanıcı istatistik kartları
-- Kullanıcı, silinmiş kullanıcı ve kullanıcı detay ekranları
-- Admin kullanıcı oluşturma, e-posta değişikliği, doğrulama ve davet yeniden gönderme
-- Rol listeleme, oluşturma, güncelleme ve silme
-- Audit log listeleme, stream tabanlı `Load more` ve detay görüntüleme
-- Bildirim listeleme, okunma ve silme işlemleri
+- mevcut veya planlanan bir FastAPI backend'in önüne admin arayüzü koymak
+- repo'yu `Use this template`, fork veya doğrudan kopya ile yeni ürüne dönüştürmek
+- auth token'larını tarayıcı JavaScript'ine açmadan admin panel geliştirmek
+
+Bu repo tek başına tam bir ürün değildir. Anlamlı şekilde çalışabilmesi için beklenen endpoint sözleşmesini sağlayan erişilebilir bir backend gerekir.
+
+## Kim İçin Uygun?
+
+- kendi ürününe uyarlamak için template arayan ekipler
+- Next.js tabanlı admin/BFF katmanı isteyen ekipler
+- upstream repo'ya katkı vermek isteyen geliştiriciler
+
+Şu senaryolar için uygun değildir:
+
+- backend olmadan tam çalışan bağımsız admin panel beklentisi
+- provider-specific deploy kurallarını doğrudan kutudan çıktığı gibi istemek
+- auth, RBAC ve veri modeli tamamen farklı bir sistemle sıfır entegrasyon çabası olmadan ilerlemek
+
+## Hızlı Başlangıç
+
+### Gereksinimler
+
+- Node.js 20+
+- `pnpm` 10+
+- erişilebilir bir FastAPI backend
+
+Repo `.nvmrc` dosyasında Node sürüm ailesini pinler.
+
+### 5 Dakikada Ayağa Kaldır
+
+```bash
+pnpm install
+cp .env.example .env.local
+pnpm env:check
+pnpm dev
+```
+
+Varsayılan yerel adresler:
+
+- app: `http://127.0.0.1:3000`
+- backend: `http://127.0.0.1:8000`
+
+İlk açılışta beklenenler:
+
+- `/` route'u `/dashboard` adresine yönlendirir
+- session yoksa korumalı route'lar `/login?from=...` adresine düşer
+- backend erişilemiyorsa login ve veri yükleme akışları başarısız olur
+
+## Başlangıç Yolunu Seç
+
+### 1. Bu repo'yu kendi ürününe uyarlayacaksan
+
+Önerilen akış:
+
+1. GitHub üzerinden `Use this template` veya repo kopyası oluştur.
+2. `README`, `.env.example` ve branding değerlerini kendi ürününe göre değiştir.
+3. `NEXT_PUBLIC_FASTAPI_URL` değerini kendi backend'ine bağla.
+4. `pnpm env:check`, `pnpm test:unit` ve `pnpm build` ile temel doğrulamayı yap.
+5. Gerekirse OpenAPI tiplerini `pnpm generate:types` ile yeniden üret.
+
+İlk gün okunacak rehber:
+
+- [Başlangıç Rehberi](docs/getting-started.md)
+- [Özelleştirme Rehberi](docs/customization.md)
+- [Backend Kontratı](docs/backend-contract.md)
+- [Environment Rehberi](docs/environment.md)
+
+### 2. Upstream projeye katkı vereceksen
+
+Önerilen akış:
+
+1. Repo'yu fork et.
+2. Branch aç.
+3. Değişikliği yap.
+4. Beklenen kalite komutlarını çalıştır.
+5. Pull request aç.
+
+Detaylar için:
+
+- [Contributing](CONTRIBUTING.md)
+- [Geliştirme Rehberi](docs/development.md)
+
+## Bu Repo Ne Sağlar?
+
+- e-posta + parola ile giriş
+- gerekirse TOTP ikinci adım doğrulaması
+- şifre sıfırlama akışları
+- dashboard istatistik kartları
+- kullanıcı, silinmiş kullanıcı ve kullanıcı detay ekranları
+- admin kullanıcı oluşturma, e-posta değiştirme, doğrulama ve davet yeniden gönderme
+- rol listeleme, oluşturma, güncelleme ve silme
+- audit log listeleme ve detay görüntüleme
+- bildirim listeleme, okundu işaretleme ve silme
 - API key listeleme, oluşturma ve silme
-- Profil güncelleme, avatar yönetimi, parola değiştirme, TOTP yönetimi ve backup code yenileme
+- profil güncelleme, avatar, parola ve TOTP yönetimi
 - Türkçe ve İngilizce arayüz
-- Tema desteği: `light`, `dark`, `system`
+- `light`, `dark`, `system` tema desteği
 - OpenAPI şemasından TypeScript tip üretimi
 - Vitest unit testleri ve Playwright e2e testleri
-- İsteğe bağlı Sentry entegrasyonu
+- isteğe bağlı Sentry entegrasyonu
 
-## Teknoloji Özeti
+## Bu Repo Tek Başına Ne Yapmaz?
 
-- `next@16.2.2`
-- `react@19.2.4`
-- `typescript@5`
-- `@tanstack/react-query`
-- `next-intl`
-- `openapi-fetch` + `openapi-typescript`
-- `vitest` + `@testing-library/*`
-- `playwright`
+- FastAPI backend'in authorization ve iş kurallarını sağlamaz
+- gerçek veri olmadan admin ekranlarını tam işlevli hale getirmez
+- deployment platformu secret/TLS/WAF ayarlarını sizin yerinize çözmez
+- branch protection, alerting veya rollback operasyonunu otomatik kurmaz
 
-## Route Yapısı
+## Route Özeti
 
 Auth ekranları:
 
@@ -55,7 +135,7 @@ Admin ekranları:
 - `/profile`
 - `/profile/security`
 
-API ve sistem route'ları:
+Sistem route'ları:
 
 - `/api/auth/login`
 - `/api/auth/totp`
@@ -70,63 +150,36 @@ API ve sistem route'ları:
 
 ## Mimari Özeti
 
-- UI, Next.js App Router ile `app/` altında tanımlıdır.
-- Domain mantığı `modules/` altında gruplanır.
-- Tekrarlı UI ve yardımcılar `shared/` ve `lib/` altında tutulur.
-- Tarayıcı backend'e doğrudan değil, çoğunlukla `/api/auth/*` ve `/api/v1/*` üzerinden gider.
-- `proxy.ts`, auth route'ları ve `/api/*` dışındaki sayfalarda access token cookie'si yoksa kullanıcıyı `/login?from=...` adresine yönlendirir.
-- İstemci API katmanı `401` durumunda tek bir refresh isteği paylaşır ve başarılı olursa ilk isteği tekrar dener.
+- `app/` route, layout ve route handler katmanını taşır.
+- `modules/` domain bazlı feature kodlarını taşır.
+- `shared/` ve `lib/` ortak UI, auth, env ve API yardımcılarını içerir.
+- tarayıcı istekleri çoğunlukla `/api/auth/*` ve `/api/v1/*` üzerinden backend'e iletilir.
+- `proxy.ts`, auth route'ları ve `/api/*` dışındaki sayfalarda session yoksa kullanıcıyı `/login?from=...` adresine taşır.
+- istemci API katmanı `401` durumunda tek refresh isteği paylaşır ve başarılı olursa ilk isteği tekrar dener.
 
-Detaylar için:
+Detaylar için [Mimari Dokümanı](docs/architecture.md).
 
-- [Mimari](docs/architecture.md)
-- [RBAC](docs/rbac.md)
-- [Özellikler](docs/features.md)
-- [Geliştirme](docs/development.md)
-- [Environment](docs/environment.md)
-- [Operasyonlar](docs/operations.md)
-- [Production Readiness](docs/production-readiness.md)
+## Kurulum ve Doğrulama
 
-## Hızlı Başlangıç
+### Environment
 
-### Gereksinimler
+Canonical kaynaklar:
 
-- Node.js 20+
-- `pnpm` 10+
-- Erişilebilir bir FastAPI backend
+- `.env.example`
+- `lib/env.ts`
+- `scripts/env-check.mjs`
 
-Repo `.nvmrc` dosyasında Node sürümünü pinler.
-
-### Kurulum
-
-```bash
-pnpm install
-cp .env.example .env.local
-pnpm env:check
-pnpm dev
-```
-
-Varsayılan uygulama adresi `http://127.0.0.1:3000`, varsayılan backend adresi `http://127.0.0.1:8000` olur.
-
-## Environment
-
-Canonical sözleşme şu dosyalardadır:
-
-- [.env.example](/Users/suayip-isik/Documents/Github/next-admin-panel/.env.example)
-- [lib/env.ts](/Users/suayip-isik/Documents/Github/next-admin-panel/lib/env.ts)
-- [scripts/env-check.mjs](/Users/suayip-isik/Documents/Github/next-admin-panel/scripts/env-check.mjs)
-
-Başlıca değişken aileleri:
+Önemli değişken aileleri:
 
 - public runtime: `NEXT_PUBLIC_*`
 - auth cookie ayarları: `AUTH_*`
 - observability: `NEXT_PUBLIC_SENTRY_*`, `SENTRY_*`
 - tooling/test: `OPENAPI_SCHEMA_URL`, `PLAYWRIGHT_*`
-- platform fallback: `DEPLOYMENT_URL`, `DEPLOY_ENVIRONMENT`, `VERCEL_*`
+- deploy fallback: `DEPLOYMENT_URL`, `DEPLOY_ENVIRONMENT`, `VERCEL_*`
 
-Detaylar için [docs/environment.md](docs/environment.md).
+Detaylar için [Environment Rehberi](docs/environment.md).
 
-## Scriptler
+### Scriptler
 
 | Komut                 | Açıklama                                           |
 | --------------------- | -------------------------------------------------- |
@@ -144,33 +197,7 @@ Detaylar için [docs/environment.md](docs/environment.md).
 | `pnpm test:e2e`       | Playwright e2e testlerini çalıştırır               |
 | `pnpm generate:types` | OpenAPI şemasından `types/api.generated.ts` üretir |
 
-## CI/CD
-
-Repo şu GitHub Actions workflow'larını içerir:
-
-- `CI`: `env-check`, `lint`, `typecheck`, `unit-tests`, `build`, `e2e`
-- `dependency-review`: pull request bağımlılık risk kontrolü
-- `codeql`: pull request, `main` ve haftalık schedule için statik analiz
-- `Release`: tag veya manuel tetikleme ile GitHub Release üretimi
-- `Preview Example (Vercel)`: opsiyonel Vercel preview build örneği
-
-Base repo provider-agnostic tutulur. Vercel workflow'u örnek katmandır; contributor PR kalite hattının zorunlu parçası değildir.
-
-## Test ve Kalite
-
-Unit testler:
-
-```bash
-pnpm test:unit
-```
-
-E2E testler:
-
-```bash
-pnpm test:e2e
-```
-
-Önerilen yerel kalite hattı:
+### Önerilen Yerel Kalite Hattı
 
 ```bash
 pnpm env:check
@@ -180,33 +207,37 @@ pnpm test:unit
 pnpm build
 ```
 
-Production benzeri deploylarda:
+Şu durumlarda ayrıca çalıştırın:
 
-- `NEXT_PUBLIC_APP_URL` https olmalıdır
-- `AUTH_COOKIE_SECURE=true` olmalıdır
-- `AUTH_COOKIE_SAME_SITE=none` ise `AUTH_COOKIE_SECURE=true` zorunludur
-- Sentry source map upload kullanılacaksa `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` ve `SENTRY_PROJECT` birlikte set edilmelidir
+- auth, navigation, protected route veya form akışları değiştiyse `pnpm test:e2e`
+- backend OpenAPI yüzeyi değiştiyse `pnpm generate:types`
 
-## Production Readiness
+## CI/CD Özeti
 
-Bu repo, production deploy hedefli bir frontend/BFF katmanı olarak kullanılabilir; ancak tam sistem readiness yalnızca bu repo ile garanti edilmez.
+Repo şu GitHub Actions workflow'larını içerir:
 
-Repo içinde garanti edilenler:
+- `CI`: `env-check`, `lint`, `typecheck`, `unit-tests`, `build`, `e2e`
+- `dependency-review`: pull request bağımlılık risk kontrolü
+- `codeql`: pull request, `main` ve haftalık schedule için statik analiz
+- `Release`: tag veya manuel tetikleme ile GitHub Release üretimi
+- `Preview Example (Vercel)`: opsiyonel Vercel preview build örneği
 
-- production runtime tarafından import edilen bağımlılıkların doğru paketlenmesi
-- env sözleşmesi ve production güvenlik invariant'larının doğrulanması
-- auth/proxy/security header davranışlarının testlerle korunması
-- kritik admin akışları için unit + e2e kalite hattı
-- provider-agnostic operasyon checklist'i
+Base repo provider-agnostic tutulur. Vercel workflow'u örnek amaçlıdır.
 
-Repo dışında ayrıca doğrulanması gerekenler:
+## Hangi Rehberi Ne Zaman Okumalıyım?
 
-- FastAPI backend authorization ve iş kuralı doğrulamaları
-- deployment platformu secret/TLS/WAF ayarları
-- GitHub branch protection ve required checks ayarları
-- prod observability, alerting ve rollback operasyonu
+- repo'yu ilk kez açtıysan: [docs/getting-started.md](docs/getting-started.md)
+- kendi ürününe uyarlıyorsan: [docs/customization.md](docs/customization.md)
+- backend'i bağlayacaksan: [docs/backend-contract.md](docs/backend-contract.md)
+- env değerleri kafanı karıştırıyorsa: [docs/environment.md](docs/environment.md)
+- günlük geliştirme akışı lazımsa: [docs/development.md](docs/development.md)
+- auth/proxy yapısını anlaman gerekiyorsa: [docs/architecture.md](docs/architecture.md)
+- yetki modeliyle uğraşıyorsan: [docs/rbac.md](docs/rbac.md)
+- deploy hazırlığı yapıyorsan: [docs/operations.md](docs/operations.md)
+- release gate ve smoke test arıyorsan: [docs/production-readiness.md](docs/production-readiness.md)
+- bir şey çalışmıyorsa: [docs/troubleshooting.md](docs/troubleshooting.md)
 
-## Açık Kaynak Dosyaları
+## Açık Kaynak Meta Dosyaları
 
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [SECURITY.md](SECURITY.md)
@@ -218,7 +249,6 @@ Repo dışında ayrıca doğrulanması gerekenler:
 
 ## Notlar
 
-- Root route `/`, doğrudan `/dashboard` adresine yönlendirir.
 - Login sayfası, geçerli cookie ve başarılı `/api/v1/shared/me` yanıtı varsa kullanıcıyı tekrar `/dashboard` sayfasına taşır.
 - `robots.txt` ve `sitemap.xml`, yalnızca production benzeri ve localhost olmayan ortamlarda indekslemeye izin verecek şekilde üretilir.
-- Next.js sürüm ailesi standart eğitim verilerinden farklı davranışlar içerebilir; framework değişikliği yaparken `node_modules/next/dist/docs/` altındaki güncel rehberleri referans alın.
+- Next.js 16 davranışları eski eğitim verilerindeki Next.js sürümleriyle birebir aynı olmayabilir; framework değişikliği yapmadan önce `node_modules/next/dist/docs/` altındaki ilgili rehberleri okuyun.
