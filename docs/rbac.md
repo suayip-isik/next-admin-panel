@@ -1,6 +1,8 @@
 # RBAC Rehberi
 
-Bu doküman, bu projedeki RBAC davranışının pratikte nasıl çalıştığını açıklar. Amaç, "bir kullanıcı `/dashboard` sayfasına hangi yetkiyle girebilir?" veya "neden sayfaya giriyor ama bazı butonları göremiyor?" gibi sorulara doğrudan cevap verebilmektir.
+Bu belgeyi bir route veya aksiyonun hangi permission ile açıldığını, menü görünürlüğü ile gerçek erişim farkını veya `/api/v1/shared/me` tabanlı authorization çözümlemesini anlamak istediğinizde okuyun.
+
+Kurulum ve ürünleştirme için bu belge başlangıç noktası değildir; önce [Başlangıç Rehberi](getting-started.md) ve gerekirse [Backend Kontratı](backend-contract.md) okunmalıdır.
 
 Bu repoda RBAC kararları role adına göre değil, canonical permission listesine göre verilir. `role === "admin"` benzeri shortcut'lar kullanılmaz.
 

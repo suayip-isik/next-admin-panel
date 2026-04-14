@@ -1,5 +1,9 @@
 # Environment Guide
 
+Bu belgeyi hangi environment değişkeninin ne işe yaradığını, hangisinin zorunlu olduğunu veya validation kurallarını anlamak istediğinizde okuyun.
+
+İlk kurulum için önce [Başlangıç Rehberi](getting-started.md), ürünleştirme için [Özelleştirme Rehberi](customization.md) daha uygun başlangıç noktasıdır.
+
 ## Source of Truth
 
 Environment sözleşmesi üç yerde tanımlıdır:

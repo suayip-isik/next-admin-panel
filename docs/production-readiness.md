@@ -1,5 +1,9 @@
 # Production Readiness
 
+Bu belgeyi production deploy öncesi release gate, smoke test ve minimum rollback beklentisini netleştirmek istediğinizde okuyun.
+
+Günlük geliştirme için [Geliştirme Rehberi](development.md), operasyon ayarları için [Operations Guide](operations.md) daha uygun belgelerdir.
+
 Bu repo, provider-agnostic bir Next.js admin frontend/BFF katmanı olarak production deploy hedefiyle hazırlanmıştır. Bu doküman, repo içinde garanti edilen readiness seviyesini ve operatörün ayrıca doğrulaması gereken dış bağımlılıkları netleştirir.
 
 ## Bu Repo Ne Garanti Eder?

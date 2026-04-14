@@ -1,5 +1,7 @@
 # Contributing
 
+Bu belge upstream repo'ya katkı vermek isteyen geliştiriciler içindir. Repo'yu kendi ürününüze uyarlıyorsanız önce [README](README.md), [Başlangıç Rehberi](docs/getting-started.md) ve [Özelleştirme Rehberi](docs/customization.md) ile başlayın.
+
 ## Development Baseline
 
 - Node.js 20+
@@ -44,6 +46,7 @@ GitHub PR açmadan önce beklenen minimum alanlar:
 - güvenlik ve performans etkisi
 - environment veya deploy etkisi
 - çalıştırılan doğrulama komutları
+- dokümantasyon etkisi varsa hangi rehberlerin güncellendiği
 
 ## Katkı Kuralları
 
@@ -52,6 +55,7 @@ GitHub PR açmadan önce beklenen minimum alanlar:
 - Gerçek secret veya provider kimlik bilgilerini commit etmeyin
 - Provider-specific workflow'ları base contributor deneyiminin zorunlu parçası yapmayın
 - Auth, proxy veya env kontratı değiştiyse güvenlik etkisini PR açıklamasında açık yazın
+- Davranış değişikliği varsa ilgili README veya `docs/` içeriğini aynı PR'da güncelleyin
 
 ## Repo Yapısı Beklentisi
 

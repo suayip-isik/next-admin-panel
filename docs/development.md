@@ -1,6 +1,8 @@
 # Geliştirme Rehberi
 
-Bu rehber, projeyi yerelde ayağa kaldırmak ve standart geliştirme akışını izlemek için gereken adımları toplar.
+Bu belgeyi repo'yu yerelde geliştirirken, günlük komut akışını ararken veya test/type generation davranışını anlamak istediğinizde okuyun.
+
+İlk kez kurulum yapıyorsanız önce [Başlangıç Rehberi](getting-started.md), ürüne uyarlama yapıyorsanız [Özelleştirme Rehberi](customization.md) daha doğru başlangıç noktasıdır.
 
 ## Gereksinimler
 
@@ -10,7 +12,7 @@ Bu rehber, projeyi yerelde ayağa kaldırmak ve standart geliştirme akışını
 
 Repo kökünde `.nvmrc` bulunduğu için aynı ana Node sürüm ailesiyle çalışmak gerekir.
 
-## Yerel Kurulum
+## Yerel Geliştirme Kurulumu
 
 ### 1. Bağımlılıkları yükleyin
 
@@ -72,6 +74,8 @@ Backend erişilemezse:
 - auth akışları tamamlanmaz
 - admin ekranlarının veri sorguları başarısız olur
 - OpenAPI tip üretimi çalışmaz
+
+Backend kontratının daha okunabilir özeti için [Backend Kontratı](backend-contract.md) belgesine bakın.
 
 ## Environment Doğrulama
 
