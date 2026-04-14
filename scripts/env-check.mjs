@@ -22,6 +22,10 @@ function normalizeUrl(value, name) {
   }
 }
 
+function normalizeOptionalUrl(value, name) {
+  return value ? normalizeUrl(value, name) : undefined;
+}
+
 function parseNumber(name, fallback) {
   const value = optionalEnv(name);
   if (value === undefined) return fallback;
@@ -73,17 +77,21 @@ function parseSameSite(name, fallback) {
 
 try {
   const appUrl = normalizeUrl(
-    optionalEnv("NEXT_PUBLIC_APP_URL") ?? "http://localhost:3000",
+    optionalEnv("NEXT_PUBLIC_APP_URL") ?? "http://127.0.0.1:3000",
     "NEXT_PUBLIC_APP_URL",
   );
   const fastApiUrl = normalizeUrl(
-    optionalEnv("NEXT_PUBLIC_FASTAPI_URL") ?? "http://localhost:8000",
+    optionalEnv("NEXT_PUBLIC_FASTAPI_URL") ?? "http://127.0.0.1:8000",
     "NEXT_PUBLIC_FASTAPI_URL",
   );
   const openApiSchemaUrl = normalizeUrl(
     optionalEnv("OPENAPI_SCHEMA_URL") ??
       `${fastApiUrl}/schema/admin/openapi.json`,
     "OPENAPI_SCHEMA_URL",
+  );
+  normalizeUrl(
+    optionalEnv("PLAYWRIGHT_FASTAPI_URL") ?? "http://127.0.0.1:18000",
+    "PLAYWRIGHT_FASTAPI_URL",
   );
 
   parseNumber("NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE", 0.1);
@@ -92,9 +100,21 @@ try {
   parseNumber("AUTH_REFRESH_TOKEN_MAX_AGE_SECONDS", 2592000);
   const cookieSecure = parseBoolean("AUTH_COOKIE_SECURE", false);
   const cookieSameSite = parseSameSite("AUTH_COOKIE_SAME_SITE", "lax");
+  normalizeOptionalUrl(
+    optionalEnv("NEXT_PUBLIC_SENTRY_DSN"),
+    "NEXT_PUBLIC_SENTRY_DSN",
+  );
+  normalizeOptionalUrl(optionalEnv("SENTRY_DSN"), "SENTRY_DSN");
   const isProductionDeployment =
     optionalEnv("DEPLOY_ENVIRONMENT") === "production" ||
     optionalEnv("VERCEL_ENV") === "production";
+  const sentryBuildFields = [
+    optionalEnv("SENTRY_AUTH_TOKEN"),
+    optionalEnv("SENTRY_ORG"),
+    optionalEnv("SENTRY_PROJECT"),
+  ];
+  const hasAnySentryBuildField = sentryBuildFields.some(Boolean);
+  const hasAllSentryBuildField = sentryBuildFields.every(Boolean);
 
   if (isProductionDeployment && new URL(appUrl).protocol !== "https:") {
     throw new Error(
@@ -111,6 +131,12 @@ try {
   if (cookieSameSite === "none" && !cookieSecure) {
     throw new Error(
       "AUTH_COOKIE_SAME_SITE=none requires AUTH_COOKIE_SECURE=true.",
+    );
+  }
+
+  if (hasAnySentryBuildField && !hasAllSentryBuildField) {
+    throw new Error(
+      "SENTRY_AUTH_TOKEN, SENTRY_ORG, and SENTRY_PROJECT must either all be set together or all be empty.",
     );
   }
 

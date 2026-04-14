@@ -23,6 +23,7 @@ describe("env helpers", () => {
     delete process.env.OPENAPI_SCHEMA_URL;
     delete process.env.PLAYWRIGHT_BASE_URL;
     delete process.env.PLAYWRIGHT_WEB_SERVER_URL;
+    delete process.env.PLAYWRIGHT_FASTAPI_URL;
     delete process.env.DEPLOYMENT_URL;
     delete process.env.DEPLOY_ENVIRONMENT;
     delete process.env.VERCEL_URL;
@@ -92,6 +93,16 @@ describe("env helpers", () => {
     });
   });
 
+  it("validates Sentry DSN URLs", async () => {
+    process.env.NEXT_PUBLIC_SENTRY_DSN = "not-a-url";
+
+    const { getClientSentryConfig } = await import("@/lib/env");
+
+    expect(() => getClientSentryConfig()).toThrow(
+      'Invalid URL in environment variable NEXT_PUBLIC_SENTRY_DSN: "not-a-url"',
+    );
+  });
+
   it("enables client sentry tracing only in production with a DSN", async () => {
     process.env.NEXT_PUBLIC_SENTRY_DSN =
       "https://public@example.ingest.sentry.io/1";
@@ -121,6 +132,7 @@ describe("env helpers", () => {
     process.env.AUTH_ACCESS_TOKEN_MAX_AGE_SECONDS = "900";
     process.env.AUTH_REFRESH_TOKEN_MAX_AGE_SECONDS = "86400";
     process.env.PLAYWRIGHT_BASE_URL = "https://preview.example.com/";
+    process.env.PLAYWRIGHT_FASTAPI_URL = "https://preview-api.example.com/";
 
     const {
       getAuthCookieConfig,
@@ -145,6 +157,7 @@ describe("env helpers", () => {
     expect(getPlaywrightConfig()).toEqual({
       baseUrl: "https://preview.example.com",
       webServerUrl: "https://preview.example.com",
+      fastApiUrl: "https://preview-api.example.com",
     });
   });
 
@@ -178,6 +191,16 @@ describe("env helpers", () => {
 
     expect(() => getAuthCookieConfig()).toThrow(
       "AUTH_COOKIE_SAME_SITE=none requires AUTH_COOKIE_SECURE=true.",
+    );
+  });
+
+  it("requires complete Sentry build credentials when any build field is set", async () => {
+    process.env.SENTRY_AUTH_TOKEN = "token-only";
+
+    const { getSentryBuildConfig } = await import("@/lib/env");
+
+    expect(() => getSentryBuildConfig()).toThrow(
+      "SENTRY_AUTH_TOKEN, SENTRY_ORG, and SENTRY_PROJECT must either all be set together or all be empty.",
     );
   });
 });

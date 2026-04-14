@@ -5,7 +5,7 @@ loadLocalEnv(process.cwd());
 
 const fastApiUrl =
   process.env.NEXT_PUBLIC_FASTAPI_URL?.replace(/\/+$/, "") ||
-  "http://localhost:8000";
+  "http://127.0.0.1:8000";
 const schemaUrl =
   process.env.OPENAPI_SCHEMA_URL || `${fastApiUrl}/schema/admin/openapi.json`;
 

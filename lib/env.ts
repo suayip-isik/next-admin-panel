@@ -1,5 +1,5 @@
-const DEFAULT_APP_URL = "http://localhost:3000";
-const DEFAULT_FASTAPI_URL = "http://localhost:8000";
+const DEFAULT_APP_URL = "http://127.0.0.1:3000";
+const DEFAULT_FASTAPI_URL = "http://127.0.0.1:8000";
 const DEFAULT_APP_NAME = "Next Admin Panel";
 const DEFAULT_APP_SHORT_NAME = "Admin Panel";
 const DEFAULT_APP_DESCRIPTION =
@@ -14,6 +14,7 @@ const DEFAULT_AUTH_COOKIE_SAME_SITE = "lax";
 const DEFAULT_ACCESS_COOKIE_NAME = "access_token";
 const DEFAULT_REFRESH_COOKIE_NAME = "refresh_token";
 const DEFAULT_OPENAPI_SCHEMA_PATH = "/schema/admin/openapi.json";
+const DEFAULT_PLAYWRIGHT_FASTAPI_URL = "http://127.0.0.1:18000";
 
 type SameSitePolicy = "lax" | "strict" | "none";
 
@@ -48,6 +49,10 @@ function normalizeUrl(value: string, envName: string) {
       `Invalid URL in environment variable ${envName}: "${value}"`,
     );
   }
+}
+
+function normalizeOptionalUrl(value: string | undefined, envName: string) {
+  return value ? normalizeUrl(value, envName) : undefined;
 }
 
 function isSecureUrl(value: string) {
@@ -141,7 +146,10 @@ function buildPublicEnv() {
     backgroundColor:
       process.env.NEXT_PUBLIC_APP_BACKGROUND_COLOR?.trim() ||
       DEFAULT_BACKGROUND_COLOR,
-    sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN?.trim() || undefined,
+    sentryDsn: normalizeOptionalUrl(
+      process.env.NEXT_PUBLIC_SENTRY_DSN?.trim() || undefined,
+      "NEXT_PUBLIC_SENTRY_DSN",
+    ),
     sentryTracesSampleRate: parseNumber(
       process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE?.trim(),
       DEFAULT_SENTRY_TRACES_SAMPLE_RATE,
@@ -188,9 +196,11 @@ function buildServerEnv() {
       ),
     },
     sentry: {
-      dsn:
+      dsn: normalizeOptionalUrl(
         getOptionalEnv("SENTRY_DSN") ??
-        getOptionalEnv("NEXT_PUBLIC_SENTRY_DSN"),
+          getOptionalEnv("NEXT_PUBLIC_SENTRY_DSN"),
+        getOptionalEnv("SENTRY_DSN") ? "SENTRY_DSN" : "NEXT_PUBLIC_SENTRY_DSN",
+      ),
       authToken: getOptionalEnv("SENTRY_AUTH_TOKEN"),
       org: getOptionalEnv("SENTRY_ORG"),
       project: getOptionalEnv("SENTRY_PROJECT"),
@@ -214,6 +224,12 @@ function buildServerEnv() {
           getOptionalEnv("PLAYWRIGHT_BASE_URL") ??
           publicEnv.appUrl,
         "PLAYWRIGHT_WEB_SERVER_URL",
+      ),
+      fastApiUrl: normalizeUrl(
+        getOptionalEnv("PLAYWRIGHT_FASTAPI_URL") ??
+          getOptionalEnv("NEXT_PUBLIC_FASTAPI_URL") ??
+          DEFAULT_PLAYWRIGHT_FASTAPI_URL,
+        "PLAYWRIGHT_FASTAPI_URL",
       ),
     },
   };
@@ -254,6 +270,20 @@ function validateServerSecurityContract() {
   ) {
     throw new Error(
       "AUTH_COOKIE_SAME_SITE=none requires AUTH_COOKIE_SECURE=true.",
+    );
+  }
+
+  const sentryBuildFields = [
+    serverEnv.sentry.authToken,
+    serverEnv.sentry.org,
+    serverEnv.sentry.project,
+  ];
+  const hasAnySentryBuildField = sentryBuildFields.some(Boolean);
+  const hasAllSentryBuildFields = sentryBuildFields.every(Boolean);
+
+  if (hasAnySentryBuildField && !hasAllSentryBuildFields) {
+    throw new Error(
+      "SENTRY_AUTH_TOKEN, SENTRY_ORG, and SENTRY_PROJECT must either all be set together or all be empty.",
     );
   }
 }

@@ -35,8 +35,8 @@ pnpm dev
 
 Varsayılan URL'ler:
 
-- app: `http://localhost:3000`
-- FastAPI: `http://localhost:8000`
+- app: `http://127.0.0.1:3000`
+- FastAPI: `http://127.0.0.1:8000`
 
 Root route `/`, kullanıcıyı `/dashboard` sayfasına yönlendirir.
 
@@ -105,7 +105,7 @@ Kaynak URL çözümleme sırası:
 
 1. `OPENAPI_SCHEMA_URL`
 2. `NEXT_PUBLIC_FASTAPI_URL + /schema/admin/openapi.json`
-3. fallback `http://localhost:8000/schema/admin/openapi.json`
+3. fallback `http://127.0.0.1:8000/schema/admin/openapi.json`
 
 ## Testler
 
@@ -142,8 +142,9 @@ Playwright davranışı:
 - HTML raporu `playwright-report/`
 - gerekirse web server olarak `pnpm dev` çalıştırılır
 - `PLAYWRIGHT_BASE_URL` ve `PLAYWRIGHT_WEB_SERVER_URL` env değerleri kullanılır
+- mock backend origin'i için `PLAYWRIGHT_FASTAPI_URL` kullanılır
 
-Mevcut e2e kapsamı, auth redirect ve TOTP step geçişine odaklıdır.
+E2E suite mock FastAPI server ile çalışır; dış backend bağımlılığı olmadan login, logout, refresh redirect, permission ve kullanıcı oluşturma akışlarını doğrular.
 
 ## Önerilen Yerel Kalite Hattı
 

@@ -6,7 +6,7 @@ import {
 } from "@/app/api/v1/[...path]/route";
 
 const expectedFastApiUrl = (
-  process.env.NEXT_PUBLIC_FASTAPI_URL ?? "http://localhost:8000"
+  process.env.NEXT_PUBLIC_FASTAPI_URL ?? "http://127.0.0.1:8000"
 ).replace(/\/+$/, "");
 
 type CookieStore = {

@@ -80,10 +80,12 @@ API ve sistem route'ları:
 Detaylar için:
 
 - [Mimari](docs/architecture.md)
+- [RBAC](docs/rbac.md)
 - [Özellikler](docs/features.md)
 - [Geliştirme](docs/development.md)
 - [Environment](docs/environment.md)
 - [Operasyonlar](docs/operations.md)
+- [Production Readiness](docs/production-readiness.md)
 
 ## Hızlı Başlangıç
 
@@ -104,7 +106,7 @@ pnpm env:check
 pnpm dev
 ```
 
-Varsayılan uygulama adresi `http://localhost:3000`, varsayılan backend adresi `http://localhost:8000` olur.
+Varsayılan uygulama adresi `http://127.0.0.1:3000`, varsayılan backend adresi `http://127.0.0.1:8000` olur.
 
 ## Environment
 
@@ -183,6 +185,26 @@ Production benzeri deploylarda:
 - `NEXT_PUBLIC_APP_URL` https olmalıdır
 - `AUTH_COOKIE_SECURE=true` olmalıdır
 - `AUTH_COOKIE_SAME_SITE=none` ise `AUTH_COOKIE_SECURE=true` zorunludur
+- Sentry source map upload kullanılacaksa `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` ve `SENTRY_PROJECT` birlikte set edilmelidir
+
+## Production Readiness
+
+Bu repo, production deploy hedefli bir frontend/BFF katmanı olarak kullanılabilir; ancak tam sistem readiness yalnızca bu repo ile garanti edilmez.
+
+Repo içinde garanti edilenler:
+
+- production runtime tarafından import edilen bağımlılıkların doğru paketlenmesi
+- env sözleşmesi ve production güvenlik invariant'larının doğrulanması
+- auth/proxy/security header davranışlarının testlerle korunması
+- kritik admin akışları için unit + e2e kalite hattı
+- provider-agnostic operasyon checklist'i
+
+Repo dışında ayrıca doğrulanması gerekenler:
+
+- FastAPI backend authorization ve iş kuralı doğrulamaları
+- deployment platformu secret/TLS/WAF ayarları
+- GitHub branch protection ve required checks ayarları
+- prod observability, alerting ve rollback operasyonu
 
 ## Açık Kaynak Dosyaları
 

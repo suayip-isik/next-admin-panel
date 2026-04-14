@@ -23,6 +23,7 @@
     "generate:types": "node scripts/generate-types.mjs"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.48.0",
     "@base-ui-components/react": "^1.0.0-rc.0",
     "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -57,7 +58,6 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
-    "@sentry/nextjs": "^10.48.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.9.1",

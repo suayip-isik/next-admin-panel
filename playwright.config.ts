@@ -23,7 +23,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm dev",
+    command: `NEXT_PUBLIC_FASTAPI_URL=${playwrightConfig.fastApiUrl} pnpm dev`,
     url: playwrightConfig.webServerUrl,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
