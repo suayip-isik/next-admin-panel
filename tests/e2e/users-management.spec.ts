@@ -228,14 +228,14 @@ test.describe("users management", () => {
   });
 
   test("creates an admin user from the users page", async ({ page }) => {
-    await page.goto("http://localhost:3000/login");
+    await page.goto("/login");
     await page.evaluate(() => {
       document.cookie = "access_token=test-access-token; path=/";
     });
     await expect
       .poll(() => page.evaluate(() => document.cookie))
       .toContain("access_token=test-access-token");
-    await page.goto("http://localhost:3000/users");
+    await page.goto("/users");
 
     await expect(page.getByText("Alice Admin")).toBeVisible();
 
