@@ -68,6 +68,7 @@ CI job'ları ortak olarak:
 - auth cookie policy alanları
 - `PLAYWRIGHT_BASE_URL`
 - `PLAYWRIGHT_WEB_SERVER_URL`
+- production hata gözlemi isteniyorsa `NEXT_PUBLIC_SENTRY_DSN` ve/veya `SENTRY_DSN`
 
 ### Opsiyonel alanlar
 
@@ -86,7 +87,7 @@ CI job'ları ortak olarak:
 
 ## Health, Robots ve Sitemap
 
-- `/api/health` no-store JSON health endpoint'idir.
+- `/api/health` no-store JSON liveness endpoint'idir; backend erişimi veya auth zincirinin tam readiness garantisini vermez.
 - `robots.txt` ve `sitemap.xml`, yalnızca deploy environment production benzeri ve `NEXT_PUBLIC_APP_URL` localhost değilse indexing açar.
 - Bu nedenle preview veya local ortamlarda tüm rota setinin indekslenmesi beklenmez.
 
@@ -114,3 +115,5 @@ Yalnızca ilgili entegrasyonlar kullanılıyorsa gerekir:
 3. Gerekliyse Sentry runtime ve build secret'larını ekle.
 4. Vercel preview örneği kullanılacaksa ilgili secret'ları tanımla.
 5. Release süreci için semver tag politikası uygula.
+6. GitHub Dependency Graph ve `dependency-review` check'ini required check olarak doğrula.
+7. Production öncesi `pnpm env:check && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm build && pnpm test:e2e` hattını yeşil gör.

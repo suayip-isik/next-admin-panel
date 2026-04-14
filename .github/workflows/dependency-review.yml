@@ -11,14 +11,7 @@ jobs:
     name: dependency-review
     runs-on: ubuntu-latest
     steps:
-      - name: Skip when dependency graph is not enabled
-        if: ${{ vars.ENABLE_DEPENDENCY_REVIEW != 'true' }}
-        run: |
-          echo "Dependency review skipped."
-          echo "Set ENABLE_DEPENDENCY_REVIEW=true after enabling GitHub Dependency graph for this repository."
-
       - name: Dependency review
-        if: ${{ vars.ENABLE_DEPENDENCY_REVIEW == 'true' }}
         uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: high

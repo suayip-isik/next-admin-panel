@@ -20,11 +20,12 @@ pnpm dev
 
 Varsayılan yerel değerler:
 
-- `NEXT_PUBLIC_APP_URL=http://localhost:3000`
-- `NEXT_PUBLIC_FASTAPI_URL=http://localhost:8000`
-- `OPENAPI_SCHEMA_URL=http://localhost:8000/schema/admin/openapi.json`
-- `PLAYWRIGHT_BASE_URL=http://localhost:3000`
-- `PLAYWRIGHT_WEB_SERVER_URL=http://localhost:3000`
+- `NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000`
+- `NEXT_PUBLIC_FASTAPI_URL=http://127.0.0.1:8000`
+- `OPENAPI_SCHEMA_URL=http://127.0.0.1:8000/schema/admin/openapi.json`
+- `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000`
+- `PLAYWRIGHT_WEB_SERVER_URL=http://127.0.0.1:3000`
+- `PLAYWRIGHT_FASTAPI_URL=http://127.0.0.1:18000`
 
 ## Public ve Server-only Alanlar
 
@@ -87,6 +88,7 @@ Başlıca örnekler:
 - `OPENAPI_SCHEMA_URL`
 - `PLAYWRIGHT_BASE_URL`
 - `PLAYWRIGHT_WEB_SERVER_URL`
+- `PLAYWRIGHT_FASTAPI_URL`
 
 ## Fallback Davranışları
 
@@ -97,14 +99,14 @@ Başlıca örnekler:
 1. `NEXT_PUBLIC_APP_URL`
 2. `DEPLOYMENT_URL`
 3. `https://${VERCEL_URL}`
-4. fallback `http://localhost:3000`
+4. fallback `http://127.0.0.1:3000`
 
 ### FastAPI URL
 
 Çözümleme sırası:
 
 1. `NEXT_PUBLIC_FASTAPI_URL`
-2. fallback `http://localhost:8000`
+2. fallback `http://127.0.0.1:8000`
 
 ### OpenAPI schema URL
 
@@ -160,6 +162,8 @@ Doğrulanan başlıklar:
 - sayısal alanlar
 - boolean alanlar
 - `AUTH_COOKIE_SAME_SITE` değerleri
+- Sentry DSN URL biçimi
+- `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` üçlüsünün tam olması
 
 `--ci-safe`, branding alanlarından bazılarını zorunlu tutmadan kontrol yapar.
 
