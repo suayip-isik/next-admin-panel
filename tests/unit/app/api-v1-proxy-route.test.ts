@@ -5,6 +5,10 @@ import {
   POST as proxyPost,
 } from "@/app/api/v1/[...path]/route";
 
+const expectedFastApiUrl = (
+  process.env.NEXT_PUBLIC_FASTAPI_URL ?? "http://localhost:8000"
+).replace(/\/+$/, "");
+
 type CookieStore = {
   get: ReturnType<typeof vi.fn>;
   getAll: ReturnType<typeof vi.fn>;
@@ -59,7 +63,7 @@ describe("/api/v1 catch-all proxy route", () => {
 
     expect(fetch).toHaveBeenCalledTimes(1);
     const [url, init] = vi.mocked(fetch).mock.calls[0]!;
-    expect(url).toBe("http://localhost:8000/api/v1/users?role=panel_admin");
+    expect(url).toBe(`${expectedFastApiUrl}/api/v1/users?role=panel_admin`);
     expect(new Headers(init?.headers).get("authorization")).toBe(
       "Bearer access-1",
     );
