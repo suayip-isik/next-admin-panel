@@ -5,7 +5,7 @@ import {
 } from "node:http";
 import { expect, test } from "@playwright/test";
 
-const MOCK_FASTAPI_HOST = "localhost";
+const MOCK_FASTAPI_HOST = "127.0.0.1";
 const MOCK_FASTAPI_PORT = 8000;
 
 let createdPayload: Record<string, unknown> | null = null;
