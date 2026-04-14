@@ -1,15 +1,28 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getAuthCookieConfig } from "@/lib/env";
-
-const AUTH_PATHS = ["/login", "/totp", "/forgot-password", "/reset-password"];
+import { applyPageSecurityHeaders, createCspNonce } from "@/lib/security";
+import { APP_ROUTES, AUTH_ROUTE_PATHS } from "@/shared/lib/routes";
+import { normalizeReturnPath } from "@/shared/lib/redirects";
 
 function isAuthPath(pathname: string): boolean {
-  return AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  return AUTH_ROUTE_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(path + "/"),
+  );
 }
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const nonce = createCspNonce();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  applyPageSecurityHeaders(response.headers, { nonce });
 
   // Static assets pass through
   if (
@@ -17,7 +30,7 @@ export function proxy(request: NextRequest) {
     pathname === "/favicon.ico" ||
     pathname === "/robots.txt"
   ) {
-    return NextResponse.next();
+    return response;
   }
 
   // Check auth only for non-auth, non-API routes
@@ -29,20 +42,31 @@ export function proxy(request: NextRequest) {
       getAuthCookieConfig().accessCookieName,
     )?.value;
     if (!accessToken) {
-      const loginUrl = new URL("/login", request.url);
-      const from = request.nextUrl.pathname + request.nextUrl.search;
-      if (from !== "/login") {
+      const loginUrl = new URL(APP_ROUTES.login, request.url);
+      const from = normalizeReturnPath(
+        request.nextUrl.pathname + request.nextUrl.search,
+      );
+      if (from && from !== APP_ROUTES.login) {
         loginUrl.searchParams.set("from", from);
       }
-      return NextResponse.redirect(loginUrl);
+      const redirectResponse = NextResponse.redirect(loginUrl);
+      applyPageSecurityHeaders(redirectResponse.headers, { nonce });
+      return redirectResponse;
     }
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+    {
+      source:
+        "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+      missing: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
   ],
 };

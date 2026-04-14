@@ -1,24 +1,72 @@
 "use client";
 
-import { useCurrentUser } from "@/shared/hooks/use-session-meta";
-import type { Permission } from "@/shared/utils/permissions";
-import { hasPermission, hasAnyPermission } from "@/shared/utils/permissions";
+import {
+  useAuthzSnapshot,
+  useCurrentUser,
+} from "@/shared/hooks/use-session-meta";
+import type { Permission, PermissionCheck } from "@/shared/utils/permissions";
+import { matchesPermissionCheck } from "@/shared/utils/permissions";
 
 export { useCurrentUser };
 
-function getRolePermissions(role: Record<string, unknown> | undefined) {
-  const permissions = role?.permissions;
-  return Array.isArray(permissions) ? (permissions as Permission[]) : undefined;
+export type PermissionGateStatus =
+  | "loading"
+  | "allowed"
+  | "denied"
+  | "unavailable";
+
+export interface PermissionGateResult {
+  isAllowed: boolean;
+  isLoading: boolean;
+  status: PermissionGateStatus;
 }
 
 export function useHasPermission(permission: Permission): boolean {
-  const { data } = useCurrentUser();
-  const permissions = getRolePermissions(data?.role);
-  return hasPermission(permissions, permission);
+  const gate = usePermissionGate({ all: [permission] });
+  return gate.status === "allowed";
 }
 
 export function useHasAnyPermission(permissions: Permission[]): boolean {
-  const { data } = useCurrentUser();
-  const currentPermissions = getRolePermissions(data?.role);
-  return hasAnyPermission(currentPermissions, permissions);
+  const gate = usePermissionGate({ any: permissions });
+  return gate.status === "allowed";
+}
+
+export function useHasAllPermissions(permissions: Permission[]): boolean {
+  const gate = usePermissionGate({ all: permissions });
+  return gate.status === "allowed";
+}
+
+export function usePermissionAccess(check?: PermissionCheck): boolean {
+  const gate = usePermissionGate(check);
+  return gate.status === "allowed";
+}
+
+export function usePermissionGate(
+  check?: PermissionCheck,
+): PermissionGateResult {
+  const { data, isLoading, isFetching } = useAuthzSnapshot();
+
+  if (isLoading || isFetching || !data) {
+    return {
+      isAllowed: false,
+      isLoading: true,
+      status: "loading",
+    };
+  }
+
+  if (data.state !== "resolved") {
+    return {
+      isAllowed: false,
+      isLoading: false,
+      status: "unavailable",
+    };
+  }
+
+  return {
+    isAllowed: matchesPermissionCheck(data.permissions, check),
+    isLoading: false,
+    status: matchesPermissionCheck(data.permissions, check)
+      ? "allowed"
+      : "denied",
+  };
 }

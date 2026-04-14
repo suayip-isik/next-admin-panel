@@ -26,7 +26,7 @@ describe("api key queries", () => {
     await fetchApiKeys();
     await createApiKey({
       name: "CI token",
-      scopes: ["users:read"],
+      scopes: ["users.read.basic"],
       expires_at: "2026-12-31T00:00:00Z",
     });
     await deleteApiKey("key-1");
@@ -35,7 +35,7 @@ describe("api key queries", () => {
     expect(apiClient.POST).toHaveBeenCalledWith("/api/v1/shared/api-keys", {
       body: {
         name: "CI token",
-        scopes: ["users:read"],
+        scopes: ["users.read.basic"],
         expires_at: "2026-12-31T00:00:00Z",
       },
     });

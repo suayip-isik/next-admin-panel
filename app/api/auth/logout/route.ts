@@ -3,13 +3,14 @@ import {
   forwardToFastApi,
   getRefreshTokenFromCookies,
 } from "@/lib/server-auth";
+import { withNoStoreApiHeaders } from "@/lib/security";
 
 export async function POST() {
   const refreshToken = await getRefreshTokenFromCookies();
 
   if (!refreshToken) {
     await clearAuthCookies();
-    return Response.json({ success: true });
+    return withNoStoreApiHeaders(Response.json({ success: true }));
   }
 
   try {
@@ -23,5 +24,5 @@ export async function POST() {
     await clearAuthCookies();
   }
 
-  return Response.json({ success: true });
+  return withNoStoreApiHeaders(Response.json({ success: true }));
 }

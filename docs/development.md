@@ -40,6 +40,12 @@ Varsayılan URL'ler:
 
 Root route `/`, kullanıcıyı `/dashboard` sayfasına yönlendirir.
 
+TanStack Query Devtools varsayılan olarak kapalıdır. Bazı local kombinasyonlarda floating launcher UI bozulabildiği için sadece ihtiyaç halinde açılır:
+
+```bash
+NEXT_PUBLIC_ENABLE_QUERY_DEVTOOLS=true pnpm dev
+```
+
 ## Backend Bağımlılığı
 
 Bu frontend tek başına tam anlamlı çalışmaz. Özellikle şu endpoint aileleri beklenir:
@@ -49,7 +55,12 @@ Bu frontend tek başına tam anlamlı çalışmaz. Özellikle şu endpoint ailel
 - `/api/v1/shared/auth/refresh`
 - `/api/v1/shared/auth/logout`
 - `/api/v1/shared/me`
+- `/api/v1/shared/me/avatar`
 - `/api/v1/admin/users*`
+- `/api/v1/admin/users/{user_id}/avatar`
+- `/api/v1/admin/users/{user_id}/change-email`
+- `/api/v1/admin/users/{user_id}/resend-verification`
+- `/api/v1/admin/users/{user_id}/resend-invite`
 - `/api/v1/admin/roles*`
 - `/api/v1/admin/audit-logs*`
 - `/api/v1/shared/notifications*`

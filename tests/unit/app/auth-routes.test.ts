@@ -77,6 +77,7 @@ describe("auth route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     const [, init] = vi.mocked(fetch).mock.calls[0]!;
     expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
     expect(cookieStore.set).toHaveBeenCalledTimes(2);
@@ -132,6 +133,7 @@ describe("auth route handlers", () => {
       requires_totp: true,
       partial_token: "partial-1",
     });
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     const [, init] = vi.mocked(fetch).mock.calls[0]!;
     expect(new Headers(init?.headers).get("accept-language")).toBeNull();
     expect(cookieStore.set).not.toHaveBeenCalled();
@@ -148,6 +150,7 @@ describe("auth route handlers", () => {
         code: "UNAUTHENTICATED",
       },
     });
+    expect(response.headers.get("pragma")).toBe("no-cache");
     expect(fetch).not.toHaveBeenCalled();
     expect(cookieStore.delete).toHaveBeenCalledWith("access_token");
     expect(cookieStore.delete).toHaveBeenCalledWith("refresh_token");
@@ -177,6 +180,7 @@ describe("auth route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     const [, init] = vi.mocked(fetch).mock.calls[0]!;
     expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
     expect(cookieStore.set).toHaveBeenCalledTimes(2);
@@ -200,6 +204,7 @@ describe("auth route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     const [, init] = vi.mocked(fetch).mock.calls[0]!;
     expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
     expect(cookieStore.delete).toHaveBeenCalledWith("access_token");
@@ -213,6 +218,7 @@ describe("auth route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     expect(fetch).not.toHaveBeenCalled();
     expect(cookieStore.delete).toHaveBeenCalledWith("access_token");
     expect(cookieStore.delete).toHaveBeenCalledWith("refresh_token");
@@ -244,6 +250,7 @@ describe("auth route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     const [, init] = vi.mocked(fetch).mock.calls[0]!;
     expect(new Headers(init?.headers).get("accept-language")).toBeNull();
     expect(cookieStore.delete).toHaveBeenCalledWith("access_token");
@@ -263,6 +270,7 @@ describe("auth route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     expect(cookieStore.delete).toHaveBeenCalledWith("access_token");
     expect(cookieStore.delete).toHaveBeenCalledWith("refresh_token");
   });
@@ -298,6 +306,7 @@ describe("auth route handlers", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     const [, init] = vi.mocked(fetch).mock.calls[0]!;
     expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
     expect(cookieStore.set).toHaveBeenCalledTimes(2);

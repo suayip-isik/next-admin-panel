@@ -4,11 +4,12 @@ import { useForm, Controller } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
@@ -32,27 +33,20 @@ import {
 import { getErrorMessage } from "@/lib/errors";
 import {
   createRoleSchema,
-  createUpdateRoleSchema,
   type CreateRoleInput,
-  type UpdateRoleInput,
 } from "../schemas/roles.schemas";
-import { createRole, updateRole, type Role } from "../queries/roles.queries";
+import { createRole } from "../queries/roles.queries";
 import { rolesKeys } from "../roles.keys";
 
 interface RoleFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  role?: Role;
   onSuccess: () => void;
 }
-
-// Union type for both create and edit scenarios
-type RoleFormInput = CreateRoleInput | UpdateRoleInput;
 
 export function RoleFormDialog({
   open,
   onOpenChange,
-  role,
   onSuccess,
 }: RoleFormDialogProps) {
   const t = useTranslations("roles");
@@ -60,33 +54,31 @@ export function RoleFormDialog({
   const tErrors = useTranslations("errors");
   const tValidation = useTranslations("validation");
   const queryClient = useQueryClient();
-  const isEdit = !!role;
+  const schema = useMemo(() => createRoleSchema(tValidation), [tValidation]);
 
-  const schema = useMemo(
-    () => (isEdit ? createUpdateRoleSchema() : createRoleSchema(tValidation)),
-    [isEdit, tValidation],
-  );
-
-  const form = useForm<RoleFormInput>({
+  const form = useForm<CreateRoleInput>({
     resolver: standardSchemaResolver(schema),
     defaultValues: {
-      ...(isEdit ? {} : { name: "" }),
-      description: role?.description ?? "",
-      permissions: (role?.permissions ?? []) as Permission[],
+      name: "",
+      description: "",
+      permissions: [] as Permission[],
     },
   });
 
+  useEffect(() => {
+    if (!open) return;
+    form.reset({
+      name: "",
+      description: "",
+      permissions: [] as Permission[],
+    });
+  }, [form, open]);
+
   const mutation = useMutation({
-    mutationFn: (values: RoleFormInput) =>
-      isEdit
-        ? updateRole(role!.id, values)
-        : createRole(values as CreateRoleInput),
+    mutationFn: (values: CreateRoleInput) => createRole(values),
     onSuccess: () => {
-      toast.success(
-        isEdit ? t("successMessages.updated") : t("successMessages.created"),
-      );
+      toast.success(t("successMessages.created"));
       void queryClient.invalidateQueries({ queryKey: rolesKeys.all });
-      form.reset();
       onSuccess();
     },
     onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
@@ -96,36 +88,34 @@ export function RoleFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? t("form.editTitle") : t("form.createTitle")}
-          </DialogTitle>
+          <DialogTitle>{t("form.createTitle")}</DialogTitle>
+          <DialogDescription>{t("form.createDescription")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
             className="space-y-4"
           >
-            {!isEdit && (
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("form.name")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder={t("form.namePlaceholder")}
-                        {...field}
-                      />
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground">
-                      {t("form.nameHint")}
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("form.name")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t("form.namePlaceholder")}
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    {t("form.nameHint")}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="description"
@@ -137,6 +127,7 @@ export function RoleFormDialog({
                       placeholder={t("form.descriptionPlaceholder")}
                       rows={2}
                       {...field}
+                      value={field.value ?? ""}
                     />
                   </FormControl>
                   <FormMessage />

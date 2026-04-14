@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 describe("env helpers", () => {
   afterEach(() => {
     vi.resetModules();
+    vi.unstubAllEnvs();
     delete process.env.NEXT_PUBLIC_APP_URL;
     delete process.env.NEXT_PUBLIC_FASTAPI_URL;
     delete process.env.NEXT_PUBLIC_APP_NAME;
@@ -91,6 +92,25 @@ describe("env helpers", () => {
     });
   });
 
+  it("enables client sentry tracing only in production with a DSN", async () => {
+    process.env.NEXT_PUBLIC_SENTRY_DSN =
+      "https://public@example.ingest.sentry.io/1";
+    vi.stubEnv("NODE_ENV", "development");
+
+    const { isClientSentryTracingEnabled } = await import("@/lib/env");
+
+    expect(isClientSentryTracingEnabled()).toBe(false);
+
+    vi.resetModules();
+    process.env.NEXT_PUBLIC_SENTRY_DSN =
+      "https://public@example.ingest.sentry.io/1";
+    vi.stubEnv("NODE_ENV", "production");
+
+    const productionEnv = await import("@/lib/env");
+
+    expect(productionEnv.isClientSentryTracingEnabled()).toBe(true);
+  });
+
   it("parses auth cookie and tooling settings", async () => {
     process.env.NEXT_PUBLIC_FASTAPI_URL = "https://api.example.com/";
     process.env.AUTH_ACCESS_COOKIE_NAME = "acme_access";
@@ -135,6 +155,29 @@ describe("env helpers", () => {
 
     expect(() => getAuthCookieConfig()).toThrow(
       'Invalid numeric value for environment variable AUTH_ACCESS_TOKEN_MAX_AGE_SECONDS: "oops"',
+    );
+  });
+
+  it("requires secure cookies for production deployments", async () => {
+    process.env.DEPLOY_ENVIRONMENT = "production";
+    process.env.NEXT_PUBLIC_APP_URL = "https://admin.example.com";
+    process.env.AUTH_COOKIE_SECURE = "false";
+
+    const { getAuthCookieConfig } = await import("@/lib/env");
+
+    expect(() => getAuthCookieConfig()).toThrow(
+      "AUTH_COOKIE_SECURE must be true in production deployments.",
+    );
+  });
+
+  it("requires secure cookies when same-site is none", async () => {
+    process.env.AUTH_COOKIE_SAME_SITE = "none";
+    process.env.AUTH_COOKIE_SECURE = "false";
+
+    const { getAuthCookieConfig } = await import("@/lib/env");
+
+    expect(() => getAuthCookieConfig()).toThrow(
+      "AUTH_COOKIE_SAME_SITE=none requires AUTH_COOKIE_SECURE=true.",
     );
   });
 });

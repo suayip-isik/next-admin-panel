@@ -2,10 +2,11 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import { DataTable } from "@/shared/components/data-table/data-table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -17,17 +18,20 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
+import { getRoleDetailRoute } from "@/shared/lib/routes";
 import { getErrorMessage } from "@/lib/errors";
 import { fetchRoles, deleteRole, type Role } from "../queries/roles.queries";
 import { rolesKeys } from "../roles.keys";
-import { RoleFormDialog } from "./role-form-dialog";
 
 export function RolesTable() {
   const t = useTranslations("roles");
   const tErrors = useTranslations("errors");
   const queryClient = useQueryClient();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [dialog, setDialog] = useState<"edit" | "delete" | null>(null);
+  const [dialog, setDialog] = useState<"delete" | null>(null);
+  const readDetailGate = usePermissionGate({ all: ["roles.read.detail"] });
+  const deleteRoleGate = usePermissionGate({ all: ["roles.delete"] });
 
   const { data, isLoading } = useQuery({
     queryKey: rolesKeys.list(),
@@ -39,10 +43,15 @@ export function RolesTable() {
     onSuccess: () => {
       toast.success(t("successMessages.deleted"));
       void queryClient.invalidateQueries({ queryKey: rolesKeys.all });
-      setDialog(null);
+      closeDialog();
     },
     onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
+
+  const closeDialog = () => {
+    setDialog(null);
+    setSelectedRole(null);
+  };
 
   const columns: ColumnDef<Role>[] = [
     {
@@ -84,6 +93,21 @@ export function RolesTable() {
       id: "actions",
       cell: ({ row }) => {
         const role = row.original;
+        if (readDetailGate.isLoading || deleteRoleGate.isLoading) {
+          return (
+            <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          );
+        }
+
+        if (
+          !readDetailGate.isAllowed &&
+          (!deleteRoleGate.isAllowed || role.is_system)
+        ) {
+          return null;
+        }
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -92,18 +116,17 @@ export function RolesTable() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedRole(role);
-                  setDialog("edit");
-                }}
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              {!role.is_system && (
+              {readDetailGate.isAllowed && (
+                <DropdownMenuItem asChild>
+                  <Link href={getRoleDetailRoute(role.id)}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    {t("actions.viewDetail")}
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {!role.is_system && deleteRoleGate.isAllowed && (
                 <>
-                  <DropdownMenuSeparator />
+                  {readDetailGate.isAllowed && <DropdownMenuSeparator />}
                   <DropdownMenuItem
                     className="text-destructive focus:text-destructive"
                     onClick={() => {
@@ -112,7 +135,7 @@ export function RolesTable() {
                     }}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
+                    {t("actions.delete")}
                   </DropdownMenuItem>
                 </>
               )}
@@ -131,17 +154,9 @@ export function RolesTable() {
         isLoading={isLoading}
         emptyMessage={t("empty")}
       />
-      {selectedRole && (
-        <RoleFormDialog
-          open={dialog === "edit"}
-          onOpenChange={(open) => !open && setDialog(null)}
-          role={selectedRole}
-          onSuccess={() => setDialog(null)}
-        />
-      )}
       <ConfirmDialog
         open={dialog === "delete"}
-        onOpenChange={(open) => !open && setDialog(null)}
+        onOpenChange={(open) => !open && closeDialog()}
         title={t("deleteDialog.title")}
         description={t("deleteDialog.description", {
           name: selectedRole?.name ?? "",

@@ -46,7 +46,7 @@ describe("shared hooks", () => {
       data: {
         id: "user-1",
         email: "admin@example.com",
-        role: { name: "admin" },
+        role: { name: "panel_admin" },
       },
     } as never);
 
@@ -69,7 +69,8 @@ describe("shared hooks", () => {
       data: {
         id: "user-1",
         email: "admin@example.com",
-        role: { name: "admin" },
+        avatar_url: "https://cdn.example.com/avatar.png",
+        role: { name: "panel_admin" },
       },
     } as never);
 
@@ -81,11 +82,18 @@ describe("shared hooks", () => {
     const { result } = renderHook(() => useSessionMeta(), { wrapper });
 
     await waitFor(() =>
-      expect(result.current).toEqual({
+      expect(result.current).toMatchObject({
         id: "user-1",
         email: "admin@example.com",
-        role: "admin",
+        fullName: null,
+        role: "panel_admin",
+        avatarUrl: "https://cdn.example.com/avatar.png",
+        avatarFallback: "AD",
       }),
+    );
+
+    expect(result.current?.avatarSrc).toMatch(
+      /^https:\/\/cdn\.example\.com\/avatar\.png\?v=\d+$/,
     );
   });
 });

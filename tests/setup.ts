@@ -1,6 +1,14 @@
 import "@testing-library/jest-dom";
 import { vi } from "vitest";
 
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+global.ResizeObserver = ResizeObserverMock;
+
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(),

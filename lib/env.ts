@@ -50,6 +50,10 @@ function normalizeUrl(value: string, envName: string) {
   }
 }
 
+function isSecureUrl(value: string) {
+  return new URL(value).protocol === "https:";
+}
+
 function parseBoolean(value: string | undefined, fallback: boolean) {
   if (value === undefined) return fallback;
 
@@ -147,7 +151,8 @@ function buildPublicEnv() {
 }
 
 function buildServerEnv() {
-  const fastApiUrl = getFastApiUrl();
+  const publicEnv = buildPublicEnv();
+  const fastApiUrl = publicEnv.fastApiUrl;
   const openApiSchemaUrl = normalizeUrl(
     getOptionalEnv("OPENAPI_SCHEMA_URL") ??
       `${fastApiUrl}${DEFAULT_OPENAPI_SCHEMA_PATH}`,
@@ -201,24 +206,65 @@ function buildServerEnv() {
     openApiSchemaUrl,
     playwright: {
       baseUrl: normalizeUrl(
-        getOptionalEnv("PLAYWRIGHT_BASE_URL") ?? getPublicEnv().appUrl,
+        getOptionalEnv("PLAYWRIGHT_BASE_URL") ?? publicEnv.appUrl,
         "PLAYWRIGHT_BASE_URL",
       ),
       webServerUrl: normalizeUrl(
         getOptionalEnv("PLAYWRIGHT_WEB_SERVER_URL") ??
           getOptionalEnv("PLAYWRIGHT_BASE_URL") ??
-          getPublicEnv().appUrl,
+          publicEnv.appUrl,
         "PLAYWRIGHT_WEB_SERVER_URL",
       ),
     },
   };
 }
 
+function isProductionDeployment() {
+  return (
+    process.env.DEPLOY_ENVIRONMENT === "production" ||
+    process.env.VERCEL_ENV === "production"
+  );
+}
+
+function validatePublicSecurityContract() {
+  const publicEnv = buildPublicEnv();
+  if (isProductionDeployment() && !isSecureUrl(publicEnv.appUrl)) {
+    throw new Error(
+      "NEXT_PUBLIC_APP_URL must use https in production deployments.",
+    );
+  }
+}
+
+function validateServerSecurityContract() {
+  validatePublicSecurityContract();
+  const serverEnv = buildServerEnv();
+  const isProductionDeployment =
+    process.env.DEPLOY_ENVIRONMENT === "production" ||
+    process.env.VERCEL_ENV === "production";
+
+  if (isProductionDeployment && !serverEnv.auth.cookieSecure) {
+    throw new Error(
+      "AUTH_COOKIE_SECURE must be true in production deployments.",
+    );
+  }
+
+  if (
+    serverEnv.auth.cookieSameSite === "none" &&
+    !serverEnv.auth.cookieSecure
+  ) {
+    throw new Error(
+      "AUTH_COOKIE_SAME_SITE=none requires AUTH_COOKIE_SECURE=true.",
+    );
+  }
+}
+
 export function getPublicEnv() {
+  validatePublicSecurityContract();
   return buildPublicEnv();
 }
 
 export function getServerEnv() {
+  validateServerSecurityContract();
   return buildServerEnv();
 }
 
@@ -275,6 +321,12 @@ export function getClientSentryConfig() {
     tracesSampleRate: env.sentryTracesSampleRate,
     environment: process.env.NODE_ENV,
   };
+}
+
+export function isClientSentryTracingEnabled() {
+  const env = getPublicEnv();
+
+  return process.env.NODE_ENV === "production" && Boolean(env.sentryDsn);
 }
 
 export function getServerSentryConfig() {

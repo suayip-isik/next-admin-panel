@@ -3,6 +3,7 @@ import { apiClient } from "@/lib/api-client";
 import {
   fetchAuditLog,
   fetchAuditLogs,
+  fetchAuditLogsStream,
 } from "@/modules/audit-logs/queries/audit-logs.queries";
 
 vi.mock("@/lib/api-client", () => ({
@@ -21,10 +22,15 @@ describe("audit log queries", () => {
     await fetchAuditLogs({
       page: 1,
       size: 25,
-      action: "users_deleted",
+      action: "user_deleted",
       user_id: "user-1",
     });
     await fetchAuditLog("log-1");
+    await fetchAuditLogsStream({
+      cursor: "cursor-1",
+      size: 10,
+      user_id: "user-1",
+    });
 
     expect(apiClient.GET).toHaveBeenNthCalledWith(
       1,
@@ -34,7 +40,7 @@ describe("audit log queries", () => {
           query: {
             page: 1,
             size: 25,
-            action: "users_deleted",
+            action: "user_deleted",
             user_id: "user-1",
           },
         },
@@ -45,6 +51,19 @@ describe("audit log queries", () => {
       "/api/v1/admin/audit-logs/{log_id}",
       {
         params: { path: { log_id: "log-1" } },
+      },
+    );
+    expect(apiClient.GET).toHaveBeenNthCalledWith(
+      3,
+      "/api/v1/admin/audit-logs/stream",
+      {
+        params: {
+          query: {
+            cursor: "cursor-1",
+            size: 10,
+            user_id: "user-1",
+          },
+        },
       },
     );
   });

@@ -16,6 +16,10 @@ export function resolveLocale(locale?: string | null): AppLocale {
   return DEFAULT_LOCALE;
 }
 
+export function getNextLocale(locale?: string | null): AppLocale {
+  return resolveLocale(locale) === "en" ? "tr" : "en";
+}
+
 export function toAcceptLanguageHeader(
   locale?: string | null,
 ): string | undefined {

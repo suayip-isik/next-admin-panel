@@ -9,11 +9,12 @@ Next.js 16, React 19 ve FastAPI odaklı bir backend entegrasyonu için hazırlan
 - Şifre sıfırlama akışları
 - Dashboard üzerinde kullanıcı istatistik kartları
 - Kullanıcı, silinmiş kullanıcı ve kullanıcı detay ekranları
+- Admin kullanıcı oluşturma, e-posta değişikliği, doğrulama ve davet yeniden gönderme
 - Rol listeleme, oluşturma, güncelleme ve silme
-- Audit log listeleme ve detay görüntüleme
+- Audit log listeleme, stream tabanlı `Load more` ve detay görüntüleme
 - Bildirim listeleme, okunma ve silme işlemleri
 - API key listeleme, oluşturma ve silme
-- Profil güncelleme, parola değiştirme, TOTP yönetimi ve backup code yenileme
+- Profil güncelleme, avatar yönetimi, parola değiştirme, TOTP yönetimi ve backup code yenileme
 - Türkçe ve İngilizce arayüz
 - Tema desteği: `light`, `dark`, `system`
 - OpenAPI şemasından TypeScript tip üretimi
@@ -147,7 +148,7 @@ Repo şu GitHub Actions workflow'larını içerir:
 
 - `CI`: `env-check`, `lint`, `typecheck`, `unit-tests`, `build`, `e2e`
 - `dependency-review`: pull request bağımlılık risk kontrolü
-- `codeql`: `main` ve haftalık schedule için statik analiz
+- `codeql`: pull request, `main` ve haftalık schedule için statik analiz
 - `Release`: tag veya manuel tetikleme ile GitHub Release üretimi
 - `Preview Example (Vercel)`: opsiyonel Vercel preview build örneği
 
@@ -176,6 +177,12 @@ pnpm typecheck
 pnpm test:unit
 pnpm build
 ```
+
+Production benzeri deploylarda:
+
+- `NEXT_PUBLIC_APP_URL` https olmalıdır
+- `AUTH_COOKIE_SECURE=true` olmalıdır
+- `AUTH_COOKIE_SAME_SITE=none` ise `AUTH_COOKIE_SECURE=true` zorunludur
 
 ## Açık Kaynak Dosyaları
 

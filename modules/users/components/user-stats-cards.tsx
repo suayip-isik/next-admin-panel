@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { fetchUserStats } from "@/modules/users/queries/users.queries";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
 import { usersKeys } from "@/modules/users/users.keys";
 import {
   Card,
@@ -15,10 +16,33 @@ import { Users, UserCheck, UserX } from "lucide-react";
 
 export function UserStatsCards() {
   const t = useTranslations("dashboard.stats");
+  const gate = usePermissionGate({ all: ["users.read.stats"] });
   const { data, isLoading } = useQuery({
     queryKey: usersKeys.stats(),
     queryFn: fetchUserStats,
+    enabled: gate.status === "allowed",
   });
+
+  if (gate.isLoading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Card key={index}>
+            <CardHeader className="pb-2">
+              <Skeleton className="h-4 w-24" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-16" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (!gate.isAllowed) {
+    return null;
+  }
 
   const stats = [
     {

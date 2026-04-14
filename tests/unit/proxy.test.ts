@@ -14,6 +14,9 @@ describe("proxy", () => {
     );
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("content-security-policy")).toContain(
+      "script-src 'self' 'nonce-",
+    );
   });
 
   it("redirects unauthenticated admin routes to login with a from parameter", () => {
@@ -23,6 +26,7 @@ describe("proxy", () => {
     expect(response.headers.get("location")).toBe(
       "http://localhost/login?from=%2Fusers%3Fpage%3D2",
     );
+    expect(response.headers.get("x-frame-options")).toBe("DENY");
   });
 
   it("allows authenticated admin routes", () => {
@@ -59,5 +63,14 @@ describe("proxy", () => {
     );
 
     expect(response.status).toBe(200);
+  });
+
+  it("drops invalid redirect targets", () => {
+    const response = proxy(
+      new NextRequest("http://localhost//evil.example.com/path"),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("http://localhost/login");
   });
 });

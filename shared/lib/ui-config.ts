@@ -1,0 +1,3 @@
+export const DEFAULT_TABLE_PAGE_SIZE = 20;
+export const DEFAULT_QUERY_STALE_TIME_MS = 5 * 60 * 1000;
+export const DEFAULT_SEARCH_DEBOUNCE_MS = 400;

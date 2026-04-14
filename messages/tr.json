@@ -50,7 +50,23 @@
     "notifications": "Bildirimler",
     "profile": "Profil",
     "security": "Güvenlik",
-    "signOut": "Çıkış Yap"
+    "signOut": "Çıkış Yap",
+    "currentUser": "Mevcut Kullanıcı",
+    "switchLocale": "Dili {locale} olarak değiştir"
+  },
+  "system": {
+    "forbidden": {
+      "code": "403",
+      "title": "Erişim reddedildi",
+      "description": "Bu kaynağa erişim izniniz yok.",
+      "backToDashboard": "Panele dön"
+    },
+    "unauthorized": {
+      "code": "403",
+      "title": "Erişim Reddedildi",
+      "description": "Bu sayfaya erişim izniniz yok.",
+      "backToDashboard": "Panele Git"
+    }
   },
   "auth": {
     "login": {
@@ -130,12 +146,16 @@
   "users": {
     "title": "Kullanıcılar",
     "subtitle": "Kullanıcı hesaplarını yönetin",
+    "createAdmin": "Panel Kullanıcısı Oluştur",
     "searchPlaceholder": "Ad veya e-posta ile ara...",
     "filters": {
       "allRoles": "Tüm roller",
       "allStatuses": "Tüm durumlar",
+      "allVerification": "Tüm doğrulama durumları",
       "active": "Aktif",
-      "inactive": "Pasif"
+      "inactive": "Pasif",
+      "verified": "Doğrulanmış",
+      "unverified": "Doğrulanmamış"
     },
     "columns": {
       "user": "Kullanıcı",
@@ -149,19 +169,65 @@
       "personalInfo": "Kişisel Bilgiler",
       "fullName": "Ad Soyad",
       "username": "Kullanıcı Adı",
-      "joinedAt": "Katılım",
-      "lastUpdated": "Son Güncelleme",
+      "pendingEmail": "Bekleyen E-posta",
       "accountStatus": "Hesap Durumu",
       "emailVerified": "E-posta Doğrulandı",
-      "twoFactor": "İki Faktörlü Doğrulama"
+      "verificationRequired": "Doğrulama Gerekli",
+      "actionsTitle": "Yönetici İşlemleri",
+      "actionsDescription": "Kullanıcı yönetimi ve iletişim akışlarını tek yerden yönetin."
+    },
+    "verification": {
+      "pendingEmail": "Bekleyen e-posta değişikliği"
+    },
+    "avatar": {
+      "title": "Profil Fotoğrafı",
+      "description": "Bu kullanıcının profil fotoğrafını yükleyin veya kaldırın.",
+      "upload": "Fotoğraf Yükle",
+      "remove": "Fotoğrafı Kaldır",
+      "uploaded": "Fotoğraf yüklendi",
+      "empty": "Fotoğraf yüklenmedi"
     },
     "actions": {
+      "edit": "Profili Düzenle",
       "activate": "Aktifleştir",
       "deactivate": "Pasifleştir",
+      "changeEmail": "E-postayı Değiştir",
       "changeRole": "Rol Değiştir",
+      "resendVerification": "Doğrulama Mailini Yeniden Gönder",
+      "resendInvite": "Daveti Yeniden Gönder",
       "delete": "Sil",
       "restore": "Geri Yükle",
       "viewDetail": "Detayı Gör"
+    },
+    "createDialog": {
+      "title": "Admin Panel Kullanıcısı Oluştur",
+      "description": "Yeni bir admin panel hesabı oluşturun ve davet e-postasını hemen gönderin.",
+      "email": "E-posta",
+      "role": "Rol",
+      "rolePlaceholder": "Bir rol seçin",
+      "fullName": "Ad Soyad",
+      "fullNamePlaceholder": "Opsiyonel ad soyad",
+      "username": "Kullanıcı Adı",
+      "usernamePlaceholder": "opsiyonel_kullanici_adi",
+      "submit": "Kullanıcı Oluştur",
+      "submitting": "Oluşturuluyor..."
+    },
+    "editDialog": {
+      "title": "Kullanıcıyı Düzenle",
+      "description": "Kullanıcının temel profil alanlarını güncelleyin.",
+      "fullName": "Ad Soyad",
+      "fullNamePlaceholder": "Kullanıcının ad soyadı",
+      "username": "Kullanıcı Adı",
+      "usernamePlaceholder": "kullanici_adi",
+      "submit": "Değişiklikleri Kaydet",
+      "submitting": "Kaydediliyor..."
+    },
+    "emailDialog": {
+      "title": "Kullanıcı E-postasını Değiştir",
+      "description": "Yeni adres için e-posta değişikliğini başlatın ve doğrulama maili gönderin.",
+      "email": "Yeni E-posta",
+      "submit": "E-postayı Değiştir",
+      "submitting": "Güncelleniyor..."
     },
     "dialogs": {
       "deactivate": {
@@ -186,6 +252,7 @@
       },
       "changeRole": {
         "title": "Rol Değiştir",
+        "description": "Bu kullanıcıya farklı bir rol atayın.",
         "selectRole": "Bir rol seçin",
         "confirm": "Rolü Değiştir"
       }
@@ -198,11 +265,18 @@
     },
     "empty": "Kullanıcı bulunamadı.",
     "successMessages": {
+      "created": "Admin kullanıcı oluşturuldu.",
+      "updated": "Kullanıcı güncellendi.",
       "activated": "Kullanıcı aktifleştirildi.",
       "deactivated": "Kullanıcı pasifleştirildi.",
       "deleted": "Kullanıcı silindi.",
       "restored": "Kullanıcı geri yüklendi.",
-      "roleChanged": "Kullanıcı rolü güncellendi."
+      "roleChanged": "Kullanıcı rolü güncellendi.",
+      "emailChanged": "Kullanıcı e-posta değişikliği başlatıldı.",
+      "verificationSent": "Doğrulama maili gönderildi.",
+      "inviteResent": "Admin daveti yeniden gönderildi.",
+      "avatarUploaded": "Profil fotoğrafı güncellendi.",
+      "avatarDeleted": "Profil fotoğrafı kaldırıldı."
     },
     "errorMessages": {
       "activateFailed": "Kullanıcı aktifleştirilemedi.",
@@ -225,9 +299,17 @@
     "systemRole": "Sistem",
     "customRole": "Özel",
     "permissionsCount": "{count} izin",
+    "actions": {
+      "viewDetail": "Detayı Gör",
+      "delete": "Sil",
+      "editDescription": "Açıklamayı Düzenle",
+      "editPermissions": "İzinleri Düzenle"
+    },
     "form": {
       "createTitle": "Rol Oluştur",
+      "createDescription": "Yeni bir rol oluşturmak için ad, açıklama ve izinleri belirleyin.",
       "editTitle": "Rolü Düzenle",
+      "editDescription": "Rol açıklamasını ve izinlerini güncelleyin.",
       "name": "Rol Adı",
       "namePlaceholder": "örn. içerik_editörü",
       "nameHint": "Sadece küçük harf, rakam ve alt çizgi kullanılabilir.",
@@ -245,6 +327,14 @@
     },
     "empty": "Rol bulunamadı.",
     "systemRoleProtected": "Sistem rolleri silinemez.",
+    "descriptionDialog": {
+      "title": "Açıklamayı Düzenle",
+      "description": "İzinleri değiştirmeden rol açıklamasını güncelleyin."
+    },
+    "permissionsDialog": {
+      "title": "İzinleri Değiştir",
+      "description": "Bu rolün tüm izin setini değiştirin."
+    },
     "successMessages": {
       "created": "Rol oluşturuldu.",
       "updated": "Rol güncellendi.",
@@ -278,7 +368,11 @@
       "timestamp": "Zaman"
     },
     "empty": "Denetim günlüğü bulunamadı.",
-    "anonymous": "Anonim"
+    "loadMore": "Daha Fazla Yükle",
+    "loadMoreLoading": "Yükleniyor...",
+    "anonymous": "Anonim",
+    "enableLiveMode": "Canlı Modu Etkinleştir",
+    "disableLiveMode": "Canlı Modu Kapat"
   },
   "apiKeys": {
     "title": "API Anahtarları",
@@ -350,6 +444,16 @@
   "profile": {
     "title": "Profil",
     "subtitle": "Hesap bilgilerinizi yönetin",
+    "avatar": {
+      "title": "Profil Fotoğrafı",
+      "description": "Profil fotoğrafınızı yükleyin veya kaldırın.",
+      "upload": "Fotoğraf Yükle",
+      "remove": "Fotoğrafı Kaldır",
+      "uploaded": "Fotoğraf yüklendi",
+      "empty": "Fotoğraf yüklenmedi",
+      "successUploaded": "Profil fotoğrafı güncellendi.",
+      "successDeleted": "Profil fotoğrafı kaldırıldı."
+    },
     "form": {
       "fullName": "Ad Soyad",
       "fullNamePlaceholder": "Adınız Soyadınız",

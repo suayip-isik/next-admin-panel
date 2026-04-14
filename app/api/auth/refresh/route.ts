@@ -6,6 +6,7 @@ import {
   getRefreshTokenFromCookies,
   setAuthCookies,
 } from "@/lib/server-auth";
+import { withNoStoreApiHeaders } from "@/lib/security";
 
 export async function POST() {
   const refreshToken = await getRefreshTokenFromCookies();
@@ -40,5 +41,5 @@ export async function POST() {
     refresh_token: body.refresh_token,
   });
 
-  return Response.json({ success: true });
+  return withNoStoreApiHeaders(Response.json({ success: true }));
 }

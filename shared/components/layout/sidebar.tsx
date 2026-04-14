@@ -16,30 +16,44 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { getAppShortName } from "@/lib/env";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
 import { cn } from "@/shared/utils/cn";
 import { Button } from "@/shared/components/ui/button";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { useState } from "react";
+import {
+  ADMIN_NAV_ITEMS,
+  PROFILE_NAV_ITEMS,
+  type NavigationItem,
+} from "@/shared/lib/routes";
 
 interface NavItem {
   key: string;
   href: string;
   icon: typeof LayoutDashboard;
+  access?: NavigationItem["access"];
 }
 
-const navItems: NavItem[] = [
-  { key: "dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { key: "users", href: "/users", icon: Users },
-  { key: "roles", href: "/roles", icon: Shield },
-  { key: "auditLogs", href: "/audit-logs", icon: ScrollText },
-  { key: "apiKeys", href: "/api-keys", icon: Key },
-  { key: "notifications", href: "/notifications", icon: Bell },
-];
+const navItems: NavItem[] = ADMIN_NAV_ITEMS.map((item) => ({
+  ...item,
+  icon:
+    item.key === "dashboard"
+      ? LayoutDashboard
+      : item.key === "users"
+        ? Users
+        : item.key === "roles"
+          ? Shield
+          : item.key === "auditLogs"
+            ? ScrollText
+            : item.key === "apiKeys"
+              ? Key
+              : Bell,
+}));
 
-const profileItems: NavItem[] = [
-  { key: "profile", href: "/profile", icon: User },
-  { key: "security", href: "/profile/security", icon: Lock },
-];
+const profileItems: NavItem[] = PROFILE_NAV_ITEMS.map((item) => ({
+  ...item,
+  icon: item.key === "profile" ? User : Lock,
+}));
 
 export function Sidebar() {
   const t = useTranslations("nav");
@@ -82,10 +96,9 @@ export function Sidebar() {
       <ScrollArea className="flex-1 py-2">
         <nav className="space-y-1 px-2">
           {navItems.map((item) => (
-            <SidebarItem
+            <SidebarNavItem
               key={item.key}
-              href={item.href}
-              icon={item.icon}
+              item={item}
               label={t(item.key as Parameters<typeof t>[0])}
               isActive={pathname.startsWith(item.href)}
               collapsed={collapsed}
@@ -97,10 +110,9 @@ export function Sidebar() {
 
         <nav className="space-y-1 px-2">
           {profileItems.map((item) => (
-            <SidebarItem
+            <SidebarNavItem
               key={item.key}
-              href={item.href}
-              icon={item.icon}
+              item={item}
               label={t(item.key as Parameters<typeof t>[0])}
               isActive={pathname === item.href}
               collapsed={collapsed}
@@ -112,26 +124,30 @@ export function Sidebar() {
   );
 }
 
-interface SidebarItemProps {
-  href: string;
-  icon: NavItem["icon"];
+interface SidebarNavItemProps {
+  item: NavItem;
   label: string;
   isActive: boolean;
   collapsed: boolean;
 }
 
-function SidebarItem({
-  href,
-  icon,
+function SidebarNavItem({
+  item,
   label,
   isActive,
   collapsed,
-}: SidebarItemProps) {
-  const Icon = icon;
+}: SidebarNavItemProps) {
+  const gate = usePermissionGate(item.access);
+
+  if (!gate.isAllowed) {
+    return null;
+  }
+
+  const Icon = item.icon;
 
   return (
     <Link
-      href={href}
+      href={item.href}
       title={collapsed ? label : undefined}
       className={cn(
         "flex items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors",

@@ -22,8 +22,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import { getErrorMessage } from "@/lib/errors";
-import { changePassword } from "../queries/profile.queries";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
+import { updateProfilePassword } from "../queries/profile.queries";
 
 function createPasswordSchema(
   t: (key: string, params?: Record<string, string | number>) => string,
@@ -48,6 +50,9 @@ export function ChangePasswordForm() {
   const tProfile = useTranslations("profile");
   const tValidation = useTranslations("validation");
   const tErrors = useTranslations("errors");
+  const updatePasswordGate = usePermissionGate({
+    all: ["profile.update.password"],
+  });
 
   const schema = createPasswordSchema(tValidation);
 
@@ -58,13 +63,32 @@ export function ChangePasswordForm() {
 
   const mutation = useMutation({
     mutationFn: (values: PasswordFormValues) =>
-      changePassword(values.new_password),
+      updateProfilePassword({ password: values.new_password }),
     onSuccess: () => {
       toast.success(tProfile("successMessages.passwordChanged"));
       form.reset();
     },
     onError: (error) => toast.error(getErrorMessage(error, tErrors("generic"))),
   });
+
+  if (updatePasswordGate.isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-5 w-32" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="ml-auto h-10 w-28" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!updatePasswordGate.isAllowed) {
+    return null;
+  }
 
   return (
     <Card>

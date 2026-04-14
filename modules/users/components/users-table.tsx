@@ -1,22 +1,31 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useQueryState, parseAsInteger, parseAsString } from "nuqs";
-import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
+  Eye,
   MoreHorizontal,
-  UserCheck,
-  UserX,
   Shield,
   Trash2,
-  Eye,
+  UserCheck,
+  UserX,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { useState } from "react";
+import { toast } from "sonner";
 import { DataTable } from "@/shared/components/data-table/data-table";
 import { DataTablePagination } from "@/shared/components/data-table/data-table-pagination";
+import { ConfirmDialog } from "@/shared/components/confirm-dialog";
+import { useDebounce } from "@/shared/hooks/use-debounce";
+import { usePermissionGate } from "@/shared/hooks/use-permissions";
+import { getUserDetailRoute } from "@/shared/lib/routes";
+import {
+  DEFAULT_QUERY_STALE_TIME_MS,
+  DEFAULT_SEARCH_DEBOUNCE_MS,
+  DEFAULT_TABLE_PAGE_SIZE,
+} from "@/shared/lib/ui-config";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -26,41 +35,74 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import { Input } from "@/shared/components/ui/input";
-import { ConfirmDialog } from "@/shared/components/confirm-dialog";
-import { useDebounce } from "@/shared/hooks/use-debounce";
 import { getErrorMessage } from "@/lib/errors";
+import { fetchRoles } from "@/modules/roles/queries/roles.queries";
+import { rolesKeys } from "@/modules/roles/roles.keys";
 import {
-  fetchUsers,
   activateUser,
   deactivateUser,
   deleteUser,
+  fetchUsers,
   type User,
 } from "../queries/users.queries";
 import { usersKeys } from "../users.keys";
+import { CreateAdminUserDialog } from "./create-admin-user-dialog";
 import { RoleChangeDialog } from "./role-change-dialog";
+import { UsersTableToolbar } from "./users-table-toolbar";
 
 export function UsersTable() {
   const t = useTranslations("users");
   const tErrors = useTranslations("errors");
   const router = useRouter();
   const queryClient = useQueryClient();
+  const readDetailGate = usePermissionGate({ all: ["users.read.basic"] });
+  const createAdminGate = usePermissionGate({ all: ["users.create.admin"] });
+  const activateGate = usePermissionGate({ all: ["users.activate"] });
+  const deactivateGate = usePermissionGate({ all: ["users.deactivate"] });
+  const deleteGate = usePermissionGate({ all: ["users.delete"] });
+  const changeRoleGate = usePermissionGate({ all: ["users.update.role"] });
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [search, setSearch] = useQueryState(
     "search",
     parseAsString.withDefault(""),
   );
-  const debouncedSearch = useDebounce(search, 400);
+  const [role, setRole] = useQueryState(
+    "role",
+    parseAsString.withDefault("all"),
+  );
+  const [status, setStatus] = useQueryState(
+    "is_active",
+    parseAsString.withDefault("all"),
+  );
+  const [verified, setVerified] = useQueryState(
+    "is_verified",
+    parseAsString.withDefault("all"),
+  );
+  const debouncedSearch = useDebounce(search, DEFAULT_SEARCH_DEBOUNCE_MS);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [dialog, setDialog] = useState<
     "activate" | "deactivate" | "delete" | "role" | null
   >(null);
 
+  const filters = {
+    page,
+    size: DEFAULT_TABLE_PAGE_SIZE,
+    q: debouncedSearch || undefined,
+    role: role === "all" ? undefined : role,
+    is_active: status === "all" ? undefined : status === "true",
+    is_verified: verified === "all" ? undefined : verified === "true",
+  };
+
   const { data, isLoading } = useQuery({
-    queryKey: usersKeys.list(page, debouncedSearch),
-    queryFn: () =>
-      fetchUsers({ page, size: 20, q: debouncedSearch || undefined }),
+    queryKey: usersKeys.list(filters),
+    queryFn: () => fetchUsers(filters),
+  });
+  const { data: roles } = useQuery({
+    queryKey: rolesKeys.list(),
+    queryFn: fetchRoles,
+    staleTime: DEFAULT_QUERY_STALE_TIME_MS,
   });
 
   const invalidate = () =>
@@ -150,14 +192,17 @@ export function UsersTable() {
       accessorKey: "is_verified",
       header: t("columns.verified"),
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {row.original.is_verified ? "✓" : "—"}
-        </span>
+        <div className="space-y-1 text-sm text-muted-foreground">
+          <div>{row.original.is_verified ? "✓" : "—"}</div>
+          {row.original.has_pending_email && (
+            <div className="text-xs">{t("verification.pendingEmail")}</div>
+          )}
+        </div>
       ),
     },
     {
       accessorKey: "username",
-      header: "Username",
+      header: t("detail.username"),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
           {row.original.username ?? "—"}
@@ -168,6 +213,31 @@ export function UsersTable() {
       id: "actions",
       cell: ({ row }) => {
         const user = row.original;
+        const isActionLoading =
+          readDetailGate.isLoading ||
+          activateGate.isLoading ||
+          deactivateGate.isLoading ||
+          deleteGate.isLoading ||
+          changeRoleGate.isLoading;
+        const hasActions =
+          readDetailGate.isAllowed ||
+          activateGate.isAllowed ||
+          deactivateGate.isAllowed ||
+          deleteGate.isAllowed ||
+          changeRoleGate.isAllowed;
+
+        if (isActionLoading) {
+          return (
+            <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          );
+        }
+
+        if (!hasActions) {
+          return null;
+        }
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -176,54 +246,68 @@ export function UsersTable() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => router.push(`/users/${user.id}`)}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                {t("actions.viewDetail")}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {user.is_active ? (
+              {readDetailGate.isAllowed && (
                 <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedUser(user);
-                    setDialog("deactivate");
-                  }}
+                  onClick={() => router.push(getUserDetailRoute(user.id))}
                 >
-                  <UserX className="mr-2 h-4 w-4" />
-                  {t("actions.deactivate")}
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedUser(user);
-                    setDialog("activate");
-                  }}
-                >
-                  <UserCheck className="mr-2 h-4 w-4" />
-                  {t("actions.activate")}
+                  <Eye className="mr-2 h-4 w-4" />
+                  {t("actions.viewDetail")}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedUser(user);
-                  setDialog("role");
-                }}
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                {t("actions.changeRole")}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => {
-                  setSelectedUser(user);
-                  setDialog("delete");
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {t("actions.delete")}
-              </DropdownMenuItem>
+              {readDetailGate.isAllowed &&
+                (activateGate.isAllowed ||
+                  deactivateGate.isAllowed ||
+                  deleteGate.isAllowed ||
+                  changeRoleGate.isAllowed) && <DropdownMenuSeparator />}
+              {user.is_active
+                ? deactivateGate.isAllowed && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setDialog("deactivate");
+                      }}
+                    >
+                      <UserX className="mr-2 h-4 w-4" />
+                      {t("actions.deactivate")}
+                    </DropdownMenuItem>
+                  )
+                : activateGate.isAllowed && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setDialog("activate");
+                      }}
+                    >
+                      <UserCheck className="mr-2 h-4 w-4" />
+                      {t("actions.activate")}
+                    </DropdownMenuItem>
+                  )}
+              {changeRoleGate.isAllowed && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedUser(user);
+                    setDialog("role");
+                  }}
+                >
+                  <Shield className="mr-2 h-4 w-4" />
+                  {t("actions.changeRole")}
+                </DropdownMenuItem>
+              )}
+              {deleteGate.isAllowed && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setDialog("delete");
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {t("actions.delete")}
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -231,16 +315,44 @@ export function UsersTable() {
     },
   ];
 
+  const roleOptions = (roles ?? []).map((currentRole) => currentRole.name);
+
   return (
     <div className="space-y-4">
-      <Input
-        placeholder={t("searchPlaceholder")}
-        value={search}
-        onChange={(e) => {
-          void setSearch(e.target.value || null);
+      <UsersTableToolbar
+        searchPlaceholder={t("searchPlaceholder")}
+        rolePlaceholder={t("filters.allRoles")}
+        statusPlaceholder={t("filters.allStatuses")}
+        verificationPlaceholder={t("filters.allVerification")}
+        createLabel={t("createAdmin")}
+        activeLabel={t("filters.active")}
+        inactiveLabel={t("filters.inactive")}
+        verifiedLabel={t("filters.verified")}
+        unverifiedLabel={t("filters.unverified")}
+        search={search}
+        role={role}
+        status={status}
+        verified={verified}
+        roleOptions={roleOptions}
+        canCreate={createAdminGate.isAllowed || createAdminGate.isLoading}
+        createLoading={createAdminGate.isLoading}
+        onSearchChange={(value) => {
+          void setSearch(value || null);
           void setPage(1);
         }}
-        className="max-w-sm"
+        onRoleChange={(value) => {
+          void setRole(value === "all" ? null : value);
+          void setPage(1);
+        }}
+        onStatusChange={(value) => {
+          void setStatus(value === "all" ? null : value);
+          void setPage(1);
+        }}
+        onVerifiedChange={(value) => {
+          void setVerified(value === "all" ? null : value);
+          void setPage(1);
+        }}
+        onCreate={() => setCreateOpen(true)}
       />
 
       <DataTable
@@ -255,11 +367,10 @@ export function UsersTable() {
           page={page}
           totalPages={data.pages}
           total={data.total}
-          onPageChange={(p) => void setPage(p)}
+          onPageChange={(nextPage) => void setPage(nextPage)}
         />
       )}
 
-      {/* Dialogs */}
       <ConfirmDialog
         open={dialog === "activate"}
         onOpenChange={(open) => !open && setDialog(null)}
@@ -312,6 +423,7 @@ export function UsersTable() {
       />
       {selectedUser && (
         <RoleChangeDialog
+          key={selectedUser.id}
           open={dialog === "role"}
           onOpenChange={(open) => !open && setDialog(null)}
           user={selectedUser}
@@ -320,6 +432,9 @@ export function UsersTable() {
             invalidate();
           }}
         />
+      )}
+      {createAdminGate.isAllowed && (
+        <CreateAdminUserDialog open={createOpen} onOpenChange={setCreateOpen} />
       )}
     </div>
   );

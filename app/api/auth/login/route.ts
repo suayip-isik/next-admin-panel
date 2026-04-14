@@ -4,6 +4,7 @@ import {
   forwardToFastApi,
   isPartialAuthResponse,
 } from "@/lib/server-auth";
+import { withNoStoreApiHeaders } from "@/lib/security";
 
 export async function POST(request: Request) {
   const payload = await request.json();
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
   const body = await response.json();
 
   if (isPartialAuthResponse(body)) {
-    return Response.json(body);
+    return withNoStoreApiHeaders(Response.json(body));
   }
 
   return finalizeAuthResponse(body);

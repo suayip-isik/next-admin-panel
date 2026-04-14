@@ -1,12 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Shield } from "lucide-react";
+import { ArrowLeft, Pencil, Shield } from "lucide-react";
 import { fetchRole } from "@/modules/roles/queries/roles.queries";
 import { PageHeader } from "@/shared/components/page-header";
+import { ActionGuard } from "@/shared/components/auth/action-guard";
 import { Badge } from "@/shared/components/ui/badge";
 import {
   Card,
@@ -17,7 +19,10 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Separator } from "@/shared/components/ui/separator";
 import { Skeleton } from "@/shared/components/ui/skeleton";
+import { APP_ROUTES } from "@/shared/lib/routes";
 import { PERMISSION_LABELS } from "@/shared/utils/permissions";
+import { RoleDescriptionDialog } from "./role-description-dialog";
+import { RolePermissionsDialog } from "./role-permissions-dialog";
 
 interface RoleDetailClientProps {
   id: string;
@@ -25,6 +30,8 @@ interface RoleDetailClientProps {
 
 export function RoleDetailClient({ id }: RoleDetailClientProps) {
   const t = useTranslations("roles");
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
 
   const {
     data: role,
@@ -52,7 +59,7 @@ export function RoleDetailClient({ id }: RoleDetailClientProps) {
 
   const grouped = Object.entries(
     (role.permissions ?? []).reduce<Record<string, string[]>>((acc, perm) => {
-      const group = perm.split(":")[0] ?? perm;
+      const group = perm.split(".")[0] ?? perm;
       (acc[group] ??= []).push(perm);
       return acc;
     }, {}),
@@ -62,7 +69,7 @@ export function RoleDetailClient({ id }: RoleDetailClientProps) {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/roles">
+          <Link href={APP_ROUTES.roles}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
@@ -76,6 +83,34 @@ export function RoleDetailClient({ id }: RoleDetailClientProps) {
         >
           {role.is_system ? t("systemRole") : t("customRole")}
         </Badge>
+        <ActionGuard
+          all={["roles.update.description"]}
+          loadingFallback={
+            <Button variant="outline" disabled>
+              <Pencil className="mr-2 h-4 w-4" />
+              {t("actions.editDescription")}
+            </Button>
+          }
+        >
+          <Button variant="outline" onClick={() => setDescriptionOpen(true)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            {t("actions.editDescription")}
+          </Button>
+        </ActionGuard>
+        <ActionGuard
+          all={["roles.update.permissions"]}
+          loadingFallback={
+            <Button variant="outline" disabled>
+              <Shield className="mr-2 h-4 w-4" />
+              {t("actions.editPermissions")}
+            </Button>
+          }
+        >
+          <Button variant="outline" onClick={() => setPermissionsOpen(true)}>
+            <Shield className="mr-2 h-4 w-4" />
+            {t("actions.editPermissions")}
+          </Button>
+        </ActionGuard>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -142,6 +177,16 @@ export function RoleDetailClient({ id }: RoleDetailClientProps) {
           </CardContent>
         </Card>
       </div>
+      <RoleDescriptionDialog
+        open={descriptionOpen}
+        onOpenChange={setDescriptionOpen}
+        role={role}
+      />
+      <RolePermissionsDialog
+        open={permissionsOpen}
+        onOpenChange={setPermissionsOpen}
+        role={role}
+      />
     </div>
   );
 }

@@ -7,6 +7,12 @@ import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { APP_ROUTES } from "@/shared/lib/routes";
+import {
+  normalizeReturnPath,
+  PARTIAL_TOKEN_STORAGE_KEY,
+  POST_LOGIN_REDIRECT_STORAGE_KEY,
+} from "@/shared/lib/redirects";
 import {
   createTotpChallengeSchema,
   type TOTPChallengeInput,
@@ -39,9 +45,9 @@ export function TOTPForm() {
   const [partialToken, setPartialToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("partial_token");
+    const token = sessionStorage.getItem(PARTIAL_TOKEN_STORAGE_KEY);
     if (!token) {
-      router.replace("/login");
+      router.replace(APP_ROUTES.login);
       return;
     }
     setPartialToken(token);
@@ -59,7 +65,7 @@ export function TOTPForm() {
 
   async function onSubmit(values: TOTPChallengeInput) {
     if (!partialToken) {
-      router.replace("/login");
+      router.replace(APP_ROUTES.login);
       return;
     }
 
@@ -69,13 +75,18 @@ export function TOTPForm() {
         partial_token: partialToken,
         code: values.code,
       });
-      sessionStorage.removeItem("partial_token");
+      const postLoginRedirect = normalizeReturnPath(
+        sessionStorage.getItem(POST_LOGIN_REDIRECT_STORAGE_KEY),
+      );
+      sessionStorage.removeItem(PARTIAL_TOKEN_STORAGE_KEY);
+      sessionStorage.removeItem(POST_LOGIN_REDIRECT_STORAGE_KEY);
       // Full page navigation ensures cookies are included in all subsequent requests
-      window.location.replace("/dashboard");
+      window.location.replace(postLoginRedirect ?? APP_ROUTES.home);
     } catch (err: unknown) {
       const apiErr = err as { code?: string };
       if (apiErr?.code === "INVALID_SESSION") {
-        sessionStorage.removeItem("partial_token");
+        sessionStorage.removeItem(PARTIAL_TOKEN_STORAGE_KEY);
+        sessionStorage.removeItem(POST_LOGIN_REDIRECT_STORAGE_KEY);
         form.setError("code", { message: t("errors.invalidSession") });
       } else if (apiErr?.code) {
         form.setError("code", { message: t("errors.invalidCode") });
@@ -126,7 +137,7 @@ export function TOTPForm() {
 
             <p className="text-center text-sm text-muted-foreground">
               <Link
-                href="/login"
+                href={APP_ROUTES.login}
                 className="hover:text-foreground underline underline-offset-4"
               >
                 {t("backToLogin")}

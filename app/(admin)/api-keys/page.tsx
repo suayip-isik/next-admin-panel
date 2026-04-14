@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { requireNamedPageAccess } from "@/lib/server-auth";
 import { PageHeader } from "@/shared/components/page-header";
 import { ApiKeysList } from "@/modules/api-keys/components/api-keys-list";
 
@@ -9,6 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ApiKeysPage() {
+  await requireNamedPageAccess("apiKeys");
   const t = await getTranslations("apiKeys");
 
   return (

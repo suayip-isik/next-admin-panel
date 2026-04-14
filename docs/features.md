@@ -50,6 +50,12 @@ Desteklenen işlemler:
 - aktif kullanıcıları listeleme
 - silinmiş kullanıcıları listeleme
 - kullanıcı detayını görüntüleme
+- admin kullanıcı oluşturma
+- kullanıcı profil alanlarını güncelleme
+- kullanıcı e-posta değişikliğini başlatma
+- kullanıcı doğrulama e-postasını yeniden gönderme
+- admin davetini yeniden gönderme
+- kullanıcı avatarını yükleme ve silme
 - kullanıcıyı aktive etme
 - kullanıcıyı deaktive etme
 - kullanıcıyı silme
@@ -79,7 +85,8 @@ Route:
 
 Desteklenen işlemler:
 
-- sayfalı audit log listesi
+- cursor tabanlı audit log listesi
+- `Load more` ile ek kayıtları akış halinde yükleme
 - `action`, `user_id`, `date_from`, `date_to` filtreleri
 - tekil audit log detayı görüntüleme
 
@@ -121,6 +128,7 @@ Route'lar:
 Desteklenen işlemler:
 
 - profil bilgilerini güncelleme
+- profil avatarını yükleme ve silme
 - parola değiştirme
 - TOTP kurulum bilgisi alma
 - TOTP doğrulama

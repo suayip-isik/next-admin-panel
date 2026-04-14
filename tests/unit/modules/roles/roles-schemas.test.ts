@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  createRoleSchema,
-  createUpdateRoleSchema,
-} from "@/modules/roles/schemas/roles.schemas";
+import { createRoleSchema } from "@/modules/roles/schemas/roles.schemas";
 
 const t = (key: string) => key;
 
@@ -11,7 +8,7 @@ describe("role schemas", () => {
     const result = createRoleSchema(t).safeParse({
       name: "support_agent",
       description: "Support role",
-      permissions: ["users:read", "roles:write"],
+      permissions: ["users.read.basic", "roles.update.permissions"],
     });
 
     expect(result.success).toBe(true);
@@ -25,9 +22,10 @@ describe("role schemas", () => {
     expect(result.success).toBe(false);
   });
 
-  it("allows partial updates", () => {
-    const result = createUpdateRoleSchema().safeParse({
-      permissions: ["users:read"],
+  it("allows canonical permissions", () => {
+    const result = createRoleSchema(t).safeParse({
+      name: "auditor",
+      permissions: ["audit_logs.list"],
     });
 
     expect(result.success).toBe(true);

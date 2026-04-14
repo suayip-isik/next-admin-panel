@@ -50,7 +50,23 @@
     "notifications": "Notifications",
     "profile": "Profile",
     "security": "Security",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "currentUser": "Current User",
+    "switchLocale": "Switch language to {locale}"
+  },
+  "system": {
+    "forbidden": {
+      "code": "403",
+      "title": "Access denied",
+      "description": "You do not have permission to access this resource.",
+      "backToDashboard": "Return to dashboard"
+    },
+    "unauthorized": {
+      "code": "403",
+      "title": "Access Denied",
+      "description": "You don't have permission to access this page.",
+      "backToDashboard": "Go to Dashboard"
+    }
   },
   "auth": {
     "login": {
@@ -130,12 +146,16 @@
   "users": {
     "title": "Users",
     "subtitle": "Manage user accounts",
+    "createAdmin": "Create an Panel User",
     "searchPlaceholder": "Search by name or email...",
     "filters": {
       "allRoles": "All roles",
       "allStatuses": "All statuses",
+      "allVerification": "All verification states",
       "active": "Active",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "verified": "Verified",
+      "unverified": "Unverified"
     },
     "columns": {
       "user": "User",
@@ -149,19 +169,65 @@
       "personalInfo": "Personal Information",
       "fullName": "Full Name",
       "username": "Username",
-      "joinedAt": "Joined",
-      "lastUpdated": "Last Updated",
+      "pendingEmail": "Pending Email",
       "accountStatus": "Account Status",
       "emailVerified": "Email Verified",
-      "twoFactor": "Two-Factor Auth"
+      "verificationRequired": "Verification Required",
+      "actionsTitle": "Admin Actions",
+      "actionsDescription": "Run user-management actions and communication flows from one place."
+    },
+    "verification": {
+      "pendingEmail": "Pending email change"
+    },
+    "avatar": {
+      "title": "Profile Avatar",
+      "description": "Upload or remove this user's avatar.",
+      "upload": "Upload Avatar",
+      "remove": "Remove Avatar",
+      "uploaded": "Avatar uploaded",
+      "empty": "No avatar uploaded"
     },
     "actions": {
+      "edit": "Edit Profile",
       "activate": "Activate",
       "deactivate": "Deactivate",
+      "changeEmail": "Change Email",
       "changeRole": "Change Role",
+      "resendVerification": "Resend Verification",
+      "resendInvite": "Resend Invite",
       "delete": "Delete",
       "restore": "Restore",
       "viewDetail": "View Details"
+    },
+    "createDialog": {
+      "title": "Create an Admin Panel User",
+      "description": "Create a new admin panel account and send the invite email immediately.",
+      "email": "Email",
+      "role": "Role",
+      "rolePlaceholder": "Select a role",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Optional full name",
+      "username": "Username",
+      "usernamePlaceholder": "optional_username",
+      "submit": "Create User",
+      "submitting": "Creating..."
+    },
+    "editDialog": {
+      "title": "Edit User",
+      "description": "Update the user's basic profile fields.",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "User full name",
+      "username": "Username",
+      "usernamePlaceholder": "user_name",
+      "submit": "Save Changes",
+      "submitting": "Saving..."
+    },
+    "emailDialog": {
+      "title": "Change User Email",
+      "description": "Start an email change and send a verification mail to the new address.",
+      "email": "New Email",
+      "submit": "Change Email",
+      "submitting": "Updating..."
     },
     "dialogs": {
       "deactivate": {
@@ -186,6 +252,7 @@
       },
       "changeRole": {
         "title": "Change Role",
+        "description": "Assign a different role to this user.",
         "selectRole": "Select a role",
         "confirm": "Change Role"
       }
@@ -198,11 +265,18 @@
     },
     "empty": "No users found.",
     "successMessages": {
+      "created": "Admin user created successfully.",
+      "updated": "User updated successfully.",
       "activated": "User activated successfully.",
       "deactivated": "User deactivated successfully.",
       "deleted": "User deleted successfully.",
       "restored": "User restored successfully.",
-      "roleChanged": "User role updated successfully."
+      "roleChanged": "User role updated successfully.",
+      "emailChanged": "User email change started successfully.",
+      "verificationSent": "Verification email sent successfully.",
+      "inviteResent": "Admin invite resent successfully.",
+      "avatarUploaded": "Avatar updated successfully.",
+      "avatarDeleted": "Avatar removed successfully."
     },
     "errorMessages": {
       "activateFailed": "Failed to activate user.",
@@ -225,9 +299,17 @@
     "systemRole": "System",
     "customRole": "Custom",
     "permissionsCount": "{count} permissions",
+    "actions": {
+      "viewDetail": "View Details",
+      "delete": "Delete",
+      "editDescription": "Edit Description",
+      "editPermissions": "Edit Permissions"
+    },
     "form": {
       "createTitle": "Create Role",
+      "createDescription": "Set the name, description, and permissions for the new role.",
       "editTitle": "Edit Role",
+      "editDescription": "Update the role description and permissions.",
       "name": "Role Name",
       "namePlaceholder": "e.g. content_editor",
       "nameHint": "Lowercase letters, numbers, and underscores only.",
@@ -245,6 +327,14 @@
     },
     "empty": "No roles found.",
     "systemRoleProtected": "System roles cannot be deleted.",
+    "descriptionDialog": {
+      "title": "Edit Description",
+      "description": "Update the role description without changing its permissions."
+    },
+    "permissionsDialog": {
+      "title": "Replace Permissions",
+      "description": "Replace the entire permission set for this role."
+    },
     "successMessages": {
       "created": "Role created successfully.",
       "updated": "Role updated successfully.",
@@ -278,7 +368,11 @@
       "timestamp": "Timestamp"
     },
     "empty": "No audit logs found.",
-    "anonymous": "Anonymous"
+    "loadMore": "Load More",
+    "loadMoreLoading": "Loading more...",
+    "anonymous": "Anonymous",
+    "enableLiveMode": "Enable Live Mode",
+    "disableLiveMode": "Disable Live Mode"
   },
   "apiKeys": {
     "title": "API Keys",
@@ -350,6 +444,16 @@
   "profile": {
     "title": "Profile",
     "subtitle": "Manage your account information",
+    "avatar": {
+      "title": "Profile Avatar",
+      "description": "Upload or remove your profile avatar.",
+      "upload": "Upload Avatar",
+      "remove": "Remove Avatar",
+      "uploaded": "Avatar uploaded",
+      "empty": "No avatar uploaded",
+      "successUploaded": "Profile avatar updated successfully.",
+      "successDeleted": "Profile avatar removed successfully."
+    },
     "form": {
       "fullName": "Full Name",
       "fullNamePlaceholder": "Your full name",

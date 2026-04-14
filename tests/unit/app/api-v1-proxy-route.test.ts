@@ -5,6 +5,10 @@ import {
   POST as proxyPost,
 } from "@/app/api/v1/[...path]/route";
 
+const expectedFastApiUrl = (
+  process.env.NEXT_PUBLIC_FASTAPI_URL ?? "http://localhost:8000"
+).replace(/\/+$/, "");
+
 type CookieStore = {
   get: ReturnType<typeof vi.fn>;
   getAll: ReturnType<typeof vi.fn>;
@@ -53,19 +57,20 @@ describe("/api/v1 catch-all proxy route", () => {
     );
 
     const response = await proxyGet(
-      new Request("http://localhost/api/v1/users?role=admin"),
+      new Request("http://localhost/api/v1/users?role=panel_admin"),
       { params: Promise.resolve({ path: ["users"] }) },
     );
 
     expect(fetch).toHaveBeenCalledTimes(1);
     const [url, init] = vi.mocked(fetch).mock.calls[0]!;
-    expect(url).toBe("http://localhost:8000/api/v1/users?role=admin");
+    expect(url).toBe(`${expectedFastApiUrl}/api/v1/users?role=panel_admin`);
     expect(new Headers(init?.headers).get("authorization")).toBe(
       "Bearer access-1",
     );
     expect(new Headers(init?.headers).get("accept-language")).toBe("tr");
     expect(new Headers(init?.headers).get("cookie")).toBeNull();
     expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     await expect(response.json()).resolves.toEqual({ ok: true });
   });
 
@@ -91,6 +96,7 @@ describe("/api/v1 catch-all proxy route", () => {
     expect(new Headers(init?.headers).get("authorization")).toBeNull();
     expect(new Headers(init?.headers).get("accept-language")).toBeNull();
     expect(response.status).toBe(401);
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     await expect(response.json()).resolves.toEqual({ detail: "Unauthorized" });
   });
 
@@ -203,6 +209,36 @@ describe("/api/v1 catch-all proxy route", () => {
 
     expect(response.status).toBe(502);
     expect(response.headers.get("content-type")).toBe("text/plain");
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     await expect(response.text()).resolves.toBe("plain-text-error");
+  });
+
+  it("filters unsafe upstream response headers", async () => {
+    cookieStore.get.mockImplementation((name: string) => {
+      if (name === "access_token") return { value: "access-5" };
+      return undefined;
+    });
+
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "set-cookie": "session=bad",
+          server: "upstream",
+          "www-authenticate": 'Bearer realm="admin"',
+        },
+      }),
+    );
+
+    const response = await proxyGet(new Request("http://localhost/api/v1/me"), {
+      params: Promise.resolve({ path: ["me"] }),
+    });
+
+    expect(response.headers.get("set-cookie")).toBeNull();
+    expect(response.headers.get("server")).toBeNull();
+    expect(response.headers.get("www-authenticate")).toBe(
+      'Bearer realm="admin"',
+    );
   });
 });
